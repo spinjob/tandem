@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import {useUser} from '@auth0/nextjs-auth0/client'
-import {Card, Button,Text, Loader, createStyles, Image} from '@mantine/core'
+import {Card, Button,Text, Loader} from '@mantine/core'
 import OrganizationInput from '../Home/organization-input'
 import PartnershipsTable from './partnership-table'
 import axios from 'axios';
@@ -11,6 +11,7 @@ const Partnerships = ({userDetails}) => {
     const { user, error, isLoading } = useUser();
     const [dbUser, setDbUser] = useState(userDetails)
     const [partnerships, setPartnerships] = useState(null)
+
     
     const data = [
         {
@@ -65,7 +66,7 @@ const Partnerships = ({userDetails}) => {
     }, [user])
 
     return user && dbUser?.organization ? ( 
-            <div style={{display: 'flex', flexDirection:'column', padding:30}}>
+            <div style={{display: 'flex', flexDirection:'column', width: '100vw', padding:30, paddingLeft: 40}}>
                 <Text style={{paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>Welcome, {user?.given_name}</Text>
                 <Text style={{paddingBottom: 30}} >Organization: {dbUser?.organization}</Text>
                 <div style={{display:'flex'}}>
@@ -87,7 +88,7 @@ const Partnerships = ({userDetails}) => {
                         </Card.Section>
                     </Card>
                 </div>
-                <div style={{display:'flex', justifyContent: 'right', padding: 30}}>
+                <div style={{display:'flex', justifyContent: 'right', padding: 30, paddingBottom:0}}>
                         <Button type="submit" style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
                             <Text className='registrationButtonText'>New Partnership</Text>
                         </Button>
@@ -106,8 +107,8 @@ const Partnerships = ({userDetails}) => {
                 </div>
             </div>  
         ) : (
-            <div>
-                <Loader/>
+            <div style={{display:'flex',flexDirection:'column',width: '100vw',height:'100vh', justifyContent:'center', alignItems:'center'}}>
+                <Loader />
             </div>
         )
 }

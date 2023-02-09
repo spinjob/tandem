@@ -7,22 +7,16 @@
 
 @font-face {
     font-family: 'Visuelt';
+    font-style: 'regular';
     src: url('../../public/fonts/Visuelt/visuelt-regular-pro/visuelt/web/pro/visuelt-regular-pro.woff2');
-    font-weight: 400;
 }
 
 @font-face {
     font-family: 'Visuelt';
+    font-style: 'medium';
     src: url('../../public/fonts/Visuelt/visuelt-medium-pro/visuelt/web/pro/visuelt-medium-pro.woff2');
-    font-weight: 600;
 }
 
-
-@font-face {
-    font-family: 'Visuelt';
-    src: url('../../public/fonts/Visuelt/visuelt-medium-pro/visuelt/web/pro/visuelt-medium-pro.woff2');
-    font-weight: 100;
-}
 
 
 .header {

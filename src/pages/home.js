@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import {UserContext} from '../context/UserContext';
 import {useUser} from '@auth0/nextjs-auth0/client'
 import Partnerships from '../components/Partnerships/partnerships'
+import MyApis from './myApis'
 import Navigation from '../components/Navbar'
 import { Text, Image, Loader, Card, Button} from '@mantine/core';
 import OrganizationInput from '../components/Home/organization-input'
@@ -13,9 +14,11 @@ const Home = () => {
     const [dbUser, setDbUser] = useState(null)
     const [userContext, setUserContext] = useState(UserContext)
     const [selectedView, setSelectedView] = useState('partnerships')
+    const [apis, setApis] = useState(null)
     
     const setView = (e) => {
         setSelectedView(e.label)
+        console.log(e.label)
     }
 
     useEffect(() => {
@@ -48,9 +51,24 @@ const Home = () => {
         }
     }, [user, dbUser])
 
+    useEffect(()=> {
+        if(dbUser?.organization && !apis){
+            axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + dbUser.organization)
+            .then((res) => {
+                setApis(res.data)
+                console.log(res.data)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+        }
+    }, [dbUser, apis])
+
 
 return !dbUser ? (
-        <Loader />
+            <div style={{display:'flex',flexDirection:'column',width: '100vw',height:'100vh', justifyContent:'center', alignItems:'center'}}>
+                <Loader />
+            </div>
         ) : !dbUser?.organization ? (
             <div style={{display:'flex'}}>
                 <Navigation setView={setView} />
@@ -71,14 +89,14 @@ return !dbUser ? (
                 </div>
             </div>
         ) : dbUser?.organization && selectedView == 'Partnerships' ? ( 
-            <div style={{display:'flex'}}>
+            <div style={{display:'flex', width: '100vw'}}>
                  <Navigation setView={setView} />
                  <Partnerships userDetails={dbUser}/>
             </div>    
         ) : dbUser?.organization && selectedView == 'My APIs' ? (
             <div style={{display:'flex'}}>
                 <Navigation setView={setView} />
-                <Text>My APIs</Text>
+                <MyApis style={{backgroundColor:'red'}} apis={apis} />
             </div>  
         ) : dbUser?.organization && selectedView == 'My Organization' ?(
             <div style={{display:'flex'}}>
