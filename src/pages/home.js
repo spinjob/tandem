@@ -13,15 +13,16 @@ const Home = () => {
     const [dbUser, setDbUser] = useState(null)
     const [userContext, setUserContext] = useState(UserContext)
     const [selectedView, setSelectedView] = useState('partnerships')
-    console.log(dbUser)
+    
     const setView = (e) => {
         setSelectedView(e.label)
     }
 
     useEffect(() => {
         if(user?.email){
-            console.log('user found')
-            axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email})
+            axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email}, {headers: {
+                    'Content-Type': null
+            }})
             .then((res) => {
                 setDbUser(res.data)
                 if(res.data.auth0Id == null || res.data.auth0Id == ""){
@@ -30,7 +31,10 @@ const Home = () => {
                             email: user.email,
                             name: user.name,
                             auth0Id: user.sub
-                        }).then((res) => {
+                        }, 
+                        { headers: {
+                            'Content-Type': null
+                    }}).then((res) => {
                             console.log(res)
                         }
                         ).catch((err) => {
@@ -38,16 +42,16 @@ const Home = () => {
                         }
                         )   
                     }
-                    console.log('updated user metadata')
                 }
             })
             .catch((err) => {
                 console.log(err)
             })
+
         } else {
             console.log('no user')
         }
-    }, [dbUser, user])
+    }, [user, dbUser])
 
 
 return !dbUser ? (
