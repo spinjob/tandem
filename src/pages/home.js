@@ -20,9 +20,7 @@ const Home = () => {
 
     useEffect(() => {
         if(user?.email){
-            axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email}, {headers: {
-                    'Content-Type': null
-            }})
+            axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email})
             .then((res) => {
                 setDbUser(res.data)
                 if(res.data.auth0Id == null || res.data.auth0Id == ""){
@@ -31,10 +29,7 @@ const Home = () => {
                             email: user.email,
                             name: user.name,
                             auth0Id: user.sub
-                        }, 
-                        { headers: {
-                            'Content-Type': null
-                    }}).then((res) => {
+                        }).then((res) => {
                             console.log(res)
                         }
                         ).catch((err) => {
