@@ -15,6 +15,7 @@ const Home = () => {
     const [userContext, setUserContext] = useState(UserContext)
     const [selectedView, setSelectedView] = useState('partnerships')
     const [apis, setApis] = useState(null)
+    const [refreshApis, setRefreshApis] = useState(false)
     
     const setView = (e) => {
         setSelectedView(e.label)
@@ -56,6 +57,7 @@ const Home = () => {
             axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + dbUser.organization)
             .then((res) => {
                 setApis(res.data)
+                setRefreshApis(false)
                 console.log(res.data)
             })
             .catch((err) => {
@@ -72,7 +74,7 @@ return !dbUser ? (
         ) : !dbUser?.organization ? (
             <div style={{display:'flex'}}>
                 <Navigation setView={setView} />
-                <div style={{display: 'flex', flexDirection:'column',width: '100vw',height:'100vh', justifyContent:'center', alignItems:'center'}}>
+                <div style={{display: 'flex', flexDirection:'column',width: '100vw',height:'100vh', justifyContent:'left', alignItems:'left'}}>
                     <Card style={{display: 'flex', width: 500, height: '35vh', justifyContent:'center', alignItems:'center'}} shadow="sm" p="lg" radius="md" withBorder>
                         <Card.Section>
                             <Text style={{fontFamily: 'Visuelt', fontWeight: 600, fontSize: 30}}>Join a Company</Text>
@@ -96,7 +98,7 @@ return !dbUser ? (
         ) : dbUser?.organization && selectedView == 'My APIs' ? (
             <div style={{display:'flex'}}>
                 <Navigation setView={setView} />
-                <MyApis style={{backgroundColor:'red'}} apis={apis} />
+                <MyApis style={{backgroundColor:'red'}} apis={apis} organization={dbUser?.organization} userId={user?.sub} setRefreshApis={setRefreshApis} />
             </div>  
         ) : dbUser?.organization && selectedView == 'My Organization' ?(
             <div style={{display:'flex'}}>
