@@ -3,16 +3,43 @@ import {Modal, Button,Text, Loader, ScrollArea, Grid, Container} from '@mantine/
 import {GrAddCircle} from 'react-icons/gr'
 import {VscTypeHierarchy} from 'react-icons/vsc'
 import ImportApiDropzone from '../components/import-api.tsx'
+import { useUser } from '@auth0/nextjs-auth0/client';
+import {useContext} from 'react'
+import AppContext from '@/context/AppContext';
+import axios from 'axios';
 
-const MyApis = ({apis, organization, userId, setRefreshApis}) => {
+const MyApis = () => {
 
    const [modalOpened, setModalOpened] = useState(false)
+   const [apis, setApis] = useState(null)
+   const { user, error, isLoading } = useUser();
+   const {organization, setOrganization} = useContext(AppContext).state
+   const {dbUser, setDbUser} = useContext(AppContext).state
+
+   console.log(useContext(AppContext))
+   
+   const fetchApis = useCallback(() => {
+        axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + organization)
+            .then((res) => {
+                setApis(res.data)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+   }, [organization])
+
+   useEffect(() => {
+        if(organization){
+            fetchApis()
+        }
+    }, [organization, fetchApis])
+
 
    const renderApis = () => {
         return apis.map((api) => {
             return (
-                <Grid.Col key={"gridColumn"+api.id} xs={4}>
-                        <Button key={'button_'+api.id} sx={{
+                <Grid.Col key={"gridColumn"+api.uuid} xs={4}>
+                        <Button key={'button_'+api.uuid} sx={{
                             '&:hover': {
                                 boxShadow: '0 0 0 1px #eaeaff'
                             }
@@ -49,7 +76,7 @@ const MyApis = ({apis, organization, userId, setRefreshApis}) => {
                 }
             >
                 <Text style={{paddingBottom: 20, fontSize: '15px'}}>Provide an API spec in Open API v2 or v3. Tandem also supports the import of Postman Collections!</Text> 
-                <ImportApiDropzone organizationId={organization} userId={userId} setRefreshApis={setRefreshApis}/>
+                <ImportApiDropzone organizationId={organization} userId={user?.sub}/>
             </Modal>
             <ScrollArea>
                 <div style={{display: 'flex', flexDirection:'column', height: '100vh',padding:30}}>

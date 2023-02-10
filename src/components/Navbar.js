@@ -1,14 +1,12 @@
 import { Navbar, createStyles, Group, Code, Image,Text, Avatar} from "@mantine/core";
 import { useState, useCallback, useEffect } from "react";
 import {useRouter} from 'next/navigation'
-import {UserContext} from '../context/UserContext'
+import { useUser } from "@auth0/nextjs-auth0/client";
 import {MdConnectWithoutContact} from 'react-icons/md'
 import {CgListTree} from 'react-icons/cg'
 import {BiBuildings} from 'react-icons/bi'
-import {useUser} from '@auth0/nextjs-auth0/client'
 
-
-const Navigation = ({setView}) => {
+const Navigation = () => {
     const { user, error, isLoading } = useUser();
     const router = useRouter()
 
@@ -62,7 +60,7 @@ const Navigation = ({setView}) => {
             '&, &:hover': {
               backgroundColor: '#ffffff',
               borderRadius: 12,
-              fontWeight: 600,
+              fontWeight: 500,
               color: theme.colorScheme === 'dark' ? theme.white : theme.black,
               [`& .${icon}`]: {
                 color: theme.colorScheme === 'dark' ? theme.white : theme.black,
@@ -76,9 +74,9 @@ const Navigation = ({setView}) => {
     const [active, setActive] = useState('Partnerships');
 
     const data = [
-        { link: '', label: 'Partnerships' },
-        { link: '', label: 'My APIs'},
-        { link: '', label: 'My Organization'}
+        { link: '/', label: 'Partnerships' },
+        { link: '/myApis', label: 'My APIs'},
+        { link: '/myOrganization', label: 'My Organization'}
     ];
     
     const renderIcon = (label) => {
@@ -102,7 +100,7 @@ const Navigation = ({setView}) => {
       key={item.label}
       onClick={(event) => {
         event.preventDefault();
-        setView(item)
+        router.push(item.link);
         setActive(item.label);
       }}
     >
@@ -112,7 +110,11 @@ const Navigation = ({setView}) => {
   ));
 
     
-    return (
+    return !user ? (
+    <div>
+
+    </div>)
+    : (
         <div>
             <Navbar style={{backgroundColor: '#f2f2f8'}} height={'100vh'} width={{ sm: 300 }}>
                 <Navbar.Section grow>

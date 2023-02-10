@@ -2,13 +2,11 @@ import {useFormik} from 'formik'
 import {Text, Button, PasswordInput, PasswordInputProps} from '@mantine/core'
 import * as yup from 'yup'
 import axios from 'axios'
-import { UserContext } from "../context/UserContext"
 import React, { useContext, useState } from "react"
 
 function LoginForm({toggleLogin}) {
     const [message, setMessage] = useState('')
     const [submitted, setSubmitted] = useState(false)
-    const [userContext, setUserContext] = useContext(UserContext)
 
     const loginHandler = (data) => {
         axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/login',
@@ -20,9 +18,7 @@ function LoginForm({toggleLogin}) {
                     setMessage('Success!')
                     const data = await response.data
                     console.log(data)
-                    setUserContext(oldValues => {
-                        return { ...oldValues, token: data.token }
-                    })
+
                 }
             }).catch(error => {
                 console.log(error)

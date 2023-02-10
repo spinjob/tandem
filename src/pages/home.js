@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import {UserContext} from '../context/UserContext';
 import {useUser} from '@auth0/nextjs-auth0/client'
-import Partnerships from '../components/Partnerships/partnerships'
+import Partnerships from './partnerships'
 import MyApis from './myApis'
 import Navigation from '../components/Navbar'
 import { Text, Image, Loader, Card, Button} from '@mantine/core';
@@ -12,10 +11,8 @@ const Home = () => {
 
     const { user, error, isLoading } = useUser();
     const [dbUser, setDbUser] = useState(null)
-    const [userContext, setUserContext] = useState(UserContext)
     const [selectedView, setSelectedView] = useState('partnerships')
     const [apis, setApis] = useState(null)
-    const [refreshApis, setRefreshApis] = useState(false)
     
     const setView = (e) => {
         setSelectedView(e.label)
@@ -57,7 +54,6 @@ const Home = () => {
             axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + dbUser.organization)
             .then((res) => {
                 setApis(res.data)
-                setRefreshApis(false)
                 console.log(res.data)
             })
             .catch((err) => {
@@ -98,7 +94,7 @@ return !dbUser ? (
         ) : dbUser?.organization && selectedView == 'My APIs' ? (
             <div style={{display:'flex'}}>
                 <Navigation setView={setView} />
-                <MyApis style={{backgroundColor:'red'}} apis={apis} organization={dbUser?.organization} userId={user?.sub} setRefreshApis={setRefreshApis} />
+                <MyApis style={{backgroundColor:'red'}} apis={apis} organization={dbUser?.organization} userId={user?.sub}/>
             </div>  
         ) : dbUser?.organization && selectedView == 'My Organization' ?(
             <div style={{display:'flex'}}>

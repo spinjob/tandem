@@ -1,18 +1,21 @@
 import { useState, useCallback, useEffect } from 'react';
 import {useUser} from '@auth0/nextjs-auth0/client'
-import {Card, Button,Text, Loader} from '@mantine/core'
-import OrganizationInput from '../Home/organization-input'
-import PartnershipsTable from './partnership-table'
+import {Card, Button,Text, Loader, Modal} from '@mantine/core'
+import PartnershipsTable from '../components/Partnerships/partnership-table'
+import NewPartnership from '../components/Partnerships/newPartnership'
 import axios from 'axios';
-import { relative } from 'path';
+import {useContext} from 'react'
+import AppContext from '@/context/AppContext';
 
-const Partnerships = ({userDetails}) => {
+const Partnerships = () => {
 
     const { user, error, isLoading } = useUser();
-    const [dbUser, setDbUser] = useState(userDetails)
     const [partnerships, setPartnerships] = useState(null)
+    const {organization, setOrganization} = useContext(AppContext).state
+    const {dbUser, setDbUser} = useContext(AppContext).state
+    const [modalOpened, setModalOpened] = useState(false)
 
-    
+    console.log(AppContext)
     const data = [
         {
           "id": "1",
@@ -50,25 +53,21 @@ const Partnerships = ({userDetails}) => {
           "updated": "2023-01-02 22:14:53"
         }
       ]
-    useEffect(() => {
-        if(user?.email){
-            console.log('refetching user')
-            axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email})
-            .then((res) => {
-                setDbUser(res.data)
-            })
-            .catch((err) => {
-                console.log(err)
-            })
-        } else {
-            console.log('no user')
-        }
-    }, [user])
 
-    return user && dbUser?.organization ? ( 
+    return user && organization ? ( 
             <div style={{display: 'flex', flexDirection:'column', width: '100vw', padding:30, paddingLeft: 40}}>
+                <Modal
+                centered
+                opened={modalOpened}
+                onClose={() => setModalOpened(false)}
+                size="lg"
+                title={
+                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontStyle: 'medium', fontSize: '25px'}}>Create a New Partnership</Text>                      
+                }
+            >
+               <NewPartnership/>
+            </Modal>
                 <Text style={{paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>Welcome, {user?.given_name}</Text>
-                <Text style={{paddingBottom: 30}} >Organization: {dbUser?.organization}</Text>
                 <div style={{display:'flex'}}>
                     <Card style={{height: 180, width: 280, paddingTop: 38, paddingLeft: 50, backgroundColor: '#ffecea'}}radius={'xl'}>
                         <Card.Section>
@@ -89,12 +88,12 @@ const Partnerships = ({userDetails}) => {
                     </Card>
                 </div>
                 <div style={{display:'flex', justifyContent: 'right', padding: 30, paddingBottom:0}}>
-                        <Button type="submit" style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
-                            <Text className='registrationButtonText'>New Partnership</Text>
+                        <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
+                            <Text>New Partnership</Text>
                         </Button>
                 </div>
                 <div>
-                    <Text style={{paddingBottom: 30, paddingLeft: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '20px'}}>Partnerships</Text>
+                    <Text style={{paddingBottom: 30, paddingLeft: 10, fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px'}}>Partnerships</Text>
 
                     <div style={{paddingBottom: 20,paddingLeft: 10}}>
                         <Button style={{borderRadius: 30, height: 18, backgroundColor: 'black', color: 'white'}}> All </Button>
