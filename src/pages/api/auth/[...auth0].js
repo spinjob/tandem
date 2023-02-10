@@ -4,7 +4,7 @@ export default handleAuth(
     {
         async login(req, res) {
             await handleLogin(req, res, {
-                returnTo: "/"
+                returnTo: "/index"
             })
         }
 
