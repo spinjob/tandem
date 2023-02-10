@@ -13,7 +13,7 @@ export default function App(props: AppProps) {
   const [dbUser, setDbUser] = useState(null)
 
   return (
-    <UserProvider>
+
     <AppContext.Provider
       value={{
         state: { 
@@ -45,11 +45,13 @@ export default function App(props: AppProps) {
       >
         <div style={{display: 'flex'}}>
           {/* <Navigation/> */}
-            <Component {...pageProps} />              
+          <UserProvider>
+            <Component {...pageProps} /> 
+            </UserProvider>             
         </div>
         <CustomFonts />
       </MantineProvider>
       </AppContext.Provider>
-      </UserProvider>
+
   );
 }
