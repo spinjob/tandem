@@ -6,7 +6,7 @@ import axios from 'axios';
 import { relative } from 'path';
 import {GrAddCircle} from 'react-icons/gr'
 import {VscTypeHierarchy} from 'react-icons/vsc'
-import ImportApiDropzone from '../components/MyApis/import-api-dropzone'
+import ImportApiDropzone from '../components/MyApis/import-api-dropzone.tsx'
 
 const MyApis = ({apis, organization, userId, setRefreshApis}) => {
 
