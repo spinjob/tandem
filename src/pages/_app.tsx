@@ -43,11 +43,10 @@ export default function App(props: AppProps) {
           }
         }}
       >
-              <div style={{display: 'flex'}}>
-              <Navigation/>
-                <Component {...pageProps} />              
-              </div>
-            
+        <div style={{display: 'flex'}}>
+          {/* <Navigation/> */}
+            <Component {...pageProps} />              
+        </div>
         <CustomFonts />
       </MantineProvider>
       </AppContext.Provider>
