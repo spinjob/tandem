@@ -1,12 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import {useUser} from '@auth0/nextjs-auth0/client'
-import {Card, Modal, Button,Text, Loader, ScrollArea, Grid, Container} from '@mantine/core'
-import {useHover} from '@mantine/hooks'
-import axios from 'axios';
-import { relative } from 'path';
+import {Modal, Button,Text, Loader, ScrollArea, Grid, Container} from '@mantine/core'
 import {GrAddCircle} from 'react-icons/gr'
 import {VscTypeHierarchy} from 'react-icons/vsc'
-import ImportApiDropzone from '../components/MyApis/import-api-dropzone.tsx'
+import ImportApiDropzone from '../components/import-api.tsx'
 
 const MyApis = ({apis, organization, userId, setRefreshApis}) => {
 

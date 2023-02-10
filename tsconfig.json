@@ -19,6 +19,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/components/LoginForm.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/components/LoginForm.js", "src/components/MyAPIs/import-api-dropzone.js"],
   "exclude": ["node_modules"]
 }
