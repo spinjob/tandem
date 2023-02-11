@@ -16,8 +16,6 @@ const MyApis = () => {
    const {organization, setOrganization} = useContext(AppContext).state
    const {dbUser, setDbUser} = useContext(AppContext).state
 
-   console.log(useContext(AppContext))
-   
    const fetchApis = useCallback(() => {
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + organization)
             .then((res) => {
