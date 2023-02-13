@@ -11,12 +11,23 @@ const Partnerships = () => {
 
     const { user, error, isLoading } = useUser();
     const [partnerships, setPartnerships] = useState(null)
-    const {organization, setOrganization} = useContext(AppContext).state
-    const {dbUser, setDbUser} = useContext(AppContext).state
+    const {setOrganization} = useContext(AppContext)
+    const {organization} = useContext(AppContext).state
+    const {setDbUser} = useContext(AppContext)
+    const {dbUser} = useContext(AppContext).state
     const [modalOpened, setModalOpened] = useState(false)
+    const [apis, setApis] = useState(null)
 
-    console.log(AppContext)
-    const data = [
+    const data = partnerships?.map((partnership) => {
+        return {
+            id: partnership.uuid,
+            name: partnership.name,
+            workflows: partnership.workflows?.length,
+            updated: partnership.updated_at
+        }
+    })
+
+    const testData = [
         {
           "id": "1",
           "name": "Athena Weissnat",
@@ -52,20 +63,72 @@ const Partnerships = () => {
           "workflows": "5",
           "updated": "2023-01-02 22:14:53"
         }
-      ]
+    ]
 
-    return user && organization ? ( 
-            <div style={{display: 'flex', flexDirection:'column', width: '100vw', padding:30, paddingLeft: 40}}>
+    const fetchApis = useCallback(() => {
+        axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + organization)
+            .then((res) => {
+                setApis(res.data)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+   }, [organization])
+
+    const fetchPartnerships = useCallback(() => {
+        axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects?organization=' + organization)
+            .then((res) => {
+                setPartnerships(res.data)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+    }, [organization, setPartnerships])
+
+    const fetchDbUser = useCallback(() => {
+        axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email})
+        .then((res) => {
+            setDbUser(res.data)
+            if(res.data.organization){
+              console.log("Organization Found for User")
+              setOrganization(res.data.organization)
+            }
+        })
+        .catch((err) => {
+            // console.log(err)
+        })
+    }, [user, setDbUser, setOrganization])
+
+    useEffect(() => {
+        if (organization && !apis) {
+            fetchApis()
+        }
+    }, [organization, fetchApis, apis])
+
+    useEffect(() => {
+        if (organization && !partnerships) {
+            fetchPartnerships()
+        }
+    }, [organization, fetchPartnerships, partnerships])
+
+    useEffect(() => {
+        if (!organization && user && !dbUser) {
+            fetchDbUser()
+        }
+    }, [organization, user, dbUser, fetchDbUser])
+
+    return user && organization && partnerships ? ( 
+        <div style={{display: 'flex', flexDirection:'column', width: '100vw', padding:30, paddingLeft: 40}}>
                 <Modal
                 centered
                 opened={modalOpened}
                 onClose={() => setModalOpened(false)}
-                size="lg"
+                size="xl"
                 title={
                         <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontStyle: 'medium', fontSize: '25px'}}>Create a New Partnership</Text>                      
                 }
             >
-               <NewPartnership/>
+               <NewPartnership organization={organization} apis={apis}/>
             </Modal>
                 <Text style={{paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>Welcome, {user?.given_name}</Text>
                 <div style={{display:'flex'}}>

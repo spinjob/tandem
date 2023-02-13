@@ -363,7 +363,7 @@
   input:focus,
   select:focus,
   textarea:focus {
-    border: 2px solid var(--focus-ring-color);
+    /* border: 2px solid var(--focus-ring-color); */
   }
   
   input:invalid,

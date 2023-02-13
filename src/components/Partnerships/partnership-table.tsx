@@ -12,6 +12,8 @@ import {
 } from '@mantine/core';
 import { keys } from '@mantine/utils';
 import { type } from 'os';
+import { useRouter } from 'next/router';
+
 const useStyles = createStyles((theme) => ({
   th: {
     padding: '0 !important',
@@ -103,6 +105,7 @@ function PartnershipsTable({ data }: TableSortProps) {
   const [sortedData, setSortedData] = useState(data);
   const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
+  const router  = useRouter();
 
   const setSorting = (field: keyof RowData) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -117,16 +120,21 @@ function PartnershipsTable({ data }: TableSortProps) {
     setSortedData(sortData(data, { sortBy, reversed: reverseSortDirection, search: value }));
   };
 
+  const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
+    const { id } = event.currentTarget.dataset;
+    router.push(`/partnerships/${id}`)
+  };
+
   const rows = sortedData.map((row) => (
-    <tr key={row.id}>
-      <td>{row.name}</td>
-      <td>{row.workflows}</td>
-      <td>
+    <tr data-id={row.id} onClick={handleRowClick} key={row.id}>
+      <td data-id={row.id}>{row.name}</td>
+      <td data-id={row.id}>{row.workflows}</td>
+      <td data-id={row.id}>
         <Group spacing="sm">
           <Avatar size={26} src={row.avatar} radius={26} />
         </Group>
       </td> 
-      <td>{row.updated}</td>
+      <td data-id={row.id}>{row.updated}</td>
     </tr>
   ));
 
@@ -155,14 +163,14 @@ function PartnershipsTable({ data }: TableSortProps) {
             <Th
               sorted={sortBy === 'updated'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('workflows')}
+              onSort={() => setSorting('name')}
             >
               Workflows
             </Th>
             <Th
               sorted={sortBy === 'avatar'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('avatar')}
+              onSort={() => setSorting('name')}
             >
               Team
             </Th>
