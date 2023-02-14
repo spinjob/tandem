@@ -18,6 +18,7 @@ import { keys } from '@mantine/utils';
 import { type } from 'os';
 import { useRouter } from 'next/router';
 import {BiSearch} from 'react-icons/bi'
+import {RxCaretSort} from 'react-icons/rx'
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -71,6 +72,7 @@ function Th({ children, reversed, sorted, onSort }: ThProps) {
           <Text style={{fontFamily: 'Visuelt'}} weight={500} size="sm">
             {children}
           </Text>
+          <RxCaretSort style={{color:'grey'}}/>
         </Group>
       </UnstyledButton>
     </th>
@@ -86,9 +88,9 @@ function filterData(data: RowData[], search: any) {
 
 function sortData(
   data: RowData[],
-  payload: { sortBy: keyof RowData | null; reversed: boolean; search: string }
+  payload: { sortBy: keyof RowData | null; reversed: boolean; search: string, statusFilter: string }
 ) {
-  const { sortBy } = payload;
+  const { sortBy} = payload;
 
   if (!sortBy) {
     return filterData(data, payload.search);
@@ -108,6 +110,7 @@ function sortData(
 
 function PartnershipWorkflowsTable({ data }: TableSortProps) {
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState("None");
   
   const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
@@ -115,25 +118,23 @@ function PartnershipWorkflowsTable({ data }: TableSortProps) {
 
   const [sortedData, setSortedData] = useState(data);
 
-  const setSorting = (field: keyof RowData) => {
+  const setSorting = (field: keyof RowData, filter: boolean) => {
+  
+    if (filter) {
+      setSortedData(sortData(data, { sortBy: field, reversed: false, search, statusFilter }));
+    }
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
-    setSortedData(sortData(data, { sortBy: field, reversed, search }));
+    setSortedData(sortData(data, { sortBy: field, reversed, search, statusFilter }));
   };
-
-//   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-//     const { value } = event.currentTarget;
-//     setSearch(value);
-//     setSortedData(sortData(data, { sortBy, reversed: reverseSortDirection, search: value }));
-//   };
 
 //   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
 //     const { id } = event.currentTarget.dataset;
 //     router.push(`/partnerships/${id}`)
 //   };
 
-  const rows = sortedData.map((row) => (
+  const rows = statusFilter != "None" ? sortedData.filter((row) => row.status === statusFilter).map((row) => (
     <tr data-id={row.id} 
     // onClick={handleRowClick} 
     key={row.id}>
@@ -153,10 +154,37 @@ function PartnershipWorkflowsTable({ data }: TableSortProps) {
       </td>
       <td data-id={row.id}>{row.updated}</td>
     </tr>
-  ));
+  )) : sortedData.map((row) => (
+    <tr data-id={row.id} 
+    // onClick={handleRowClick} 
+    key={row.id}>
+      <td data-id={row.id}>{
+        <Switch color="dark" checked={
+            row.active === 'true' ? true : false
+        }
+         />
+      }</td>
+      <td data-id={row.id}>{row.name}</td>
+      <td data-id={row.id}>
+        <Badge color={
+            row.status === 'Draft' ? 'gray' : row.status === 'Active' ? 'lime' : 'red'
+        } style={{fontFamily:'apercu-light-pro', color: 'black'}}>
+            {row.status}
+        </Badge>
+      </td>
+      <td data-id={row.id}>{row.updated}</td>
+    </tr>
+  ))
+
 
   return  (
     <div style={{width: '70vw'}}>
+        <div style={{paddingBottom: 20,paddingLeft: 10, paddingTop: 30}}>
+                <Button onClick={() => {setStatusFilter("None")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: 'black', color: 'white'}}> All </Button>
+                <Button onClick={() => {setStatusFilter("Active")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#b4f481', color: 'black', fontWeight: 4}}>Active</Button>
+                <Button onClick={() => {setStatusFilter("Upublished")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#FFBD9A', color: 'black', fontWeight: 4}}> Unpublished </Button>
+                <Button onClick={() => {setStatusFilter("Draft")}} style={{fontFamily: 'apercu-regular-pro',  borderRadius: 30, height: 18, backgroundColor: '#e7e7e7', color: 'black', fontWeight: 4}}> Draft </Button>
+        </div>
         <div style={{display: 'flex', flexDirection:'row', width: '70vw', height: 35, justifyContent: 'right'}}>
             {/* <TextInput
             size="sm"
@@ -188,21 +216,21 @@ function PartnershipWorkflowsTable({ data }: TableSortProps) {
             <Th
               sorted={sortBy === 'name'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('name')}
+              onSort={() => setSorting('name', false)}
             >
               Name
             </Th>
             <Th
               sorted={sortBy === 'status'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('status')}
+              onSort={() => setSorting('status', false)}
             >
               Status
             </Th>
             <Th
               sorted={sortBy === 'updated'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('updated')}
+              onSort={() => setSorting('updated', false)}
             >
               Updated
             </Th>

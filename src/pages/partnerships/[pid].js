@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { Breadcrumbs, Anchor, Loader, Text, Tabs} from '@mantine/core';
+import { Breadcrumbs, Anchor, Loader, Text, Tabs, Center} from '@mantine/core';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios'
 import PartnershipWorkflows from './[pid]/workflows'
@@ -11,6 +11,7 @@ const Partnership = () => {
   const router = useRouter()
   const { pid } = router.query
   const [partnership, setPartnership] = useState(null)
+  const [apis, setApis] = useState(null)
 
   const fetchPartnershipDetails = useCallback(() => {
     axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/details')
@@ -27,6 +28,19 @@ const Partnership = () => {
         fetchPartnershipDetails()
     } 
 }, [pid, fetchPartnershipDetails, partnership])
+
+useEffect(() => { 
+  if (partnership && !apis) {
+    axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/interfaces', {interfaces: partnership.interfaces})
+      .then((res) => {
+        setApis(res.data)
+        console.log(res.data)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+  }
+}, [partnership, apis])
 
   const items = [
     { title: 'Partnerships', href: '/partnerships' },
@@ -66,13 +80,14 @@ const Partnership = () => {
         <Tabs.List>
           <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="workflows">Workflows</Tabs.Tab>
           <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="apis">APIs</Tabs.Tab>
-          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="configurations">Configurations</Tabs.Tab>        </Tabs.List>
+          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="configurations">Configurations</Tabs.Tab>        
+        </Tabs.List>
 
         <Tabs.Panel value="workflows">
           <PartnershipWorkflows pid={pid}/>
         </Tabs.Panel>
         <Tabs.Panel value="apis">
-          <PartnershipApis pid={pid}/>
+          <PartnershipApis pid={pid} partnershipApis={apis}/>
         </Tabs.Panel>
         <Tabs.Panel value="configurations">
           <PartnershipConfigurations pid={pid}/>

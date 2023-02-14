@@ -159,9 +159,9 @@ const Partnerships = () => {
                     <Text style={{paddingBottom: 30, paddingLeft: 10, fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px'}}>Partnerships</Text>
 
                     <div style={{paddingBottom: 20,paddingLeft: 10}}>
-                        <Button style={{borderRadius: 30, height: 18, backgroundColor: 'black', color: 'white'}}> All </Button>
-                        <Button style={{borderRadius: 30, height: 18, backgroundColor: '#b4f481', color: 'black', fontWeight: 4, borderColor: 'black'}}>Active</Button>
-                        <Button style={{borderRadius: 30, height: 18, backgroundColor: '#e7e7e7', color: 'black', fontWeight: 4, borderColor: 'black'}}> Draft </Button>
+                        <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: 'black', color: 'white'}}> All </Button>
+                        <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: '#b4f481', color: 'black',borderColor: 'black'}}>Active</Button>
+                        <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: '#e7e7e7', color: 'black', borderColor: 'black'}}> Draft </Button>
                     </div>
                 
                     <PartnershipsTable data={data} />

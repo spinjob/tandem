@@ -1,5 +1,5 @@
 import { AppProps } from "next/app";
-import { MantineProvider } from "@mantine/core";
+import { Container, MantineProvider } from "@mantine/core";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
 import AppContext from '../context/AppContext';
 import {CustomFonts} from '../../Global.js'
@@ -44,9 +44,11 @@ export default function App(props: AppProps) {
         }}
       >
         <UserProvider>
-        <div style={{display: 'flex'}}>
-        <Navigation/>     
-            <Component {...pageProps} /> 
+        <div style={{display:'flex'}}>
+        <Navigation/>
+        <Container size="xl" style={{width: '100%', marginLeft: 300}}>
+          <Component {...pageProps} /> 
+        </Container>
         </div>
         </UserProvider> 
         <CustomFonts />

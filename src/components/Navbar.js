@@ -115,7 +115,7 @@ const Navigation = () => {
 
     </div>)
     : (
-        <div>
+        <div style={{position:'fixed', width:300, zIndex: 9999999999}}>
             <Navbar style={{backgroundColor: '#F8F6F4'}} height={'100vh'} width={{ sm: 300 }}>
                 <Navbar.Section grow>
                     <Group className={classes.header} position="center">

@@ -17,6 +17,23 @@
     src: url('../../public/fonts/Visuelt/visuelt-medium-pro/visuelt/web/pro/visuelt-medium-pro.woff2');
 }
 
+@font-face {
+  font-family: 'apercu-regular-pro';
+  src: url('../../public/fonts/Apercu/apercu/web/pro/apercu-regular-pro.woff2') format('woff2'),
+      url('../../public/fonts/Apercu/apercu/web/pro/apercu-regular-pro.woff') format('woff'),
+      url('../../public/fonts/Apercu/apercu/web/pro/apercu-regular-pro.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'apercu-light-pro';
+  src: url('../../public/fonts/Apercu/apercu/web/pro/apercu-light-pro.woff2') format('woff2'),
+      url('../../public/fonts/Apercu/apercu/web/pro/apercu-light-pro.woff') format('woff'),
+      url('../../public/fonts/Apercu/apercu/web/pro/apercu-light-pro.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 
 
 .header {

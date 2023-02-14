@@ -65,6 +65,7 @@ const ImportApiDropzone: React.FC<Props> = ({organizationId, userId}) => {
       <Dropzone
         loading={isLoading}
         openRef={openRef}
+        
         onDrop={(acceptedFiles) => {
           acceptedFiles.forEach((file) => {
             console.log(file)
@@ -89,35 +90,30 @@ const ImportApiDropzone: React.FC<Props> = ({organizationId, userId}) => {
         className={classes.dropzone}
         radius="md"
         accept={['application/json']}
+        style={{backgroundColor: '#F8F6F3', border: '0px'}}
       >
         <div style={{ pointerEvents: 'none' }}>
-          <Group position="center">
+          <Text align="center" style={{fontFamily: 'Visuelt', color:'#5A5A5A'}} size="lg" mt="xl">
             <Dropzone.Accept>
               <CiImport size={50} color={'#b4f481'}/>
+              <Text>Drop to Import</Text>
             </Dropzone.Accept>
             <Dropzone.Reject>
               <VscBracketError size={50} color={'#ff7e35'}/>
+              <Text>File must be in JSON</Text>
             </Dropzone.Reject>
             <Dropzone.Idle>
-              <TbFileCode
-                size={50}
-                color={'#9595ff'}
-              />
+                <TbFileCode
+                  size={50}
+                  color={'#BABABA'}
+                />
+                <Text style={{fontSize: '15px', paddingTop: 10}} >Click to upload or drag & drop</Text>
             </Dropzone.Idle>
-          </Group>
-
-          <Text align="center" weight={700} size="lg" mt="xl">
-            <Dropzone.Accept>Drop to Import</Dropzone.Accept>
-            <Dropzone.Reject>File must be in JSON</Dropzone.Reject>
-            <Dropzone.Idle>Upload an API Spec</Dropzone.Idle>
-          </Text>
-          <Text align="center" size="sm" mt="xs" color="dimmed">
-            Drag&apos;n&apos;drop files here to upload. We can accept only <i>.json</i> files at the moment.
           </Text>
         </div>
       </Dropzone>
 
-      <Button className={classes.control} sx={{
+      {/* <Button className={classes.control} sx={{
         fontFamily: 'Visuelt', 
         fontWeight: 100, 
         backgroundColor: '#9595ff', 
@@ -127,7 +123,7 @@ const ImportApiDropzone: React.FC<Props> = ({organizationId, userId}) => {
         }
       }} size="md" radius="xl" onClick={() => openRef.current?.()}>
         Select files
-      </Button>
+      </Button> */}
     </div>
   );
 }

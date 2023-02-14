@@ -97,12 +97,6 @@ const PartnershipWorkflows = ({ pid }) => {
 
     return workflows?.length > 0 && pid ? (
         <div>
-            <div style={{paddingBottom: 20,paddingLeft: 10, paddingTop: 30}}>
-                <Button style={{borderRadius: 30, height: 18, backgroundColor: 'black', color: 'white'}}> All </Button>
-                <Button style={{borderRadius: 30, height: 18, backgroundColor: '#b4f481', color: 'black', fontWeight: 4}}>Active</Button>
-                <Button style={{borderRadius: 30, height: 18, backgroundColor: '#FFBD9A', color: 'black', fontWeight: 4}}> Unpublished </Button>
-                <Button style={{borderRadius: 30, height: 18, backgroundColor: '#e7e7e7', color: 'black', fontWeight: 4}}> Draft </Button>
-            </div>
             <PartnershipWorkflowsTable data={workflowRows}/>
         </div>
     )
