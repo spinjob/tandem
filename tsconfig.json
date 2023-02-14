@@ -19,6 +19,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/components/LoginForm.js", "src/components/MyAPIs/import-api-dropzone.tsx", "src/pages/api/auth/[...auth0].js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/components/LoginForm.js", "src/components/MyAPIs/import-api-dropzone.tsx", "src/pages/api/auth/[...auth0].js", "src/pages/partnerships/[pid]/workflows.js", "src/components/Partnerships/select-api.js"],
   "exclude": ["node_modules"]
 }

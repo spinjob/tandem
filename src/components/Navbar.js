@@ -41,7 +41,7 @@ const Navigation = () => {
             borderRadius: 12,
             width: '80%',
             '&:hover': {
-              backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
+              backgroundColor: '#ffffff',
               color: theme.colorScheme === 'dark' ? theme.white : theme.black,
       
               [`& .${icon}`]: {
@@ -116,10 +116,10 @@ const Navigation = () => {
     </div>)
     : (
         <div>
-            <Navbar style={{backgroundColor: '#f2f2f8'}} height={'100vh'} width={{ sm: 300 }}>
+            <Navbar style={{backgroundColor: '#F8F6F4'}} height={'100vh'} width={{ sm: 300 }}>
                 <Navbar.Section grow>
                     <Group className={classes.header} position="center">
-                       <Image style={{paddingTop:20, paddingRight: 40, width:240}} alt='logo' src='https://i.ibb.co/ypxCSVd/tandem-logo.png' />
+                       <Image style={{paddingTop:20, paddingRight: 40, width:240}} alt='logo' src='https://i.ibb.co/QM4cyP9/Screen-Shot-2023-02-13-at-10-01-35-PM.png' />
                     </Group>
                 <Group position="center">
                      {links}

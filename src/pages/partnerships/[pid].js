@@ -2,6 +2,10 @@ import { useRouter } from 'next/router'
 import { Breadcrumbs, Anchor, Loader, Text, Tabs} from '@mantine/core';
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios'
+import PartnershipWorkflows from './[pid]/workflows'
+import PartnershipApis from './[pid]/apis'
+import PartnershipConfigurations from './[pid]/configurations'
+
 
 const Partnership = () => {
   const router = useRouter()
@@ -21,17 +25,29 @@ const Partnership = () => {
   useEffect(() => {
     if (pid && !partnership) {
         fetchPartnershipDetails()
-    }
+    } 
 }, [pid, fetchPartnershipDetails, partnership])
 
   const items = [
     { title: 'Partnerships', href: '/partnerships' },
     { title: `${partnership?.name}`, href: null }
-  ].map((item, index) => (
-    <Anchor href={item.href} key={index}>
-      <Text style={{fontFamily:'Visuelt', color: 'gray'}}>{item.title}</Text>
-    </Anchor>
-  ));
+  ].map((item, index) => {
+    if(item.title=='Partnerships'){
+      return (
+        <Anchor href={item.href} key={index}>
+          <Text style={{fontFamily:'Visuelt', color: 'black', fontWeight: 500}}>{item.title}</Text>
+        </Anchor>
+      )
+    } else {
+      return (
+        <Anchor href={item.href} key={index}>
+          <Text style={{fontFamily:'Visuelt', color: 'gray', fontWeight: 100}}>{item.title}</Text>
+        </Anchor>
+      )
+
+    }
+      
+  });
   
   return !partnership? (
     <div>
@@ -43,10 +59,26 @@ const Partnership = () => {
       flexDirection: 'column',
       padding: 30
     }}>
-      <Text style={{paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>{partnership.name}</Text>
+      <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>{partnership.name}</Text>
       <Breadcrumbs separator="→">{items}</Breadcrumbs>
+      <div style={{height:50}}/>
+      <Tabs color="gray" defaultValue="workflows">
+        <Tabs.List>
+          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="workflows">Workflows</Tabs.Tab>
+          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="apis">APIs</Tabs.Tab>
+          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="configurations">Configurations</Tabs.Tab>        </Tabs.List>
 
+        <Tabs.Panel value="workflows">
+          <PartnershipWorkflows pid={pid}/>
+        </Tabs.Panel>
+        <Tabs.Panel value="apis">
+          <PartnershipApis pid={pid}/>
+        </Tabs.Panel>
+        <Tabs.Panel value="configurations">
+          <PartnershipConfigurations pid={pid}/>
+        </Tabs.Panel>
 
+      </Tabs>
     </div>   
 )
 }
