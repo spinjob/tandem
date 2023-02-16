@@ -5,7 +5,7 @@ import PartnershipsTable from '../components/Partnerships/partnership-table'
 import NewPartnership from '../components/Partnerships/newPartnership'
 import axios from 'axios';
 import {useContext} from 'react'
-import AppContext from '@/context/AppContext';
+import AppContext from '../context/AppContext';
 
 const Partnerships = () => {
 

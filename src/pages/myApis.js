@@ -5,7 +5,7 @@ import {VscTypeHierarchy} from 'react-icons/vsc'
 import ImportApiDropzone from '../components/import-api.tsx'
 import { useUser } from '@auth0/nextjs-auth0/client';
 import {useContext} from 'react'
-import AppContext from '@/context/AppContext';
+import AppContext from '../context/AppContext';
 import axios from 'axios';
 import { useRouter } from 'next/router'
 
@@ -81,7 +81,7 @@ const MyApis = () => {
                                     </div>
                                 <div style={{display:'block', flexDirection:'column', alignItems: 'left'}}>
                                     <Text style={{fontFamily:'Visuelt', fontWeight: 600, color:'#000000', fontSize: 28}}>{api.name}</Text>
-                                    <Text style={{fontFamily:'Visuelt', fontWeight:100,fontSize: '15px', color:'#939393'}}>{api.version}</Text>
+                                    <Text style={{fontFamily:'apercu-regular-pro', fontWeight:100,fontSize: '15px', color:'#939393'}}>{api.version}</Text>
                                 </div>
                             </Container>
                         </Button>
@@ -92,7 +92,7 @@ const MyApis = () => {
 
 
     return apis ? (
-        <div>
+        <div style={{display: 'block'}}>
             <Modal
                 centered
                 opened={modalOpened}
@@ -109,11 +109,10 @@ const MyApis = () => {
                 </div>
                 <ImportApiDropzone organizationId={organization} userId={user?.sub}/>
             </Modal>
-            <ScrollArea>
-                <div style={{display: 'flex', flexDirection:'column', height: '100vh',padding:30}}>
-                    <Text style={{paddingLeft: 20,paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>Imported APIs</Text>
-                    <Container style={{width: '100vw', height: '100vh'}}>
-                        <Grid grow={false}>
+            <div style={{height: '100vh', width: '45vw',padding:30, display:'flex', flexDirection:'column'}}>
+                <Text style={{paddingLeft: 20,paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>Imported APIs</Text>
+                <Container style={{width: '100vw', height: '100vh'}}>
+                    <Grid grow={false}>
                         <Grid.Col xs={4}>
                             <Button 
                             onClick={() => setModalOpened(true)}
@@ -131,9 +130,8 @@ const MyApis = () => {
                         </Grid.Col>    
                             {renderApis()}
                         </Grid>
-                    </Container>   
-                </div>   
-            </ScrollArea>
+                </Container>   
+            </div>   
         </div>
         ) : (
             <div style={{display:'flex',flexDirection:'column',width: '100vw',height:'100vh', justifyContent:'center', alignItems:'center'}}>

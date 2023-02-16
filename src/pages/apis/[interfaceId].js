@@ -2,6 +2,8 @@ import axios from 'axios'
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router'
 import {Tabs, Text, TextInput, Loader, Breadcrumbs, Anchor} from '@mantine/core'
+import ApiSchemas from '../../components/Api/api-schemas'
+import ApiActions from '../../components/Api/api-actions';
 
 const ViewApi = () => {
 
@@ -117,6 +119,7 @@ const ViewApi = () => {
         }
 
     })
+
     
     useEffect(() => {
         if(interfaceId){
@@ -130,7 +133,7 @@ const ViewApi = () => {
         <div style={{      
             display: 'flex',
             flexDirection: 'column',
-            padding: 30
+            padding: 30,
         }}>
             <div style={{display: 'flex', flexDirection: 'row', paddingBottom: 10, alignItems: 'baseline'}}>
                 <Text style={{height: '40px', fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>{apiMetadata.name}</Text>
@@ -138,6 +141,7 @@ const ViewApi = () => {
                 <Text style={{height: '40px',fontFamily:'apercu-regular-pro', fontSize: '25px'}}>{apiMetadata.version}</Text>
             </div>
             <Breadcrumbs separator="→">{items}</Breadcrumbs>
+            <div style={{height: 20}}></div>
             <Tabs color="gray" defaultValue="metadata">
                 <Tabs.List>
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="metadata">Details</Tabs.Tab>
@@ -173,28 +177,16 @@ const ViewApi = () => {
                 </Tabs.Panel>
 
                 <Tabs.Panel value="schemas" label="Schemas">
-                    {schemas ? ( schemas.map((schema) => {
-                        return (
-                            <div key={schema.uuid}>
-                                <Text>Schema Name: {schema.name}</Text>
-                                <Text>Schema Description: {schema.description}</Text>
-                                <Text>Schema Type: {schema.type}</Text>
-                            </div>
-                        )
-                    })) : (
+                    {schemas ? ( 
+                        <ApiSchemas schemas={schemas}/>
+                    ) : (
                         <Loader/>
                     )}
                 </Tabs.Panel>
                 <Tabs.Panel value="actions" label="Actions">
-                    {actions ? ( actions.map((action) => {
-                        return (
-                            <div key={action.uuid}>
-                                <Text>Action Name: {action.name}</Text>
-                                <Text>Action Method: {action.method}</Text>
-                                <Text>Action Path: {action.path}</Text>
-                            </div>
-                        )
-                    })) : (
+                    {actions ? ( 
+                        <ApiActions actions={actions}/>
+                    ) : (
                         <Loader/>
                     )}
                 </Tabs.Panel>

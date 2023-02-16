@@ -5,44 +5,7 @@ import axios from 'axios'
 
 const PartnershipWorkflows = ({ pid }) => {
     const [workflows, setWorkflows] = useState(null)
-    
-    const data = [
-      {
-        "id": "1",
-        "name": "Athena Weissnat",
-        "avatar": "https://images.unsplash.com/photo-1624298357597-fd92dfbec01d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80",
-        "workflows":"10",
-        "updated": "2023-01-02 22:14:53"
-      },
-      {
-      "id": "2",
-        "name": "Deangelo Runolfsson",
-        "avatar": "https://images.unsplash.com/photo-1586297135537-94bc9ba060aa?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80",
-        "workflows": "2",
-        "updated": "2023-01-02 22:14:53"
-      },
-      {
-        "id": "3",
-        "name": "Danny Carter",
-        "avatar": "https://images.unsplash.com/photo-1632922267756-9b71242b1592?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80",
-        "workflows": "3",
-        "updated": "2023-01-02 22:14:53"
-      },
-      {
-        "id": "4",
-        "name": "Trace Tremblay PhD",
-        "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80",
-        "workflows": "1",
-        "updated": "2023-01-02 22:14:53"
-      },
-      {
-        "id": "5",
-        "name": "Derek Dibbert",
-        "avatar": "https://images.unsplash.com/photo-1630841539293-bd20634c5d72?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80",
-        "workflows": "5",
-        "updated": "2023-01-02 22:14:53"
-      }
-    ]
+  
 
     const renderStatus = (status) => {
       switch (status) {
@@ -78,7 +41,6 @@ const PartnershipWorkflows = ({ pid }) => {
       }
     })
 
-    console.log(workflowRows)
 
     useEffect(() => {
       if (!workflows) {

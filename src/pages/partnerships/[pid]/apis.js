@@ -35,7 +35,7 @@ const PartnershipApis = ({pid, partnershipApis}) => {
                                     </div>
                                 <div style={{display:'block', flexDirection:'column', alignItems: 'left'}}>
                                     <Text style={{fontFamily:'Visuelt', fontWeight: 600, color:'#000000', fontSize: 28}}>{api.name}</Text>
-                                    <Text style={{fontFamily:'Visuelt', fontWeight:100,fontSize: '15px', color:'#939393'}}>{api.version}</Text>
+                                    <Text style={{fontFamily:'apercu-regular-pro', fontWeight:100,fontSize: '15px', color:'#939393'}}>{api.version}</Text>
                                 </div>
                             </Container>
                         </Button>
@@ -63,9 +63,8 @@ const PartnershipApis = ({pid, partnershipApis}) => {
                 </div>
                 <ImportApiDropzone organizationId={organization} userId={user?.sub}/>
             </Modal>
-            <ScrollArea>
-                <div style={{display: 'flex', flexDirection:'column', height: '100vh', paddingTop: 30}}>
-                    <Container style={{width: '100vw', height: '100vh'}}>
+            <div style={{height: '100vh',width: '75%',paddingTop: 30, display:'flex', flexDirection:'column'}}>
+                    <Container style={{width: '100vw'}}>
                         <Grid grow={false}>
                         <Grid.Col xs={4}>
                             <Button 
@@ -86,7 +85,6 @@ const PartnershipApis = ({pid, partnershipApis}) => {
                         </Grid>
                     </Container>   
                 </div>   
-            </ScrollArea>
         </div>
         ) : (
             <div style={{display:'flex',flexDirection:'column',width: '100vw',height:'100vh', justifyContent:'center', alignItems:'center'}}>
