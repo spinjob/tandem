@@ -144,7 +144,7 @@ const returnIcon = (type) => {
 }
 
 
-const SchemaTree = ({ schema, actionUuid, isLoading, setSelectedSchemaProperty}) => {
+const SchemaTree = ({ schema, actionUuid, isLoading, setSelectedSchemaProperty, schemaType}) => {
 
     const renderItemTitle = (title, item) => {
 
@@ -154,7 +154,7 @@ const SchemaTree = ({ schema, actionUuid, isLoading, setSelectedSchemaProperty})
             <div style={{display:'flex', flexDirection:'row', alignItems: 'baseline'}}>
                 {returnIcon(item.type)}
                 <div style={{width: '10px'}} />
-                <Text style={{fontFamily: 'apercu-light-pro'}}>{propertyName}</Text>
+                <Text style={{fontFamily: 'apercu-light-pro', fontSize: 15}}>{propertyName}</Text>
             </div>
            
         )
@@ -166,14 +166,16 @@ const SchemaTree = ({ schema, actionUuid, isLoading, setSelectedSchemaProperty})
         </Center>
     )
     : (
-        <div>
+        <div style={{width: 200}}>
             <UncontrolledTreeEnvironment
             dataProvider={new StaticTreeDataProvider(generateTreeData(schema, false, "root"), (item, newName) => ({ ...item, data: newName }))}
             getItemTitle={item => item.data}
             viewState={{}}
+            canDragAndDrop={true}
+            canRenameItem={true}
             onRenameItem={(item, name) => alert(`${item.data} renamed to ${name}`)}
             renderItemTitle={({title, item}) => renderItemTitle(title, item)}
-            onSelectItems={(items) => {setSelectedSchemaProperty(items)}}
+            onSelectItems={(items) => {setSelectedSchemaProperty(items, schemaType)}}
             >
             <Tree treeId={'tree-1'} rootItem="root" treeLabel="Tree Example" />
             </UncontrolledTreeEnvironment>

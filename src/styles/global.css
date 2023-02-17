@@ -8,6 +8,7 @@
 @font-face {
     font-family: 'Visuelt';
     font-style: 'regular';
+    font-weight: 300;
     src: url('../../public/fonts/Visuelt/visuelt-regular-pro/visuelt/web/pro/visuelt-regular-pro.woff2');
 }
 
@@ -30,6 +31,14 @@
   src: url('../../public/fonts/Apercu/apercu/web/pro/apercu-light-pro.woff2') format('woff2'),
       url('../../public/fonts/Apercu/apercu/web/pro/apercu-light-pro.woff') format('woff'),
       url('../../public/fonts/Apercu/apercu/web/pro/apercu-light-pro.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'apercu-thin-pro';
+  src: url('../../public/fonts/Apercu/apercu/web/pro/apercu-thin-pro.woff2') format('woff2'),
+      url('../../public/fonts/Apercu/apercu/web/pro/apercu-thin-pro.woff') format('woff'),
+      url('../../public/fonts/Apercu/apercu/web/pro/apercu-thin-pro.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }

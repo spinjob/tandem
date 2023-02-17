@@ -118,7 +118,7 @@ const ViewApi = () => {
 
         }
 
-    })
+    }, [interfaceId, apiMetadata, securitySchemas, schemas, actions, webhooks, parameters])
 
     
     useEffect(() => {

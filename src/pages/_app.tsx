@@ -11,7 +11,6 @@ export default function App(props: AppProps) {
   const { Component, pageProps } = props;
   const [organization, setOrganization] = useState(null)
   const [dbUser, setDbUser] = useState(null)
-  const [pathHistory, setPathHistory] = useState([])
   const [isNavOpen,setIsNavOpen] = useState(false)
   const [appMargin, setAppMargin] = useState(300)
 
