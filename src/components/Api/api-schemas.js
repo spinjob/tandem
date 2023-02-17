@@ -33,15 +33,6 @@ const ApiSchemas = ({schemas}) => {
             parentSchemaArray.push(schema)
         })
 
-        console.log(parentSchemaArray)
- 
-        // if(parentSchema.name == "ItemModifier") {
-        //     console.log(parentSchema)
-        //     console.log(propertyKeys)
-        //     console.log(propertyValues)
-        //     return properties
-        // }else {
-
             propertyKeys.map((key, index) => {
                 if(propertyValues[index].$ref) {
                     const ref = propertyValues[index].$ref.split('/').pop()
@@ -98,7 +89,6 @@ const ApiSchemas = ({schemas}) => {
                    
                 }
             })
-        // }
 
         return properties
         
@@ -166,7 +156,7 @@ const ApiSchemas = ({schemas}) => {
             <div>
                 <Text style={{fontFamily:'apercu-regular-pro', fontSize: '18px'}}>Properties:</Text>
                 <div style={{height: 20}}/>
-                <SchemaTree setSelectedSchemaProperty={setSelectedProperty} schema={processSchemaReferences(properties, parentSchema)} schemaType={"schema"}/>
+                <SchemaTree  isLoading={schemaLoading} setSelectedSchemaProperty={setSelectedProperty} schema={processSchemaReferences(properties, parentSchema)} schemaType={"schema"}/>
             </div>
         )
     }
@@ -222,7 +212,7 @@ const ApiSchemas = ({schemas}) => {
         <div style={{paddingTop: 30}}>
             <div style={{display:'flex', flexDirection:'row'}}>
                 <div style={{width: '25vw'}}>
-                     <SchemaTable  isLoading={schemaLoading} setUUID={setUUID} data={schemaRows} />
+                     <SchemaTable setUUID={setUUID} data={schemaRows} />
                 </div>
                 <div style={{width: '10vw'}}>
                     <Divider size="xl" orientation='vertical' color='dark'/>

@@ -5,6 +5,7 @@ import {Tabs, Text, TextInput, Loader, Breadcrumbs, Anchor} from '@mantine/core'
 import ApiSchemas from '../../components/Api/api-schemas'
 import ApiActions from '../../components/Api/api-actions';
 import ApiWebhooks from '../../components/Api/api-webhooks';
+import ApiSecurityScheme from '../../components/Api/api-security-schema';
 
 const ViewApi = () => {
 
@@ -143,14 +144,20 @@ const ViewApi = () => {
             </div>
             <Breadcrumbs separator="→">{items}</Breadcrumbs>
             <div style={{height: 20}}></div>
-            <Tabs color="gray" defaultValue="metadata">
+            <Tabs color="gray" defaultValue="actions">
                 <Tabs.List>
-                    {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="metadata">Details</Tabs.Tab> */}
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="security">Security Schema</Tabs.Tab> 
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="schemas">Schemas</Tabs.Tab>
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="actions">Actions</Tabs.Tab>
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="webhooks">Webhooks</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="security">Authentication</Tabs.Tab> 
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="schemas">Schemas</Tabs.Tab>
+                    {
+                        webhooks ? (
+                            <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="webhooks">Webhooks</Tabs.Tab>
+                        ) : null
+
+                    }
                     {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="parameters">Parameters</Tabs.Tab>          */}
+                    {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="metadata">Details</Tabs.Tab> */}
+                  
                 </Tabs.List>
 
                 <Tabs.Panel value="metadata" label="Metadata">
@@ -164,15 +171,9 @@ const ViewApi = () => {
                     )}
                 </Tabs.Panel>
                 <Tabs.Panel value="security" label="Security Schema">
-                    {securitySchemas ? ( securitySchemas.map((securitySchema) => {
-                        return (
-                            <div key={securitySchema.uuid}>
-                                <Text>Security Schema Name: {securitySchema.name}</Text>
-                                <Text>Security Schema Description: {securitySchema.description}</Text>
-                                <Text>Security Schema Type: {securitySchema.type}</Text>
-                            </div>
-                        )
-                    })) : (
+                    {securitySchemas ? ( 
+                        <ApiSecurityScheme scheme={securitySchemas}/>
+                    ) : (
                         <Loader/>
                     )}
                 </Tabs.Panel>

@@ -54,6 +54,7 @@ interface RowData {
 interface TableSortProps {
   data: RowData[];
   setUUID: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+  tableType: string;
 }
 
 interface ThProps {
@@ -121,7 +122,7 @@ const returnIcon = (method: string) => {
     }
 }
 
-function ActionsTable({ data, setUUID }: TableSortProps) {
+function ActionsTable({ data, setUUID, tableType }: TableSortProps) {
   const [search, setSearch] = useState('');
   const [sortedData, setSortedData] = useState(data);
   const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
@@ -179,7 +180,7 @@ function ActionsTable({ data, setUUID }: TableSortProps) {
   return (
     <div style={{display:'flex', flexDirection:'column', alignItems:'flex-start'}} >
       <TextInput
-      placeholder="Search for an Action"
+      placeholder= {tableType === 'actions' ? 'Search Actions' : 'Search Webhooks'}
       size="md"
       value={search}
       onChange={handleSearchChange}
@@ -221,7 +222,7 @@ function ActionsTable({ data, setUUID }: TableSortProps) {
               rows
             ) : (
               <tr>
-                <td colSpan={Object.keys(data[0]).length}>
+                <td>
                   <Text weight={500} align="center">
                     Nothing found
                   </Text>
