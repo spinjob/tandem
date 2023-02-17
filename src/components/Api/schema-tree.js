@@ -10,7 +10,7 @@ import {RxComponentBoolean, RxQuestionMarkCircled} from 'react-icons/rx'
 import { v4 as uuidv4 } from 'uuid';
 
 function generateTreeData (schema, parent) {
-
+    console.log(schema)
     const schemaKeys = Object.keys(schema)
     const schemaValues = Object.values(schema)
 
@@ -78,25 +78,25 @@ function generateTreeData (schema, parent) {
                 // if array item schema is a primitive type
 
                 treeItems[path] = childNode
+                var inlineSchemaName = schemaValues[index].items.name ? schemaValues[index].items.name : uuidv4()
+                var inlineSchemaPath = path + "." + inlineSchemaName
 
-                var inlineSchemaName = uuidv4();
-                
                 childNode = {
                     index: path,
-                    children: [inlineSchemaName],
+                    children: [inlineSchemaPath],
                     isFolder: true,
                     data: path,
                     type: schemaValues[index].type
                 }
 
                 var inlineArrayItemSchemaNode = {
-                    index: inlineSchemaName,
+                    index: inlineSchemaPath,
                     children: [],
-                    data: schemaValues[index].items.schemaName,
+                    data: inlineSchemaPath,
                     type: schemaValues[index].items.type
                 }
 
-                treeItems[inlineSchemaName] = inlineArrayItemSchemaNode
+                treeItems[inlineSchemaPath] = inlineArrayItemSchemaNode
 
             }
            
@@ -110,7 +110,8 @@ function generateTreeData (schema, parent) {
         }
         treeItems[path] = childNode
     })
-    
+    console.log(treeItems)
+
     return treeItems
 }
 
@@ -147,8 +148,7 @@ const returnIcon = (type) => {
 const SchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, schemaType}) => {
 
     const renderItemTitle = (title, item) => {
-
-        var propertyName = title.split('.').pop()
+        var propertyName = title?.split('.').pop()
 
         return (
             <div style={{display:'flex', flexDirection:'row', alignItems: 'baseline'}}>
