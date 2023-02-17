@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import {Tabs, Text, TextInput, Loader, Breadcrumbs, Anchor} from '@mantine/core'
 import ApiSchemas from '../../components/Api/api-schemas'
 import ApiActions from '../../components/Api/api-actions';
+import ApiWebhooks from '../../components/Api/api-webhooks';
 
 const ViewApi = () => {
 
@@ -144,12 +145,12 @@ const ViewApi = () => {
             <div style={{height: 20}}></div>
             <Tabs color="gray" defaultValue="metadata">
                 <Tabs.List>
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="metadata">Details</Tabs.Tab>
+                    {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="metadata">Details</Tabs.Tab> */}
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="security">Security Schema</Tabs.Tab> 
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="schemas">Schemas</Tabs.Tab>
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="actions">Actions</Tabs.Tab>
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="webhooks">Webhooks</Tabs.Tab>
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="parameters">Parameters</Tabs.Tab>         
+                    {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="parameters">Parameters</Tabs.Tab>          */}
                 </Tabs.List>
 
                 <Tabs.Panel value="metadata" label="Metadata">
@@ -191,14 +192,9 @@ const ViewApi = () => {
                     )}
                 </Tabs.Panel>
                 <Tabs.Panel value="webhooks" label="Webhooks">
-                    {webhooks ? ( webhooks.map((webhook) => {
-                        return (
-                            <div key={webhook.uuid}>
-                                <Text>Webhook Name: {webhook.name}</Text>
-                                <Text>Webhook Description: {webhook.description ? webhook.description : ""}</Text>
-                            </div>
-                        )
-                    })) : (
+                    {webhooks ? ( 
+                        <ApiWebhooks actions={webhooks}/>
+                    ) : (
                         <Loader/>
                     )}
                 </Tabs.Panel>

@@ -9,7 +9,7 @@ import {AiOutlineNumber} from 'react-icons/ai'
 import {RxComponentBoolean, RxQuestionMarkCircled} from 'react-icons/rx'
 import { v4 as uuidv4 } from 'uuid';
 
-function generateTreeData (schema, nested, parent) {
+function generateTreeData (schema, parent) {
 
     const schemaKeys = Object.keys(schema)
     const schemaValues = Object.values(schema)
@@ -50,7 +50,7 @@ function generateTreeData (schema, nested, parent) {
 
             treeItems[path] = childNode
 
-            const childTreeItems = generateTreeData(schemaValues[index].properties, true, path)
+            const childTreeItems = generateTreeData(schemaValues[index].properties, path)
             treeItems = {...treeItems, ...childTreeItems}
            
         } else if (schemaValues[index].items) {
@@ -71,7 +71,7 @@ function generateTreeData (schema, nested, parent) {
                 }
                 treeItems[path] = childNode
 
-                const childTreeItems = generateTreeData(schemaValues[index].items.properties, true, path)
+                const childTreeItems = generateTreeData(schemaValues[index].items.properties, path)
                 treeItems = {...treeItems, ...childTreeItems}
                 
             } else {
@@ -109,8 +109,8 @@ function generateTreeData (schema, nested, parent) {
             }
         }
         treeItems[path] = childNode
-    
     })
+    
     return treeItems
 }
 
@@ -144,7 +144,7 @@ const returnIcon = (type) => {
 }
 
 
-const SchemaTree = ({ schema, actionUuid, isLoading, setSelectedSchemaProperty, schemaType}) => {
+const SchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, schemaType}) => {
 
     const renderItemTitle = (title, item) => {
 
@@ -168,7 +168,7 @@ const SchemaTree = ({ schema, actionUuid, isLoading, setSelectedSchemaProperty, 
     : (
         <div style={{width: 200}}>
             <UncontrolledTreeEnvironment
-            dataProvider={new StaticTreeDataProvider(generateTreeData(schema, false, "root"), (item, newName) => ({ ...item, data: newName }))}
+            dataProvider={new StaticTreeDataProvider(generateTreeData(schema, "root"), (item, newName) => ({ ...item, data: newName }))}
             getItemTitle={item => item.data}
             viewState={{}}
             canDragAndDrop={true}
