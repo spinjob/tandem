@@ -12,6 +12,7 @@ import {
   Divider
 } from '@mantine/core';
 import { keys } from '@mantine/utils';
+import {AiTwotoneCheckCircle} from 'react-icons/ai'
 import {VscSymbolArray} from 'react-icons/vsc'
 import {BiCodeCurly} from 'react-icons/bi'
 import {RiDoubleQuotesL} from 'react-icons/ri'
@@ -105,20 +106,18 @@ function sortData(
   );
 }
 
-const returnIcon = (type: string) => {
-    switch (type) {
-        case 'string':
-            return (<RiDoubleQuotesL/>)
-        case 'number':
-            return (<AiOutlineNumber/>)
-        case 'boolean':
-            return (<RxComponentBoolean/>)
-        case 'array':
-            return (<VscSymbolArray/>)
-        case 'object':
-            return (<BiCodeCurly/>)
+const returnIcon = (method: string) => {
+    switch (method) {
+        case 'post':
+            return (<AiTwotoneCheckCircle style={{color: '#FFBE9A'}} />)
+        case 'put':
+            return (<AiTwotoneCheckCircle style={{color: '#FFA39E'}} />)
+        case 'get':
+            return (<AiTwotoneCheckCircle style={{color: '#DAFAC0'}} />)
+        case 'delete':
+            return (<AiTwotoneCheckCircle style={{color: '#eaeaff'}} />)
         default:
-            return (<RxQuestionMarkCircled/>)
+            return (<AiTwotoneCheckCircle style={{color: '#eaeaff'}} />)
     }
 }
 

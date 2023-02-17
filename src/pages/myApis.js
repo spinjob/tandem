@@ -24,7 +24,6 @@ const MyApis = () => {
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + organization)
             .then((res) => {
                 setApis(res.data)
-                console.log(res.data)
             })
             .catch((err) => {
                 console.log(err)
@@ -43,12 +42,10 @@ const MyApis = () => {
 
     useEffect(() => {
         if(user?.email && !dbUser){
-            console.log('refetching user')
             axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email})
             .then((res) => {
                 setDbUser(res.data)
                 if(res.data.organization){
-                  console.log("Organization Found for User")
                   setOrganization(res.data.organization)
                 }
             })

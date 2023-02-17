@@ -7,7 +7,6 @@ import {RiDoubleQuotesL} from 'react-icons/ri'
 import {AiOutlineNumber} from 'react-icons/ai'
 import {RxComponentBoolean, RxQuestionMarkCircled} from 'react-icons/rx'
 
-
 const ApiSchemas = ({schemas}) => {
 
     const [selectedSchema, setSelectedSchema] = useState(null)
@@ -67,7 +66,7 @@ const ApiSchemas = ({schemas}) => {
         const uuid = event.currentTarget.value
         const schema = schemas.find((schema) => schema.uuid === uuid)
         setSelectedSchema(schema)
-        console.log(schema)
+        
     }
     
     const renderSchemaProperties = (properties) => {

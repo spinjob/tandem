@@ -71,7 +71,8 @@ useEffect(() => {
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      padding: 30
+      padding: 30,
+      width: '100%'
     }}>
       <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>{partnership.name}</Text>
       <Breadcrumbs separator="→">{items}</Breadcrumbs>
