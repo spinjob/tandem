@@ -180,7 +180,7 @@ const ApiActions = ({actions}) => {
         <div style={{paddingTop: 30}}>
             <div style={{display:'flex', flexDirection:'row'}}>
                 <div style={{width: '25vw'}}>
-                     <ActionsTable tableType="actions" setUUID={setUUID} data={actionRows} />
+                     <ActionsTable tableType="actions"setUUID={setUUID} data={actionRows} />
                 </div>
                 <div style={{width: 100}}/>
                 <div style={{width: '40vw'}}>

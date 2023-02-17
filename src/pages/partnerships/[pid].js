@@ -6,7 +6,6 @@ import PartnershipWorkflows from './[pid]/workflows'
 import PartnershipApis from './[pid]/apis'
 import PartnershipConfigurations from './[pid]/configurations'
 
-
 const Partnership = () => {
   const router = useRouter()
   const { pid } = router.query
@@ -85,7 +84,7 @@ useEffect(() => {
         </Tabs.List>
 
         <Tabs.Panel value="workflows">
-          <PartnershipWorkflows pid={pid}/>
+          <PartnershipWorkflows apis={apis} pid={pid}/>
         </Tabs.Panel>
         <Tabs.Panel value="apis">
           <PartnershipApis pid={pid} partnershipApis={apis}/>

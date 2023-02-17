@@ -19,6 +19,7 @@ import { type } from 'os';
 import { useRouter } from 'next/router';
 import {BiSearch} from 'react-icons/bi'
 import {RxCaretSort} from 'react-icons/rx'
+import axios from 'axios';
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -54,6 +55,9 @@ interface RowData {
 
 interface TableSortProps {
   data: RowData[];
+  partnershipId: string;
+  userId: string;
+  apis: string[];
 }
 
 interface ThProps {
@@ -108,7 +112,9 @@ function sortData(
   );
 }
 
-function PartnershipWorkflowsTable({ data }: TableSortProps) {
+
+
+function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSortProps) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState("None");
   
@@ -117,6 +123,41 @@ function PartnershipWorkflowsTable({ data }: TableSortProps) {
   const router  = useRouter();
 
   const [sortedData, setSortedData] = useState(data);
+  
+  const newWorkflowHandler = () => {
+    var newWorkflow = {
+      parent_project_uuid: partnershipId,
+      trigger: {},
+      steps: [],
+      name: "Untitled Workflow",
+      created_by: userId,
+      status: "Draft",
+      uuid: "",
+      nodes: [],
+      edges: [],
+      interfaces: apis
+    }
+
+    console.log("Creating New Workflow")
+    axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId + '/workflows', newWorkflow).then((res) => {
+      console.log(res)
+      //Add WorkflowUUID to Partnership Workflows Array
+        console.log("Adding Workflow to Partnership")
+        newWorkflow['uuid'] = res.data.uuid
+
+        axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId, {
+          workflows: [newWorkflow]
+        }).then((res) => {
+          console.log(res)
+          router.push(`/partnerships/${partnershipId}/workflows/${newWorkflow.uuid}`)
+        }).catch((err) => {
+          console.log(err)
+        })
+    }).catch((err) => {
+      console.log(err)
+    }
+    )
+  }
 
   const setSorting = (field: keyof RowData, filter: boolean) => {
   
@@ -129,15 +170,13 @@ function PartnershipWorkflowsTable({ data }: TableSortProps) {
     setSortedData(sortData(data, { sortBy: field, reversed, search, statusFilter }));
   };
 
-//   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
-//     const { id } = event.currentTarget.dataset;
-//     router.push(`/partnerships/${id}`)
-//   };
+  const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
+    const { id } = event.currentTarget.dataset;
+    router.push(`/partnerships/${partnershipId}/workflows/${id}`)
+  };
 
   const rows = statusFilter != "None" ? sortedData.filter((row) => row.status === statusFilter).map((row) => (
-    <tr data-id={row.id} 
-    // onClick={handleRowClick} 
-    key={row.id}>
+    <tr data-id={row.id} onClick={handleRowClick} key={row.id}>
       <td data-id={row.id}>{
         <Switch color="dark" checked={
             row.active === 'true' ? true : false
@@ -156,7 +195,7 @@ function PartnershipWorkflowsTable({ data }: TableSortProps) {
     </tr>
   )) : sortedData.map((row) => (
     <tr data-id={row.id} 
-    // onClick={handleRowClick} 
+    onClick={handleRowClick} 
     key={row.id}>
       <td data-id={row.id}>{
         <Switch color="dark" checked={
@@ -197,7 +236,7 @@ function PartnershipWorkflowsTable({ data }: TableSortProps) {
             }}
             /> */}
             <div style={{width: '10px'}}></div>
-            <Button style={{backgroundColor: 'black', height: '35px',width: '150px', borderRadius: 8}}>New Workflow</Button>
+            <Button onClick={newWorkflowHandler} style={{backgroundColor: 'black', height: '35px',width: '150px', borderRadius: 8}}>New Workflow</Button>
         </div>
       <Table
         verticalSpacing="xs"
@@ -241,9 +280,9 @@ function PartnershipWorkflowsTable({ data }: TableSortProps) {
             rows
           ) : (
             <tr>
-              <td colSpan={Object.keys(data[0]).length}>
+              <td colSpan={4}>
                 <Text weight={500} align="center">
-                  Nothing found
+                  No Workflows. Create one!
                 </Text>
               </td>
             </tr>

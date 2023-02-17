@@ -78,7 +78,7 @@ function generateTreeData (schema, parent) {
                 // if array item schema is a primitive type
 
                 treeItems[path] = childNode
-                var inlineSchemaName = schemaValues[index].items.name ? schemaValues[index].items.name : uuidv4()
+                var inlineSchemaName = schemaValues[index].items.name ? schemaValues[index].items.name : schemaValues[index].items.type
                 var inlineSchemaPath = path + "." + inlineSchemaName
 
                 childNode = {

@@ -2,11 +2,15 @@ import PartnershipWorkflowsTable from '../../../components/Partnerships/partners
 import {Button, Center, Loader} from '@mantine/core'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import {useUser} from '@auth0/nextjs-auth0/client'
 
-const PartnershipWorkflows = ({ pid }) => {
+const PartnershipWorkflows = ({apis, pid }) => {
     const [workflows, setWorkflows] = useState(null)
+    const { user, error, isLoading } = useUser();
+    const apiIDArray = apis?.map((api) => {
+      return api.uuid
+    })
   
-
     const renderStatus = (status) => {
       switch (status) {
         case 'active':
@@ -59,10 +63,14 @@ const PartnershipWorkflows = ({ pid }) => {
 
     return workflows?.length > 0 && pid ? (
         <div>
-            <PartnershipWorkflowsTable data={workflowRows}/>
+            <PartnershipWorkflowsTable apis={apiIDArray} userId={user?.sub} partnershipId={pid} data={workflowRows}/>
         </div>
     )
-    : (
+    : workflows?.length == 0 && pid ? (
+      <div>
+        <PartnershipWorkflowsTable apis={apiIDArray} userId={user?.sub} partnershipId={pid} data={workflowRows}/>
+      </div>
+    ) : (
         <Center>
             <Loader/>
         </Center>
