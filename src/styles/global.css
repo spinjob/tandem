@@ -443,21 +443,6 @@
     }
   }
   
-  input[type="radio"] {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border-radius: 50%;
-    border: 2px solid var(--gray-300);
-    height: 1rem;
-    width: 1rem;
-    margin-right: 0.5rem;
-    align-self: center;
-    justify-content: center;
-    position: relative;
-    display: flex;
-  }
-  
   @media (prefers-color-scheme: dark) {
     input[type="radio"] {
       border: 2px solid white;
@@ -566,57 +551,6 @@
   }
 
   
-  /* Code
-  ––––––––––––––––––––––––––––––––– */
-  code {
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
-      monospace;
-    font-size: 0.8rem;
-    white-space: nowrap;
-    background: var(--gray-100);
-    padding: 0 0.328rem;
-    display: inline-block;
-    vertical-align: middle;
-    border-radius: 10px;
-  }
-  
-  @media (prefers-color-scheme: dark) {
-    code {
-      background-color: var(--gray-700);
-    }
-  }
-  
-  p > code {
-    white-space: normal;
-  }
-  
-  pre > code {
-    line-height: 1.563em;
-    display: block;
-    padding: 1rem;
-    white-space: pre;
-    margin-bottom: 1.563rem;
-    overflow: scroll;
-  }
-  
-  /* Forces a new-line at the end of a code block for layout purposes. */
-  pre > code::after {
-    content: " ";
-  }
-  
-  /* Blockquote
-  ––––––––––––––––––––––––––––––––– */
-  blockquote {
-    border-left: 0.25rem solid var(--gray-100);
-    padding: 0 1rem;
-    margin-bottom: 1.563rem;
-  }
-  
-  @media (prefers-color-scheme: dark) {
-    blockquote {
-      border-left: 0.25rem solid var(--gray-700);
-    }
-  }
   
   /* List
   ––––––––––––––––––––––––––––––––– */
@@ -703,25 +637,3 @@
   button[type="reset"]:hover {
     background-color: var(--gray-400);
   }
-  
-  /* custom */
-  input[type="email"],
-  input[type="text"],
-  input[type="number"],
-  textarea,
-  select {
-    width: 400px;
-  }
-  
-  label {
-    margin-top: 1rem;
-  }
-  
-  label.checkbox {
-    font-weight: normal;
-  }
-  
-  button[type="submit"] {
-    margin-top: 1rem;
-  }
-  
