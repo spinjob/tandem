@@ -18,7 +18,7 @@
     "@mantine/core": "^5.10.3",
     "@mantine/dropzone": "^5.10.3",
     "@mantine/form": "^5.10.3",
-    "@mantine/hooks": "^5.10.3",
+    "@mantine/hooks": "^5.10.4",
     "@mantine/next": "^5.10.3",
     "@mantine/notifications": "^5.10.3",
     "@next/font": "13.1.6",
