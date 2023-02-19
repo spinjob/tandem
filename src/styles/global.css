@@ -289,50 +289,7 @@
     font-weight: bold;
     display: flex;
   }
-  
-  input[type="email"],
-  input[type="text"],
-  input[type="number"] {
-    padding: 0.65rem 0.5rem;
-    font-size: 1rem;
-    border: 2px;
-    border-style: solid;
-    background-color: white;
-    /* border-radius: 8px; */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    /* height: 48px; */
-  }
-  
-  @media (prefers-color-scheme: dark) {
-    input[type="email"],
-    input[type="text"],
-    input[type="number"] {
-      background-color: white;
-      border-width: 1px;
-      color: black;
-      font-family: 'Visuelt';
-      font-weight: 100px;
-    }
-  
-    input[type="email"]::placeholder,
-    input[type="text"]::placeholder,
-    input[type="number"]::placeholder,
-    select,
-    textarea {
-      color: var(--gray-600);
-    }
-  }
-  
-  input[type="email"],
-  input[type="text"],
-  input[type="number"],
-  textarea,
-  select {
-    width: 400px;
-  }
-  
+
   select {
     margin: 0;
     -webkit-appearance: none;

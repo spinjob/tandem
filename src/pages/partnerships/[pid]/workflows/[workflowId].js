@@ -15,7 +15,8 @@ import {
     useMantineTheme,
     SegmentedControl,
     UnstyledButton,
-    ScrollArea
+    ScrollArea,
+    SimpleGrid
   } from '@mantine/core';
 
 import ReactFlow, {
@@ -29,6 +30,10 @@ import ReactFlow, {
     Position
   } from 'reactflow';
 
+  import {
+    TimeInput
+  } from '@mantine/dates';  
+
 import {TiFlowSwitch} from 'react-icons/ti'
 import {AiOutlinePlusSquare} from 'react-icons/ai'
 import {FiChevronDown} from 'react-icons/fi'
@@ -38,7 +43,7 @@ import axios from 'axios';
 
 const nodeTypes = {trigger: TriggerNode}
 
-const useStyles = createStyles((theme,opened ) => ({
+const useStyles = createStyles((theme,opened, checked ) => ({
   inner: {
     height: 30,
     display: 'flex',
@@ -77,49 +82,47 @@ const useStyles = createStyles((theme,opened ) => ({
 }));
 
 
-
 function TriggerNode ({data}) {
-    const {classes} = useStyles();
-    var triggerTypeInitialState = data.webhooks[0] ? "webhook" : "scheduled"
+    const {classes, cx} = useStyles();
 
-    const [selected, setSelected] = useState(triggerTypeInitialState)
+    const [selected, setSelected] = useState("scheduled")
     const [selectedApi, setSelectedApi] = useState(data.apis[0].uuid)
+    
+    const triggerTypeOptions = data.webhooks.length > 0 ? [{label: 'Scheduled', value: 'scheduled'}, {label: 'Webhook', value: 'webhook'}] : [{label: 'Scheduled', value: 'scheduled'}]
 
     //Scheduled Trigger State
     const [selectedCadence, setSelectedCadence] = useState("weekly")
-    const [selectedTime, setSelectedTime] = useState(null)
+    const [selectedRunTime, setSelectedRunTime] = useState(null)
     const [selectedTimezone, setSelectedTimezone] = useState(null)
-    const [selectedDay, setSelectedDay] = useState(null)
+    const [selectedDays, setSelectedDays] = useState(null)
+    const [cadenceOpened, setCadenceOpened] = useState(false);
+    const [timezoneOpened, setTimezoneOpened] = useState(false);
 
-    const cadenceOptions = [{label: 'Weekly', value: 'weekly'}, {label: 'Monthly', value: 'monthly'}]
+    const cadenceOptions = [{label: 'Daily', value: 'daily'},{label: 'Weekly', value: 'weekly'}]
     const dayOptions = [{label: 'Su', value: 'sunday'},{label: 'Mo', value: 'monday'}, {label: 'Tu', value: 'tuesday'}, {label: 'We', value: 'wednesday'}, {label: 'Th', value: 'thursday'}, {label: 'Fr', value: 'friday'}, {label: 'Sa', value: 'saturday'}]
     const timezoneOptions = [{label: 'UTC', value: 'utc'}, {label: 'EST', value: 'est'}, {label: 'CST', value: 'cst'}, {label: 'MST', value: 'mst'}, {label: 'PST', value: 'pst'}]
 
-    const timezoneMenuItems = () => {
-        return timezoneOptions.map((timezone) => {
-            return (
-                <Menu.Item
-                    key={timezone.value}
-                    onClick={() => setSelectedTimezone(timezone)}
-                    style={{width: 230}}>
-                    <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px'}}>
-                        {timezone.label}
-                    </Text>
-                </Menu.Item>
-            )
-        })
+    const addDay = (event) => {
+        if (selectedDays)
+        {
+            if (selectedDays.includes(event.currentTarget.value)) {
+                setSelectedDays(selectedDays.filter((day) => {return day != event.currentTarget.value}))
+            } else {
+                setSelectedDays([...selectedDays, event.currentTarget.value])
+            }
+        } else {
+            setSelectedDays([event.currentTarget.value])
+        }
+       
     }
-
     //Webhook Trigger State
     const [selectedWebhook, setSelectedWebhook] = useState(null)
     const [webhookOpened, setWebhookOpened] = useState(false);
-    const [cadenceOpened, setCadenceOpened] = useState(false);
-    const [timezoneOpened, setTimezoneOpened] = useState(false);
     const filteredWebhooks = data.webhooks.filter((webhook) => {    
         return webhook.parent_interface_uuid == selectedApi
     })
-    const menuOptions = filteredWebhooks.
-    map((webhook) => {
+
+    const menuOptions = filteredWebhooks.map((webhook) => {
         return (
             <Menu.Item 
                 key={webhook.uuid} 
@@ -133,13 +136,13 @@ function TriggerNode ({data}) {
     })
     
     return(
-        <div style={{zIndex:1, backgroundColor:'white', display:'flex', flexDirection:'column', width: 320, height: 300, borderRadius:8, border:'.5px solid #E7E7E7', boxShadow:"rgba(0, 0, 0, 0.04) 0px 3px 5px" }}>
+        <div style={{zIndex:1, paddingBottom: 20, backgroundColor:'white', display:'flex', flexDirection:'column', width: 320, borderRadius:8, border:'.5px solid #E7E7E7', boxShadow:"rgba(0, 0, 0, 0.04) 0px 3px 5px" }}>
             <div style={{paddingLeft: 10, width: '100%',backgroundColor: '#F2F0ED', height: 40, borderTopLeftRadius:8,borderTopRightRadius: 8, alignItems:'center', display:'flex'}}>
                 <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '16px'}}>Workflow Trigger</Text>
             </div>
                 <Handle type="target" position={Position.Right}/>
             <div style={{paddingTop: 15,backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center'}}>
-                <SegmentedControl value={selected} onChange={setSelected} style={{fontFamily: 'Visuelt', backgroundColor:'white', borderRadius: 8, border:'.5px solid #E7E7E7',  width: '90%'}} color='dark' radius='md' data={[{label:'Webhook', value:'webhook'}, {label:'Scheduled', value:'scheduled'}]}/>
+                <SegmentedControl value={selected} onChange={setSelected} style={{fontFamily: 'Visuelt', backgroundColor:'white', borderRadius: 8, border:'.5px solid #E7E7E7',  width: '90%'}} color='dark' radius='md' data={triggerTypeOptions}/>
             </div> 
             {
                 selected === "webhook" ? (
@@ -185,11 +188,8 @@ function TriggerNode ({data}) {
                     </div>
                 ) : selected === "scheduled" ? (
                     <div style={{ paddingTop: 15, backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center', }}>
-                        {/* <SegmentedControl value={selectedDay?.value} onChange={setSelectedDay} style={{fontFamily: 'Visuelt', backgroundColor:'white', borderRadius: 8, border:'.5px solid #E7E7E7',  width: '90%'}} color='dark' radius='md' data={dayOptions}/> */}
-                        <div style={{height: 15}}/>
-                        
                         <div style={{display:'block'}}>
-                            <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Run</Text>
+                            <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Cadence</Text>
                             <Menu
                                     onOpen={() => setCadenceOpened(true)}
                                     onClose={() => setCadenceOpened(false)}
@@ -212,7 +212,7 @@ function TriggerNode ({data}) {
                                     </UnstyledButton>
                                     </Menu.Target>
                                     <Menu.Dropdown style={{backgroundColor: 'white'}}>{
-                                        <ScrollArea type="hover" style={{height: 80, width: '100%'}}>
+                                        <ScrollArea type="hover" style={{height: 80}}>
                                             {cadenceOptions.map((cadence) => {
                                                     return (
                                                         <Menu.Item 
@@ -230,50 +230,159 @@ function TriggerNode ({data}) {
                             </Menu>
                         </div>
                         <div style={{height: 15}}/>
-                        <div style={{display:'block'}}>
-                            <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Timezone</Text>
-                            <Menu
-                                    onOpen={() => setTimezoneOpened(true)}
-                                    onClose={() => setTimezoneOpened(false)}
-                                    radius="md"
-                                    width="target"
-                                    zIndex={1}
-                                    >
-                                    <Menu.Target>
-                                    <UnstyledButton className={classes.control}>
-                                        {selectedTimezone ? (
+                            { selectedCadence && selectedCadence.value === "daily" ? (
+                                    <div style={{display:'block'}}>
+                                        <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Time</Text>
+                                        <div style={{display:'block'}}>
+                                        <TimeInput
+                                            onChange={setSelectedRunTime} 
+                                            defaultValue={new Date()}
+                                            format="12"
+                                            amLabel="am"
+                                            pmLabel="pm"
+                                            withAsterisk
+                                            clearable
+                                        />
+                                        <div style={{height: 15}}/>
+                                        <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Timezone</Text>
+                                        <Menu
+                                                onOpen={() => setTimezoneOpened(true)}
+                                                onClose={() => setTimezoneOpened(false)}
+                                                radius="md"
+                                                width="target"
+                                                zIndex={1}
+                                                >
+                                                <Menu.Target>
+                                                <UnstyledButton className={classes.control}>
+                                                    {selectedTimezone ? (
 
-                                                <Group spacing="xs">
-                                                    <span className={classes.label}>{selectedTimezone?.label}</span>
-                                                </Group>
-                                        ) : (
+                                                            <Group spacing="xs">
+                                                                <span className={classes.label}>{selectedTimezone?.label}</span>
+                                                            </Group>
+                                                    ) : (
 
-                                                <Group spacing="xs">
-                                                    <span className={classes.label}>Choose a webhook</span>
-                                                </Group>
-                                        )}
-                                        <FiChevronDown className={classes.icon} />
-                                    </UnstyledButton>
-                                    </Menu.Target>
-                                    <Menu.Dropdown style={{backgroundColor: 'white'}}>{
-                                        <ScrollArea type="hover" style={{height: 80, width: '100%'}}>
-                                            {timezoneOptions.map((timezone) => {
+                                                            <Group spacing="xs">
+                                                                <span className={classes.label}>Timezone</span>
+                                                            </Group>
+                                                    )}
+                                                    <FiChevronDown className={classes.icon} />
+                                                </UnstyledButton>
+                                                </Menu.Target>
+                                                <Menu.Dropdown style={{backgroundColor: 'white'}}>{
+                                                    <ScrollArea type="hover" style={{height: 80, width: '100%'}}>
+                                                        {timezoneOptions.map((timezone) => {
 
-                                                    return (    
-                                                        <Menu.Item
-                                                            key={timezone.value}
-                                                            onClick={() => setSelectedTimezone(timezone)}
-                                                            style={{width: 230}}>
-                                                            <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px'}}>
-                                                                {timezone.label}
-                                                            </Text>
-                                                        </Menu.Item>
+                                                                return (    
+                                                                    <Menu.Item
+                                                                        key={timezone.value}
+                                                                        onClick={() => setSelectedTimezone(timezone)}
+                                                                        style={{width: 230}}>
+                                                                        <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px'}}>
+                                                                            {timezone.label}
+                                                                        </Text>
+                                                                    </Menu.Item>
+                                                                )
+                                                            })}
+                                                    </ScrollArea>
+                                                }</Menu.Dropdown>
+                                        </Menu>
+                                        </div>
+                                    </div>
+                                ): selectedCadence && selectedCadence.value === "weekly" ? (
+                                    <div style={{display:'block'}}>
+                                        <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Day(s)</Text>
+                                        <div style={{border:"1px #E7E7E7 solid", borderRadius: 4, height: 40, width: 270, padding: 5}}>
+                                            {
+                                                dayOptions.map((day) => {
+                                                    return  ( 
+                                                        <UnstyledButton 
+                                                            key={day.value}
+                                                            value={day.value} 
+                                                            checked={
+                                                                selectedDays?.includes(day.value)
+                                                            } 
+                                                            onClick={addDay} 
+                                                            sx={{
+                                                                backgroundColor: selectedDays?.includes(day.value) ? 'black' : 'white',
+                                                                color: selectedDays?.includes(day.value) ? 'white' : '#858585',
+                                                                borderRadius: 4,
+                                                                height: 30,
+                                                                width: 30,
+                                                                '&:hover': {
+                                                                    backgroundColor: '#E7E7E7'
+                                                                }
+                                                             }}>
+                                                            <div style={{display: "flex", flexDirection: 'row', alignItems:'center', justifyContent:'center'}}>
+                                                                <Text style={{display: "flex", flexDirection: 'row', fontFamily: 'Visuelt', fontSize: '12px'}}>
+                                                                    {day.label}
+                                                                </Text>
+                                                            </div>
+                                                        </UnstyledButton>
                                                     )
-                                                })}
-                                        </ScrollArea>
-                                    }</Menu.Dropdown>
-                            </Menu>
-                        </div>
+                                                })
+                                            }
+                                        </div>
+                                        <div style={{height: 15}}/>
+                                        <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Time</Text>
+                                        <div style={{display:'block'}}>
+                                            <TimeInput
+                                                onChange={setSelectedRunTime} 
+                                                defaultValue={new Date()}
+                                                format="12"
+                                                amLabel="am"
+                                                pmLabel="pm"
+                                                withAsterisk
+                                                clearable
+                                            />
+                                            <div style={{height: 15}}/>
+                                            <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Timezone</Text>
+                                            <Menu
+                                                    onOpen={() => setTimezoneOpened(true)}
+                                                    onClose={() => setTimezoneOpened(false)}
+                                                    radius="md"
+                                                    width="target"
+                                                    zIndex={1}
+                                                    >
+                                                    <Menu.Target>
+                                                    <UnstyledButton className={classes.control}>
+                                                        {selectedTimezone ? (
+
+                                                                <Group spacing="xs">
+                                                                    <span className={classes.label}>{selectedTimezone?.label}</span>
+                                                                </Group>
+                                                        ) : (
+
+                                                                <Group spacing="xs">
+                                                                    <span className={classes.label}>Timezone</span>
+                                                                </Group>
+                                                        )}
+                                                        <FiChevronDown className={classes.icon} />
+                                                    </UnstyledButton>
+                                                    </Menu.Target>
+                                                    <Menu.Dropdown style={{backgroundColor: 'white'}}>{
+                                                        <ScrollArea type="hover" style={{height: 80, width: '100%'}}>
+                                                            {timezoneOptions.map((timezone) => {
+
+                                                                    return (    
+                                                                        <Menu.Item
+                                                                            key={timezone.value}
+                                                                            onClick={() => setSelectedTimezone(timezone)}
+                                                                            style={{width: 230}}>
+                                                                            <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px'}}>
+                                                                                {timezone.label}
+                                                                            </Text>
+                                                                        </Menu.Item>
+                                                                    )
+                                                                })}
+                                                        </ScrollArea>
+                                                    }</Menu.Dropdown>
+                                            </Menu>
+                                        </div>
+                                    </div>
+                                ) : (
+                                   <div/>
+                                ) 
+                            }
                     </div>
                 ) : (
                     <div>
