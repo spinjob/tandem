@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import { useCallback, useState, useMemo, useEffect} from 'react';
+import { shallow } from 'zustand/shallow';
 import {
     createStyles,
     Menu,
@@ -16,32 +17,32 @@ import {
     SegmentedControl,
     UnstyledButton,
     ScrollArea,
-    SimpleGrid
+    Drawer
   } from '@mantine/core';
 
 import ReactFlow, {
-    MiniMap,
-    Controls,
     Background,
     useNodesState,
     useEdgesState,
     addEdge,
     Handle, 
-    Position
+    Position,
+    useReactFlow,
+    ReactFlowProvider,
   } from 'reactflow';
 
-  import {
-    TimeInput
-  } from '@mantine/dates';  
-
+import { TimeInput } from '@mantine/dates';  
+import ButtonEdge from '../../../../components/Workflow/ButtonEdge';
+import { useRef } from 'react';
 import {TiFlowSwitch} from 'react-icons/ti'
 import {AiOutlinePlusSquare} from 'react-icons/ai'
 import {FiChevronDown} from 'react-icons/fi'
 import 'reactflow/dist/style.css';
 import axios from 'axios';
 
-
-const nodeTypes = {trigger: TriggerNode}
+const nodeTypes = {trigger: TriggerNode, action: ActionNode}
+const edgeTypes = {buttonEdge: ButtonEdge}
+var drawerOpen = false;
 
 const useStyles = createStyles((theme,opened, checked ) => ({
   inner: {
@@ -80,6 +81,89 @@ const useStyles = createStyles((theme,opened, checked ) => ({
     },
   },
 }));
+
+function ActionNode ({data}) {
+    const {classes, cx} = useStyles();
+
+    const [selectedAction, setSelectedAction] = useState(null)
+    const [actionMenuOpened, setActionMenuOpened] = useState(false);
+    const [selectedApi, setSelectedApi] = useState(data.apis[0].uuid)
+
+    const filteredActions = data.actions.filter((action) => {
+        return action.parent_interface_uuid == selectedApi
+    })
+
+    const menuOptions = filteredActions.map((action) => {
+        return (
+            <Menu.Item 
+                key={action.uuid} 
+                onClick={() => setSelectedAction(action)}
+                style={{width: 230}}>
+                <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px'}}>
+                    {action.name}
+                </Text>
+            </Menu.Item>
+        )
+    })
+
+    return(
+        <div style={{zIndex:1, paddingBottom: 20, backgroundColor:'white', display:'flex', flexDirection:'column', width: 320, borderRadius:8, border:'.5px solid #E7E7E7', boxShadow:"rgba(0, 0, 0, 0.04) 0px 3px 5px" }}>
+            <div style={{paddingLeft: 10, width: '100%',backgroundColor: '#EAEAFF', height: 40, borderTopLeftRadius:8,borderTopRightRadius: 8, alignItems:'center', display:'flex'}}>
+                {
+                    selectedAction ? (
+                        <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '16px'}}>{selectedAction.method + " " + selectedAction.path}</Text>
+                    ) : (
+                        <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '16px'}}>Action</Text>
+                    )
+                }
+            </div>
+            <Handle id={"actionInput"} type="target" position={Position.Left}/>
+            <Handle
+                type="source"
+                position={Position.Right}
+                id="a"
+            />
+    
+            <div style={{padding:15}}>
+                <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Action</Text>
+                <div style={{height: 15}}/>
+                <Text style={{fontFamily:'Visuelt', fontSize:'12px', width: 270, color: 'grey'}}>Choose an API request to perform.</Text>
+            </div>
+            <div style={{backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center'}}>
+                <SegmentedControl value={selectedApi} onChange={setSelectedApi} style={{fontFamily: 'Visuelt', backgroundColor: 'white', width: '90%', border:'.5px solid #E7E7E7',borderRadius: 8}} color='dark' radius='md' data={[{label:data.apis[0].name, value:data.apis[0].uuid}, {label:data.apis[1].name, value:data.apis[1].uuid}]}/>
+            </div> 
+            <div style={{paddingTop: 15,backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center'}}>
+                <Menu
+                    onOpen={() => setActionMenuOpened(true)}
+                    onClose={() => setActionMenuOpened(false)}
+                    radius="md"
+                    style={{width: '90%'}}
+                    >
+                    <Menu.Target>
+                    <UnstyledButton className={classes.control}>
+                    {selectedAction ? (
+                            <Group spacing="xs">
+                                <span className={classes.label}>{selectedAction?.name}</span>
+                            </Group>
+                    ) : (
+                            <Group spacing="xs">
+                                <span className={classes.label}>Choose an Action</span>
+                            </Group>
+                    )} 
+                        <FiChevronDown className={classes.icon} />
+                    </UnstyledButton>
+                    </Menu.Target>
+                    <Menu.Dropdown>{
+                        <ScrollArea type="hover" style={{height: 300, width: '100%'}}>
+                            {menuOptions}
+                        </ScrollArea>   
+                    }</Menu.Dropdown>
+                </Menu>
+            </div>
+        </div>
+    )
+
+}
 
 
 function TriggerNode ({data}) {
@@ -140,7 +224,7 @@ function TriggerNode ({data}) {
             <div style={{paddingLeft: 10, width: '100%',backgroundColor: '#F2F0ED', height: 40, borderTopLeftRadius:8,borderTopRightRadius: 8, alignItems:'center', display:'flex'}}>
                 <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '16px'}}>Workflow Trigger</Text>
             </div>
-                <Handle type="target" position={Position.Right}/>
+                <Handle type="input" position={Position.Right}/>
             <div style={{paddingTop: 15,backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center'}}>
                 <SegmentedControl value={selected} onChange={setSelected} style={{fontFamily: 'Visuelt', backgroundColor:'white', borderRadius: 8, border:'.5px solid #E7E7E7',  width: '90%'}} color='dark' radius='md' data={triggerTypeOptions}/>
             </div> 
@@ -444,56 +528,125 @@ const NewNodeButtonMenu = () => {
     )
 }
 
-const generateTriggerNode = ({apis, webhooks}) => {
-    
-    const data = {
-        label: '1',
-        apis: apis,
-        webhooks: webhooks
-    }
-    const triggerNode = 
-        { 
-            id: '1', 
-            position: { x: 500, y: 500 }, 
-            type: 'trigger', 
-            data: data
-        }
-
-    return triggerNode
-}
-
-function Flow({workflow, apis, actions, webhooks}) {
+function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
 
     //For existing workflows, will need to load the nodes and edges from the workflow object
-    const emptyTriggerNode = generateTriggerNode({apis: apis, webhooks: webhooks})
     const initialNodes = [
-        emptyTriggerNode
+        {
+            id: 'ewb-1',
+            type: 'trigger',
+            position: { x: 250, y: 0 },
+            data: {
+                label: '1',
+                apis: apis,
+                webhooks: webhooks
+            } 
+        },
+        {
+            id: 'ewb-2',
+            type: 'action',
+            position: { x: 350, y: 0 },
+            data: {
+                label: '2',
+                apis: apis,
+                actions: actions
+            } 
+        }
       ];
-    const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
+    const initialEdges = [  {
+        id: 'edge-1-2',
+        source: 'ewb-1',
+        target: 'ewb-2',
+        type: 'buttonEdge',
+        data: { 
+            targetSchema: {
+                display: true,
+                required: 0
+            },
+            sourceSchema: {
+                display: true,
+            }
+        }
+      },];
 
+     let id = 1;
+     const getId = () => `${id++}`;
+
+    const reactFlowWrapper = useRef(null);
+    const connectingNodeId = useRef(null);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const [captureElementClick, setCaptureElementClick] = useState(false);
+    const {project} = useReactFlow();
+
     const [workflowState, setWorkflowState] = useState(null);
 
-    const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+    const onConnect = useCallback(
+        (params) => setEdges((eds) => addEdge({ ...params, type: 'buttonEdge'}, eds)),
+        []
+      );
+
+    const onConnectStart = useCallback((_, { nodeId }) => {
+        connectingNodeId.current = nodeId;
+        }, []);
+
+    
+    const onConnectEnd = useCallback(
+        (event) => {
+            const targetIsPane = event.target.classList.contains('react-flow__pane');
+            if (targetIsPane) {
+                // Remove the wrapper bounds in order to get the correct position
+                const { top, left } = reactFlowWrapper.current.getBoundingClientRect();
+                const id = getId();
+                const newNode = {
+                    id,
+                    //We are removing half of the node width to center the new node
+                    position: project({x: event.clientX - left - 100, y: event.clientY - top}),
+                    type: 'action',
+                    data: {
+                        label: `Node ${id}`,
+                        apis: apis,
+                        actions: actions
+                    }
+                }
+                setNodes((nds) => nds.concat(newNode));
+                setEdges((eds) => eds.concat({id, source: connectingNodeId.current, target: id, type: 'buttonEdge'}));
+            }
+        }, [project]
+    );
 
     return (
         <div style={{ height: '100%', backgroundColor:'#FBFAF9'}}>
             <div style={{position:'absolute', padding: 40, zIndex: 1, height: 40, width: 220}}>
             <NewNodeButtonMenu />
             </div>
-            <ReactFlow
-                 nodes={nodes}
-                 edges={edges}
-                 onNodesChange={onNodesChange}
-                 onEdgesChange={onEdgesChange}
-                 onConnect={onConnect}
-                 nodeTypes={nodeTypes}
-                 zoomOnScroll={false}
-                 style={{position:'absolute', zIndex: 2}}
-            >
-            <Background color="#FBFAF9" />
-            </ReactFlow>
+            <div ref={reactFlowWrapper} style={{
+                  flexGrow: 1,
+                  height: '100%'
+            }}>
+                <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnectStart={onConnectStart}
+                        onConnectEnd={onConnectEnd}
+                        onConnect={onConnect}
+                        edgeTypes={edgeTypes}
+                        nodeTypes={nodeTypes}
+                        onEdgeClick={(event, edge) => {
+                            toggleDrawer(event, edge)
+                        }}
+                        zoomOnScroll={false}
+                        fitView={true}
+                        style={{position:'absolute', zIndex: 2}}
+                    >
+                    <Background color="#FBFAF9" />
+                </ReactFlow>
+            </div>
+                
+        
+
         </div>
     )
 }
@@ -502,7 +655,7 @@ const WorkflowHeader = ({workflow}) => {
     const { classes } = useStyles();
 
         return (
-            <Header height={30} sx={{ borderBottom: 0 }} mb={120}>
+            <Header height={30} sx={{ zIndex: 2, backgroundColor: "transparent", borderBottom: 0 }} >
               <Container className={classes.inner} fluid>
                 <Group>
                   <Text style={{fontFamily:'Visuelt', fontWeight: 600, fontSize:'28px'}}>My Untitled Workflow</Text>
@@ -529,7 +682,14 @@ const WorkflowStudio = () => {
     const [partnership, setPartnership] = useState(null);
     const [workflowActions, setWorkflowActions] = useState(null);
     const [workflowWebhooks, setWorkflowWebhooks] = useState(null);
+    const [adaptionDrawerOpen, setAdaptionDrawerOpen] = useState(drawerOpen);
+    const [selectedAdaption, setSelectedAdaption] = useState(null);
     
+    const toggleDrawer = (event, edge) => {
+        setAdaptionDrawerOpen(!adaptionDrawerOpen);
+        setSelectedAdaption(edge)
+    }
+
     useEffect(() => {
         if (pid && workflowId && !workflow) {
             axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/workflows/' + workflowId + '/details').then((res) => {
@@ -589,19 +749,26 @@ const WorkflowStudio = () => {
 
     return workflow && partnership && apis && workflowActions && workflowWebhooks ? (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%'}}>
+            <Drawer style={{zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
+                    <Text>Source Node: {selectedAdaption?.source}</Text>
+                    <Text>Target Node: {selectedAdaption?.target}</Text>
+            </Drawer>
             <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            padding: 30,
-            width: '93vw',
-            height: 90,
-            boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)',
-          }}>
-            <WorkflowHeader style={{boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', width: '93vw', height: '93vh'}}>
-            <Flow workflow={workflow} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
-         </div>
+                display: 'flex',
+                flexDirection: 'column',
+                padding: 30,
+                width: '93vw',
+                height: 90,
+                boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)',
+                zIndex: 1,
+            }}>
+                <WorkflowHeader style={{ boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '93vw', height: '93vh'}}>
+                <ReactFlowProvider>
+                    <Flow toggleDrawer={toggleDrawer} workflow={workflow} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
+                </ReactFlowProvider>
+            </div>
         </div>
        
     ) : (
