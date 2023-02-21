@@ -1,20 +1,122 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { getBezierPath } from 'reactflow';
 import {ActionIcon, Text, Center} from '@mantine/core'
 import {AiOutlineNodeIndex} from 'react-icons/ai'
 const foreignObjectSize = 50;
-import { useStore } from 'zustand';
+import useStore from '../../context/store'
 
-const onEdgeClick = (evt, id) => {
-  evt.stopPropagation();
-  alert(`remove ${id}`);
-};
-
-export default function ButtonEdge({ id, selected, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, markerEnd, data}) {
+export default function ButtonEdge({ id, target, source, selected, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, markerEnd, data}) {
   
   const [edgePath, labelX, labelY] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition});
+  const [disabled, setDisabled] = React.useState(false)
+  const nodeActions = useStore(state => state.nodeActions)
+  const targetAction = nodeActions[target]
+  const [requiredPropertyCount, setRequiredPropertyCount] = useState(null)
+  
+  const processNestedProperties = (properties, parent) => {
+    const nestedPropertyKeys = Object.keys(properties)
+    const nestedPropertyValues = Object.values(properties)
+    const nestedPropertyObjects = nestedPropertyKeys.map((key, index) => {
+        return {
+            key: key,
+            path: parent + "." + key,
+            ...nestedPropertyValues[index]
+        }
+    })
+    const requiredNestedPropertyArray = []
+    const optionalNestedPropertyArray = []
 
-  return (
+    nestedPropertyObjects.forEach((property) => {
+        if(property.required) {
+            requiredNestedPropertyArray.push(property)
+            if(property.properties){
+                var {required} = processNestedProperties(property.properties, parent+ "." + property.key)
+                var {optional} = processNestedProperties(property.properties, parent+ "." + property.key)
+                var filteredRequiredArray = required.filter((item) => { 
+                    return item.type !== "object" && item.type !== "array"
+                })
+                var filteredOptionalArray = optional.filter((item) => {
+                    return item.type !== "object" && item.type !== "array"
+                })
+                requiredNestedPropertyArray.push(...filteredRequiredArray)
+                optionalNestedPropertyArray.push(...filteredOptionalArray)
+            }
+        } else {
+            optionalNestedPropertyArray.push(property)
+            if(property.properties){
+                processNestedProperties(property.properties)
+                var {required} = processNestedProperties(property.properties, parent+ "." + property.key)
+                var {optional} = processNestedProperties(property.properties, parent+ "." + property.key)
+                var filteredRequiredArray = required.filter((item) => { 
+                    return item.type !== "object" && item.type !== "array"
+                })
+                var filteredOptionalArray = optional.filter((item) => {
+                    return item.type !== "object" && item.type !== "array"
+                })
+                optionalNestedPropertyArray.push(...required, ...optional)
+            }
+        } 
+    })
+    return {required: requiredNestedPropertyArray, optional: optionalNestedPropertyArray}
+  }
+
+  const processProperties = () => {
+    
+    if(targetAction && targetAction.requestBody2 && targetAction.requestBody2.schema){
+    const propertyKeys = Object.keys(targetAction.requestBody2.schema)
+    const propertyValues = Object.values(targetAction.requestBody2.schema)
+    const propertyObjects = propertyKeys.map((key, index) => {
+        return {
+            key: key,
+            path: key,
+            ...propertyValues[index]
+        }
+    })
+    const requiredPropertyArray = []
+    const optionalPropertyArray = []
+
+    propertyObjects.forEach((property) => {
+        if(property.required) {
+                if(property.properties){
+                    var {required} = processNestedProperties(property.properties, property.key)
+                    var {optional} = processNestedProperties(property.properties, property.key)
+                    requiredPropertyArray.push(...required)
+                    optionalPropertyArray.push(...optional)
+                } else {
+                    requiredPropertyArray.push(property)
+                }
+        } else {
+            if(property.properties){
+                var {required} = processNestedProperties(property.properties, property.key)
+                var {optional} = processNestedProperties(property.properties, property.key)
+                optionalPropertyArray.push(...required, ...optional)
+            } else {
+                optionalPropertyArray.push(property)
+            }
+        }
+    })
+  
+    setRequiredPropertyCount(requiredPropertyArray.length)}
+
+  }
+
+useEffect(() => {
+   if(requiredPropertyCount === null){
+        processProperties()
+   }
+}, [requiredPropertyCount])
+
+  return !targetAction ? (
+    <>
+    <path
+      id={id}
+      style={style}
+      className="react-flow__edge-path"
+      d={edgePath}
+      markerEnd={markerEnd}
+    />
+    </>
+  ) : (
     <>
       <path
         id={id}
@@ -30,7 +132,7 @@ export default function ButtonEdge({ id, selected, sourceX, sourceY, targetX, ta
         y={labelY - foreignObjectSize / 2}
         style={{display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 4}}
       > 
-        {data?.targetSchema.required > 0 ? (
+        {/* {requiredPropertyCount > 0 ? (
             <div style={{
               zIndex:1, 
               position: 'absolute', 
@@ -39,19 +141,18 @@ export default function ButtonEdge({ id, selected, sourceX, sourceY, targetX, ta
               width: 18, 
               height: 18, 
               borderRadius: '50%', 
-              backgroundColor: 'black', 
+              border: '1px solid white',
+              backgroundColor: selected ? '#FFBD9A': 'black', 
               display: 'flex', 
               alignItems:'center'}}>
-
-              <Text align="center" style={{width: '100%', height: '100%',fontFamily: 'Visuelt',fontSize: '11px',color: 'white'}}>{data.targetSchema.required}</Text> 
+              <Text align="center" style={{width: '100%', height: '100%',fontFamily: 'Visuelt',fontSize: '11px',color: selected ? 'black': 'white', }}>{requiredPropertyCount}</Text> 
             </div>
         ) : null
-      }
+      } */}
 
       {selected ? (
           <ActionIcon size="xl" variant="outline" radius="xl" style={{borderColor: '#E9ECEF',backgroundColor: 'black'}}>
           <AiOutlineNodeIndex style={{
-  
             color: 'white',
             height: 20, 
             width: 20}} />
@@ -60,7 +161,6 @@ export default function ButtonEdge({ id, selected, sourceX, sourceY, targetX, ta
       : (
         <ActionIcon size="xl" variant="outline" radius="xl" style={{borderColor: '#E9ECEF',backgroundColor: 'white'}}>
         <AiOutlineNodeIndex style={{
-
           color: 'black',
           height: 20, 
           width: 20}} />

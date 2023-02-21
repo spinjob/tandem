@@ -1,17 +1,18 @@
-import {Text, Divider, Button, Loader, ScrollArea} from '@mantine/core'
+import {Text, Divider, Button, Container, UnstyledButton, Loader, ScrollArea} from '@mantine/core'
 import { useEffect, useState } from 'react'
 import {RxArrowRight} from 'react-icons/rx'
+import useStore from '../../context/store'
 
 const SchemaMappingDrawer = ({action}) => {
 
     const [requiredCount, setRequiredCount] = useState(0)
     const [optionalCount, setOptionalCount] = useState(0)
-    const [mappings, setMappings] = useState([])
     const [requiredPropertyObjects, setRequiredPropertyObjects] = useState(null)
     const [optionalPropertyObjects, setOptionalPropertyObjects] = useState(null)
+    const selectedMapping = useStore(state => state.selectedMapping)
+    const setSelectedMapping = useStore(state => state.setSelectedMapping)
 
-    console.log(optionalPropertyObjects)
-    console.log(requiredPropertyObjects)
+
     const processNestedProperties = (properties, parent) => {
         const nestedPropertyKeys = Object.keys(properties)
         const nestedPropertyValues = Object.values(properties)
@@ -60,127 +61,253 @@ const SchemaMappingDrawer = ({action}) => {
     }
 
     const processProperties = () => {
-        const propertyKeys = Object.keys(action.requestBody2.schema)
-        const propertyValues = Object.values(action.requestBody2.schema)
-        const propertyObjects = propertyKeys.map((key, index) => {
-            return {
-                key: key,
-                path: key,
-                ...propertyValues[index]
-            }
-        })
         const requiredPropertyArray = []
         const optionalPropertyArray = []
+        
+        if(action?.requestBody2){
+            const propertyKeys = Object.keys(action.requestBody2.schema)
+            const propertyValues = Object.values(action.requestBody2.schema)
+            const propertyObjects = propertyKeys.map((key, index) => {
+                return {
+                    key: key,
+                    path: key,
+                    ...propertyValues[index]
+                }
+            })
 
-        propertyObjects.forEach((property) => {
-            if(property.required) {
+            propertyObjects.forEach((property) => {
+                if(property.required) {
+                        if(property.properties){
+                            var {required} = processNestedProperties(property.properties, property.key)
+                            var {optional} = processNestedProperties(property.properties, property.key)
+                            requiredPropertyArray.push(...required)
+                            optionalPropertyArray.push(...optional)
+                        } else {
+                            requiredPropertyArray.push(property)
+                        }
+                } else {
                     if(property.properties){
                         var {required} = processNestedProperties(property.properties, property.key)
                         var {optional} = processNestedProperties(property.properties, property.key)
-                        requiredPropertyArray.push(...required)
-                        optionalPropertyArray.push(...optional)
+                        optionalPropertyArray.push(...required, ...optional)
                     } else {
-                        requiredPropertyArray.push(property)
+                        optionalPropertyArray.push(property)
                     }
-            } else {
-                if(property.properties){
-                    var {required} = processNestedProperties(property.properties, property.key)
-                    var {optional} = processNestedProperties(property.properties, property.key)
-                    optionalPropertyArray.push(...required, ...optional)
-                } else {
-                    optionalPropertyArray.push(property)
                 }
+            })
+            if(requiredPropertyObjects && requiredPropertyObjects.length > 0){
+                setRequiredPropertyObjects(requiredPropertyObjects, ...requiredPropertyArray)
+            } else {
+                setRequiredPropertyObjects(requiredPropertyArray)
             }
-        })
-        
-        setRequiredPropertyObjects(requiredPropertyArray)
-        setOptionalPropertyObjects(optionalPropertyArray)
-        setOptionalCount(optionalPropertyArray.length)
-        setRequiredCount(requiredPropertyArray.length)
+            if(optionalPropertyObjects && optionalPropertyObjects.length > 0){
+                setOptionalPropertyObjects(optionalPropertyObjects, ...optionalPropertyArray)
+            } else {
+                setOptionalPropertyObjects(optionalPropertyArray)
+            }
+
+            setOptionalCount(optionalCount + optionalPropertyArray.length)
+            setRequiredCount(requiredCount + requiredPropertyArray.length)
+        } 
+
+        if(action?.parameterSchema?.header){
+            const propertyKeys = Object.keys(action?.parameterSchema?.header)
+            const propertyValues = Object.values(action?.parameterSchema?.header)
+            const propertyObjects = propertyKeys.map((key, index) => {
+                return {
+                    key: key,
+                    path: key,
+                    ...propertyValues[index]
+                }
+            })
+
+            propertyObjects.forEach((property) => {
+                if(property.required) {
+                        if(property.properties){
+                            var {required} = processNestedProperties(property.properties, property.key)
+                            var {optional} = processNestedProperties(property.properties, property.key)
+                            requiredPropertyArray.push(...required)
+                            optionalPropertyArray.push(...optional)
+                        } else {
+                            requiredPropertyArray.push(property)
+                        }
+                } else {
+                    if(property.properties){
+                        var {required} = processNestedProperties(property.properties, property.key)
+                        var {optional} = processNestedProperties(property.properties, property.key)
+                        optionalPropertyArray.push(...required, ...optional)
+                    } else {
+                        optionalPropertyArray.push(property)
+                    }
+                }
+            })
+            if(requiredPropertyObjects && requiredPropertyObjects.length > 0){
+                setRequiredPropertyObjects(requiredPropertyObjects, ...requiredPropertyArray)
+            } else {
+                // setRequiredPropertyObjects(requiredPropertyArray)
+            }
+            if(optionalPropertyObjects && optionalPropertyObjects.length > 0){
+                setOptionalPropertyObjects(optionalPropertyObjects, ...optionalPropertyArray)
+            } else {
+                // setOptionalPropertyObjects(optionalPropertyArray)
+            }
+
+            setOptionalCount(optionalCount + optionalPropertyArray.length)
+            setRequiredCount(requiredCount + requiredPropertyArray.length)
+
+        }
+
+        if(action?.parameterSchema?.path){
+            const propertyKeys = Object.keys(action?.parameterSchema?.path)
+            const propertyValues = Object.values(action?.parameterSchema?.path)
+            const propertyObjects = propertyKeys.map((key, index) => {
+                return {
+                    key: key,
+                    path: key,
+                    ...propertyValues[index]
+                }
+            })
+
+            propertyObjects.forEach((property) => {
+                if(property.required) {
+                        if(property.properties){
+                            var {required} = processNestedProperties(property.properties, property.key)
+                            var {optional} = processNestedProperties(property.properties, property.key)
+                            requiredPropertyArray.push(...required)
+                            optionalPropertyArray.push(...optional)
+                        } else {
+                            requiredPropertyArray.push(property)
+                        }
+                } else {
+                    if(property.properties){
+                        var {required} = processNestedProperties(property.properties, property.key)
+                        var {optional} = processNestedProperties(property.properties, property.key)
+                        optionalPropertyArray.push(...required, ...optional)
+                    } else {
+                        optionalPropertyArray.push(property)
+                    }
+                }
+            })
+            if(requiredPropertyObjects && requiredPropertyObjects.length > 0){
+                setRequiredPropertyObjects(requiredPropertyObjects, ...requiredPropertyArray)
+            } else {
+                // setRequiredPropertyObjects(requiredPropertyArray)
+            }
+            if(optionalPropertyObjects && optionalPropertyObjects.length > 0){
+                setOptionalPropertyObjects(optionalPropertyObjects, ...optionalPropertyArray)
+            } else {
+                // setOptionalPropertyObjects(optionalPropertyArray)
+            }
+
+        }
+
+
+        setOptionalCount(optionalCount + optionalPropertyArray.length)
+        setRequiredCount(requiredCount + requiredPropertyArray.length)
+
 
     }
+ 
     useEffect (() => {
         if (!requiredPropertyObjects)
         {processProperties()}
     }, [requiredPropertyObjects])
 
     const requiredProperties = () => {
-        if(action.requestBody2) {
+        if(action?.requestBody2) {
             return !requiredPropertyObjects ? (
                 <Loader/>
+            ) : requiredPropertyObjects.length == 0 ? (
+                <div>
+                    <Text>No Optional Properties</Text>
+                </div>
             ) : (
                 requiredPropertyObjects.map((property, index) => {
                     return (
-                        <div key={property.path} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 12}}>
-                            <div style={{width: '92%', height: 48,border: '1px solid #F2F0EC', borderRadius: 4, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                <div style={{width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                    <Button style={{
-                                        fontFamily: 'Visuelt',
-                                        fontWeight: 100,
-                                        color: '#5A5A5A',
-                                        backgroundColor: '#FFFFFF',
-                                        border: '1px dashed #5A5A5A',
-                                        width: 180
-                                    }}>Not Mapped</Button>
-                                </div>
-                                <div style={{paddingRight: 2, paddingLeft:2}}>
-                                    <RxArrowRight style={{height: 20, width: 40}}/>
-                                </div>
-                                <div style={{width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                    <div style={{backgroundColor: '#F2F0ED', width: 180, height: 35, borderRadius: 4, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                        <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>{property.path}</Text>
+                        <div key={property.path} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent:'center',paddingTop: 12}}>
+                            <Container className={selectedMapping?.path == property.path ? 'active' : ''} sx={{
+                                borderRadius: 4, 
+                                width: 440,
+                                display:'flex',
+                                justifyContent: 'center',
+                                border: '1px solid #F2F0EC',
+                                '&.active': {
+                                    border: '1px solid #000000',
+                                    display:'block',
+                                    alignItems: 'center'
+                                }
+                                }}>
+                                <Button
+                                    value={property.path}
+                                    onClick={()=>{
+                                        setSelectedMapping(property)
+                                        console.log(property)
+                                    }}
+                                    sx={{
+                                        '&:hover': {
+                                            backgroundColor: 'transparent'
+                                        },
+                                        backgroundColor: 'transparent',
+                                        width: '100%', 
+                                        height: 48,
+                                        borderRadius: 4, 
+                                        display: 'flex', 
+                                        flexDirection: 'row',
+                                        justifyContent: 'center', 
+                                        alignItems: 'center'
+                                    }}
+                                        >
+                                    <div style={{width: 200, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
+                                        <div style={{
+                                            fontFamily: 'Visuelt',
+                                            fontWeight: 100,
+                                            color: '#5A5A5A',
+                                            backgroundColor: '#FFFFFF',
+                                            border: '1px dashed #5A5A5A',
+                                            borderRadius: 4,
+                                            height: 35,
+                                            display:'flex',
+                                            flexDirection: 'row',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            width: 180
+                                        }}>Not Mapped</div>
                                     </div>
-                                </div>
-                            </div>
+                                    <div style={{paddingRight: 2, paddingLeft:2}}>
+                                        <RxArrowRight color={'black'} style={{height: 20, width: 40}}/>
+                                    </div>
+                                    <div style={{width: 200, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
+                                        <div style={{backgroundColor: '#F2F0ED', width: 180, height: 35, borderRadius: 4, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
+                                            <Text style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 100, color: 'black'}}>{property.path}</Text>
+                                        </div>
+                                    </div>
+                                </Button>
+                                {selectedMapping?.path == property.path && (
+                                    <div style={{width: '100%', paddingBottom: 5, display:'flex', flexDirection:'center', justifyContent: 'center', alignItems:'center'}}>
+                                        <Button style={{width: 480, height: 50, borderRadius: 8, backgroundColor: 'black'}}>
+                                            <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'white'}}>Configure Fields</Text>
+                                       </Button>      
+                                    </div>   
+                                 ) }
+                            </Container>
                         </div>
                 )})
-            )
-
-    }}
-
-    const optionalProperties = () => {
-        if(action.requestBody2) {
-            return !optionalPropertyObjects ? (
+            ) }
+        else {
+            return (
                 <Loader/>
-            ) :(
-                optionalPropertyObjects.map((property, index) => {
-                    return (
-                        <div key={property.path} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 12}}>
-                            <div style={{width: '92%', height: 48,border: '1px solid #F2F0EC', borderRadius: 4, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                <div style={{width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                    <Button style={{
-                                        fontFamily: 'Visuelt',
-                                        fontWeight: 100,
-                                        color: '#5A5A5A',
-                                        backgroundColor: '#FFFFFF',
-                                        border: '1px dashed #5A5A5A',
-                                        width: 180
-                                    }}>Not Mapped</Button>
-                                </div>
-                                <div style={{paddingRight: 2, paddingLeft:2}}>
-                                    <RxArrowRight style={{height: 20, width: 40}}/>
-                                </div>
-                              
-                                <div style={{width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                    <div style={{backgroundColor: '#F2F0ED', width: 180, height: 35, borderRadius: 4, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                        <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>{property.path}</Text>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                )})
             )
-
     }}
+
 
     return (
         <div style={{padding: 10}}>
             <Text style={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 600}}>Schema Mapping </Text>
-            <Divider></Divider>
+            <Divider/>
                 <Text style={{padding: 20, fontFamily: 'Visuelt', fontSize: '12px', fontWeight: 400, color: 'grey'}}>Below are all of the required and optional properties for {action?.name}. The API documentation indicates that all of the required properties must have a value mapped or set - not doing so will likely result in failure.</Text>
                 <div style={{paddingLeft: 20, paddingRight: 20, paddingTop: 10, display:'flex',flexDirection:'row', justifyContent: 'space-between'}}>
                     <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>Required Properties</Text>
-                    <Text style={{fontFamily:'Visuelt'}}>{mappings.length}/{requiredCount}</Text>
+                    <Text style={{fontFamily:'Visuelt'}}>{0}/{requiredCount}</Text>
                 </div>
                 
                 <div style={{paddingBottom: 20, display: 'flex', flexDirection: 'column'}}>
@@ -189,7 +316,7 @@ const SchemaMappingDrawer = ({action}) => {
             
                 <div style={{paddingLeft: 20, paddingRight: 20, paddingTop: 10, display:'flex',flexDirection:'row', justifyContent: 'space-between'}}>
                     <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>Optional Properties</Text>
-                    <Text style={{fontFamily:'Visuelt'}}>{mappings.length}/{optionalCount}</Text>
+                    <Text style={{fontFamily:'Visuelt'}}>{0}/{optionalCount}</Text>
                     </div>
                     <ScrollArea.Autosize maxHeight={700} width={50}>
                    { 
@@ -197,29 +324,74 @@ const SchemaMappingDrawer = ({action}) => {
                             <Loader/>
                         ) :  optionalPropertyObjects.map((property, index) => {
                             return (
-                                <div key={property.path} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 12}}>
-                                    <div style={{width: '92%', height: 48,border: '1px solid #F2F0EC', borderRadius: 4, display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                        <div style={{width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                            <Button style={{
+                                <div key={property.path} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent:'center',paddingTop: 12}}>
+                                <Container className={selectedMapping?.path == property.path ? 'active' : ''} sx={{
+                                    borderRadius: 4, 
+                                    width: 440,
+                                    display:'flex',
+                                    justifyContent: 'center',
+                                    border: '1px solid #F2F0EC',
+                                    '&.active': {
+                                        border: '1px solid #000000',
+                                        display:'block',
+                                        alignItems: 'center'
+                                    }
+                                    }}>
+                                    <Button
+                                        value={property.path}
+                                        onClick={()=>{
+                                            setSelectedMapping(property)
+                                        
+                                        }}
+                                        sx={{
+                                            '&:hover': {
+                                                backgroundColor: 'transparent'
+                                            },
+                                            backgroundColor: 'transparent',
+                                            width: '100%', 
+                                            height: 48,
+                                            borderRadius: 4, 
+                                            display: 'flex', 
+                                            flexDirection: 'row',
+                                            justifyContent: 'center', 
+                                            alignItems: 'center'
+                                        }}
+                                            >
+                                        <div style={{width: 200, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
+                                            <div style={{
                                                 fontFamily: 'Visuelt',
                                                 fontWeight: 100,
                                                 color: '#5A5A5A',
                                                 backgroundColor: '#FFFFFF',
                                                 border: '1px dashed #5A5A5A',
+                                                borderRadius: 4,
+                                                height: 35,
+                                                display:'flex',
+                                                flexDirection: 'row',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
                                                 width: 180
-                                            }}>Not Mapped</Button>
+                                            }}>Not Mapped</div>
                                         </div>
                                         <div style={{paddingRight: 2, paddingLeft:2}}>
-                                            <RxArrowRight style={{height: 20, width: 40}}/>
+                                            <RxArrowRight color={'black'} style={{height: 20, width: 40}}/>
                                         </div>
-                                    
-                                        <div style={{width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
+                                        <div style={{width: 200, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
                                             <div style={{backgroundColor: '#F2F0ED', width: 180, height: 35, borderRadius: 4, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                                <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>{property.path}</Text>
+                                                <Text style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 100, color: 'black'}}>{property.path}</Text>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>)
+                                    </Button>
+                                    {selectedMapping?.path == property.path && (
+                                        <div style={{width: '100%', paddingBottom: 5, display:'flex', flexDirection:'center', justifyContent: 'center', alignItems:'center'}}>
+                                            <Button style={{width: 480, height: 50, borderRadius: 8, backgroundColor: 'black'}}>
+                                                <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'white'}}>Configure Fields</Text>
+                                           </Button>      
+                                        </div>   
+                                     ) }
+                                </Container>
+                            </div>
+                                )
                             }
                         )}
 

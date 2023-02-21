@@ -162,6 +162,13 @@
     --text-decoration-color: var(--gray-400);
     --text-color: var(--gray-800);
     --focus-ring-color: var(--black-900);
+    --rct-color-focustree-item-selected-bg: black;
+    --rct-color-focustree-item-selected-text: white;
+
+    --rct-color-nonfocustree-item-selected-bg: black;
+    --rct-color-nonfocustree-item-selected-text: white;
+    --rct-color-nonfocustree-item-focused-border: #dbdbdb;
+
   }
   
   body {
