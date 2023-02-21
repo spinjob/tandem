@@ -8,7 +8,7 @@ import {RiDoubleQuotesL} from 'react-icons/ri'
 import {AiOutlineNumber} from 'react-icons/ai'
 import {RxComponentBoolean, RxQuestionMarkCircled} from 'react-icons/rx'
 import { v4 as uuidv4 } from 'uuid';
-import {useRef, useStat,useEffect} from 'react'
+import {useRef, useState,useEffect} from 'react'
 import useStore from '../../context/store'
 
 function generateTreeData (schema, parent) {
@@ -156,6 +156,7 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
 
     const selectedMapping = useStore(state => state.selectedMapping)
     const selectedEdge = useStore(state => state.selectedEdge)
+    const [selectedItem, setSelectedItem] = useState(null)
 
     console.log("selectedMapping", selectedMapping)
     console.log("selectedEdge", selectedEdge)
@@ -175,6 +176,15 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
            
         )
     }
+
+    useEffect(() => {
+     if(node && selectedEdge && selectedMapping){
+        if(node?.id == selectedEdge?.target && selectedMapping?.path && selectedMapping?.path != selectedItem?.path ) {
+            tree.current?.selectItems([selectedMapping.path])
+       } 
+     }
+       
+    })
 
     return isLoading ? (
         <Center>

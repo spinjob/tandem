@@ -341,7 +341,6 @@ const SchemaMappingDrawer = ({action}) => {
                                         value={property.path}
                                         onClick={()=>{
                                             setSelectedMapping(property)
-                                        
                                         }}
                                         sx={{
                                             '&:hover': {
