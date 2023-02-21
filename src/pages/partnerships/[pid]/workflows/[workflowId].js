@@ -789,8 +789,9 @@ const WorkflowStudio = () => {
 
     return workflow && partnership && apis && workflowActions && workflowWebhooks ? (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%'}}>
-            <Drawer size="25vw" style={{zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
-                    <SchemaMappingDrawer action= {nodeActions[selectedAdaption?.target]}/>
+            <Drawer lockScroll={false} size="25vw" style={{overflowY: 'scroll', zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
+                    <SchemaMappingDrawer action= {nodeActions[selectedAdaption?.target]}/>   
+
             </Drawer>
             <div style={{
                 display: 'flex',
