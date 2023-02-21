@@ -3,6 +3,7 @@ import { getBezierPath } from 'reactflow';
 import {ActionIcon, Text, Center} from '@mantine/core'
 import {AiOutlineNodeIndex} from 'react-icons/ai'
 const foreignObjectSize = 50;
+import { useStore } from 'zustand';
 
 const onEdgeClick = (evt, id) => {
   evt.stopPropagation();
@@ -48,7 +49,7 @@ export default function ButtonEdge({ id, selected, sourceX, sourceY, targetX, ta
       }
 
       {selected ? (
-          <ActionIcon size="xl" variant="outline" radius="xl" style={{borderColor: '#E9ECEF',backgroundColor: 'black', boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 100px'}}>
+          <ActionIcon size="xl" variant="outline" radius="xl" style={{borderColor: '#E9ECEF',backgroundColor: 'black'}}>
           <AiOutlineNodeIndex style={{
   
             color: 'white',
@@ -57,7 +58,7 @@ export default function ButtonEdge({ id, selected, sourceX, sourceY, targetX, ta
         </ActionIcon>
       ) 
       : (
-        <ActionIcon size="xl" variant="outline" radius="xl" style={{borderColor: '#E9ECEF',backgroundColor: 'white', boxShadow: 'rgba(0, 0, 0, 0.1) 0px 0px 100px'}}>
+        <ActionIcon size="xl" variant="outline" radius="xl" style={{borderColor: '#E9ECEF',backgroundColor: 'white'}}>
         <AiOutlineNodeIndex style={{
 
           color: 'black',

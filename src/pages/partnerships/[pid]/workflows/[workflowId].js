@@ -33,6 +33,7 @@ import ReactFlow, {
 
 import { TimeInput } from '@mantine/dates';  
 import ButtonEdge from '../../../../components/Workflow/ButtonEdge';
+import SchemaMappingDrawer from '../../../../components/Workflow/SchemaMappingDrawer';
 import { useRef } from 'react';
 import {TiFlowSwitch} from 'react-icons/ti'
 import {AiOutlinePlusSquare} from 'react-icons/ai'
@@ -42,7 +43,6 @@ import axios from 'axios';
 
 const nodeTypes = {trigger: TriggerNode, action: ActionNode}
 const edgeTypes = {buttonEdge: ButtonEdge}
-var drawerOpen = false;
 
 const useStyles = createStyles((theme,opened, checked ) => ({
   inner: {
@@ -82,12 +82,24 @@ const useStyles = createStyles((theme,opened, checked ) => ({
   },
 }));
 
-function ActionNode ({data}) {
+import useStore from '../../../../context/store';
+
+const selector = (state) => ({
+  nodes: state.nodes,
+  edges: state.edges,
+  onNodesChange: state.onNodesChange,
+  onEdgesChange: state.onEdgesChange,
+  onConnect: state.onConnect,
+});
+
+function ActionNode ({id, data}) {
     const {classes, cx} = useStyles();
 
     const [selectedAction, setSelectedAction] = useState(null)
     const [actionMenuOpened, setActionMenuOpened] = useState(false);
     const [selectedApi, setSelectedApi] = useState(data.apis[0].uuid)
+
+    const setNodeAction = useStore((state) => state.setNodeAction)
 
     const filteredActions = data.actions.filter((action) => {
         return action.parent_interface_uuid == selectedApi
@@ -97,7 +109,13 @@ function ActionNode ({data}) {
         return (
             <Menu.Item 
                 key={action.uuid} 
-                onClick={() => setSelectedAction(action)}
+                value={selectedAction}
+                onClick={() => {
+                    setSelectedAction(action)
+                    data.selectedAction = action
+                    console.log(data)
+                    setNodeAction(id, action)
+                }}
                 style={{width: 230}}>
                 <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px'}}>
                     {action.name}
@@ -130,7 +148,7 @@ function ActionNode ({data}) {
                 <Text style={{fontFamily:'Visuelt', fontSize:'12px', width: 270, color: 'grey'}}>Choose an API request to perform.</Text>
             </div>
             <div style={{backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center'}}>
-                <SegmentedControl value={selectedApi} onChange={setSelectedApi} style={{fontFamily: 'Visuelt', backgroundColor: 'white', width: '90%', border:'.5px solid #E7E7E7',borderRadius: 8}} color='dark' radius='md' data={[{label:data.apis[0].name, value:data.apis[0].uuid}, {label:data.apis[1].name, value:data.apis[1].uuid}]}/>
+                <SegmentedControl value={selectedApi} onChange={setSelectedApi} style={{fontFamily: 'Visuelt', backgroundColor: 'white', width: '90%', border:'.5px solid #E7E7E7',borderRadius: 8}} color='dark' radius='md' data={[{label:data.apis[0]?.name, value:data.apis[0]?.uuid}, {label:data.apis[1]?.name, value:data.apis[1]?.uuid}]}/>
             </div> 
             <div style={{paddingTop: 15,backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center'}}>
                 <Menu
@@ -164,7 +182,6 @@ function ActionNode ({data}) {
     )
 
 }
-
 
 function TriggerNode ({data}) {
     const {classes, cx} = useStyles();
@@ -528,6 +545,7 @@ const NewNodeButtonMenu = () => {
     )
 }
 
+
 function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
 
     //For existing workflows, will need to load the nodes and edges from the workflow object
@@ -535,9 +553,10 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
         {
             id: 'ewb-1',
             type: 'trigger',
-            position: { x: 250, y: 0 },
+            position: { x: 350, y: 400 },
             data: {
                 label: '1',
+                id: 'ewb-1',
                 apis: apis,
                 webhooks: webhooks
             } 
@@ -545,14 +564,16 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
         {
             id: 'ewb-2',
             type: 'action',
-            position: { x: 350, y: 0 },
+            position: { x: 850, y: 400},
             data: {
                 label: '2',
+                id: 'ewb-2',
                 apis: apis,
                 actions: actions
             } 
         }
       ];
+
     const initialEdges = [  {
         id: 'edge-1-2',
         source: 'ewb-1',
@@ -577,9 +598,9 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [captureElementClick, setCaptureElementClick] = useState(false);
+    const [selectedAction, setSelectedAction] = useState(null);
     const {project} = useReactFlow();
-
-    const [workflowState, setWorkflowState] = useState(null);
+    const nodeActions = useStore((state) => state.nodeActions);
 
     const onConnect = useCallback(
         (params) => setEdges((eds) => addEdge({ ...params, type: 'buttonEdge'}, eds)),
@@ -590,6 +611,21 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
         connectingNodeId.current = nodeId;
         }, []);
 
+     const onChange = (event) => {
+            setNodes((nds) =>
+                nds.map((node) => {
+                    const nodeSelectedAction = event.target.value;
+                    setSelectedAction(nodeSelectedAction)
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            selectedAction: nodeSelectedAction,
+                        }
+                    }
+                })
+            )
+        }
     
     const onConnectEnd = useCallback(
         (event) => {
@@ -606,7 +642,8 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                     data: {
                         label: `Node ${id}`,
                         apis: apis,
-                        actions: actions
+                        actions: actions,
+                        onChange: onChange
                     }
                 }
                 setNodes((nds) => nds.concat(newNode));
@@ -620,26 +657,24 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
             <div style={{position:'absolute', padding: 40, zIndex: 1, height: 40, width: 220}}>
             <NewNodeButtonMenu />
             </div>
-            <div ref={reactFlowWrapper} style={{
-                  flexGrow: 1,
-                  height: '100%'
-            }}>
+            <div ref={reactFlowWrapper} style={{height: '100%'}}>
                 <ReactFlow
-                        nodes={nodes}
-                        edges={edges}
-                        onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
-                        onConnectStart={onConnectStart}
-                        onConnectEnd={onConnectEnd}
-                        onConnect={onConnect}
-                        edgeTypes={edgeTypes}
-                        nodeTypes={nodeTypes}
-                        onEdgeClick={(event, edge) => {
-                            toggleDrawer(event, edge)
-                        }}
-                        zoomOnScroll={false}
-                        fitView={true}
-                        style={{position:'absolute', zIndex: 2}}
+                    nodes={nodes}
+                    edges={edges}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    onConnectStart={onConnectStart}
+                    onConnectEnd={onConnectEnd}
+                    onConnect={onConnect}
+                    edgeTypes={edgeTypes}
+                    nodeTypes={nodeTypes}
+                    onEdgeClick={(event, edge) => {
+                        toggleDrawer(event, edge, nodes, edges)
+                        console.log(nodeActions)
+                        console.log(edge)
+                    }}
+                    zoomOnScroll={false}
+                    style={{position:'absolute', zIndex: 2}}
                     >
                     <Background color="#FBFAF9" />
                 </ReactFlow>
@@ -682,12 +717,17 @@ const WorkflowStudio = () => {
     const [partnership, setPartnership] = useState(null);
     const [workflowActions, setWorkflowActions] = useState(null);
     const [workflowWebhooks, setWorkflowWebhooks] = useState(null);
-    const [adaptionDrawerOpen, setAdaptionDrawerOpen] = useState(drawerOpen);
+    const [adaptionDrawerOpen, setAdaptionDrawerOpen] = useState(false);
     const [selectedAdaption, setSelectedAdaption] = useState(null);
+    const [nodes, setNodes] = useState(null);
+    const [edges, setEdges] = useState(null);
+    const nodeActions = useStore((state) => state.nodeActions);
     
-    const toggleDrawer = (event, edge) => {
+    const toggleDrawer = (event, edge, nodes, edges) => {
         setAdaptionDrawerOpen(!adaptionDrawerOpen);
         setSelectedAdaption(edge)
+        setNodes(nodes)
+        setEdges(edges)
     }
 
     useEffect(() => {
@@ -749,9 +789,8 @@ const WorkflowStudio = () => {
 
     return workflow && partnership && apis && workflowActions && workflowWebhooks ? (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%'}}>
-            <Drawer style={{zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
-                    <Text>Source Node: {selectedAdaption?.source}</Text>
-                    <Text>Target Node: {selectedAdaption?.target}</Text>
+            <Drawer size="25vw" style={{zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
+                    <SchemaMappingDrawer action= {nodeActions[selectedAdaption?.target]}/>
             </Drawer>
             <div style={{
                 display: 'flex',
