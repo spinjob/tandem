@@ -176,12 +176,6 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
         )
     }
 
-    useEffect(() => {
-       if(node.id == selectedEdge.target) {
-            tree.current?.selectItems([selectedMapping.path])
-       }
-    })
-
     return isLoading ? (
         <Center>
             <Loader color='dark' size="lg" />
