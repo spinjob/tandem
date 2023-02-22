@@ -113,10 +113,8 @@ function generateTreeData (schema, parent) {
         }
         treeItems[path] = childNode
     })
-
     return treeItems
 }
-
 
 
 const returnIcon = (type) => {
@@ -157,11 +155,6 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
     const selectedMapping = useStore(state => state.selectedMapping)
     const selectedEdge = useStore(state => state.selectedEdge)
     const [selectedItem, setSelectedItem] = useState(null)
-
-    console.log("selectedMapping", selectedMapping)
-    console.log("selectedEdge", selectedEdge)
-    console.log(node)
-    console.log(tree)
 
 
     const renderItemTitle = (title, item) => {

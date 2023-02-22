@@ -104,7 +104,7 @@ useEffect(() => {
    if(requiredPropertyCount === null){
         processProperties()
    }
-}, [requiredPropertyCount])
+}, [requiredPropertyCount, processProperties])
 
   return !targetAction ? (
     <>

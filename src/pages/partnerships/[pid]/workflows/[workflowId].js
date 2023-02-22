@@ -104,7 +104,8 @@ function ActionNode ({id, data}) {
     const setNodeAction = useStore((state) => state.setNodeAction)
     const nodeActions = useStore((state) => state.nodeActions)
     const nodeViews = useStore((state) => state.nodeViews)
-
+    const selectedEdge = useStore((state) => state.selectedEdge)
+    
     const filteredActions = data.actions.filter((action) => {
         return action.parent_interface_uuid == selectedApi
     })
@@ -198,7 +199,7 @@ function ActionNode ({id, data}) {
                                  </>
              ) : (
                 <div>
-                   <ActionMappingView action={nodeActions[data.id]} node={data}/>
+                   <ActionMappingView action={nodeActions[data.id]} node={data} edge={selectedEdge}/>
                 </div>
              ) }
 
@@ -659,7 +660,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
 
     const onConnect = useCallback(
         (params) => setEdges((eds) => addEdge({ ...params, type: 'buttonEdge'}, eds)),
-        []
+        [setEdges]
       );
 
     const onConnectStart = useCallback((_, { nodeId }) => {
@@ -705,7 +706,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                 setNodes((nds) => nds.concat(newNode));
                 setEdges((eds) => eds.concat({id, source: connectingNodeId.current, target: id, type: 'buttonEdge'}));
             }
-        }, [project]
+        }, [project, setNodes, setEdges, getId, apis, actions, onChange]
     );
 
     return (

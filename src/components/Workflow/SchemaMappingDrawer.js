@@ -1,6 +1,7 @@
-import {Text, Divider, Button, Container, UnstyledButton, Loader, ScrollArea} from '@mantine/core'
+import {Text, Divider, Button, ActionIcon, Container, UnstyledButton, Loader, ScrollArea} from '@mantine/core'
 import { useEffect, useState } from 'react'
 import {RxArrowRight} from 'react-icons/rx'
+import {BiBrain} from 'react-icons/bi'
 import useStore from '../../context/store'
 
 const SchemaMappingDrawer = ({action}) => {
@@ -211,7 +212,7 @@ const SchemaMappingDrawer = ({action}) => {
     useEffect (() => {
         if (!requiredPropertyObjects)
         {processProperties()}
-    }, [requiredPropertyObjects])
+    }, [requiredPropertyObjects, processProperties])
 
     const requiredProperties = () => {
         if(action?.requestBody2) {
@@ -302,7 +303,13 @@ const SchemaMappingDrawer = ({action}) => {
 
     return (
         <div style={{padding: 10}}>
-            <Text style={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 600}}>Schema Mapping </Text>
+            <div style={{display: 'flex', alignItems: 'baseline', justifyContent:'space-between'}}>
+                <Text style={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 600}}>Schema Mapping </Text>
+                <ActionIcon size="xl">
+                    <BiBrain size={24}/>
+                </ActionIcon>
+            </div>
+
             <Divider/>
                 <Text style={{padding: 20, fontFamily: 'Visuelt', fontSize: '12px', fontWeight: 400, color: 'grey'}}>Below are all of the required and optional properties for {action?.name}. The API documentation indicates that all of the required properties must have a value mapped or set - not doing so will likely result in failure.</Text>
                 <div style={{paddingLeft: 20, paddingRight: 20, paddingTop: 10, display:'flex',flexDirection:'row', justifyContent: 'space-between'}}>
