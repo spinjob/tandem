@@ -1,4 +1,4 @@
-import {Text, Divider, Button, ActionIcon, Container, UnstyledButton, Loader, ScrollArea} from '@mantine/core'
+import {Text, Divider, Button, Container, UnstyledButton, Loader, ScrollArea} from '@mantine/core'
 import { useEffect, useState } from 'react'
 import {RxArrowRight} from 'react-icons/rx'
 import {BiBrain} from 'react-icons/bi'
@@ -145,12 +145,12 @@ const SchemaMappingDrawer = ({action}) => {
             if(requiredPropertyObjects && requiredPropertyObjects.length > 0){
                 setRequiredPropertyObjects(requiredPropertyObjects, ...requiredPropertyArray)
             } else {
-                // setRequiredPropertyObjects(requiredPropertyArray)
+                setRequiredPropertyObjects(requiredPropertyArray)
             }
             if(optionalPropertyObjects && optionalPropertyObjects.length > 0){
                 setOptionalPropertyObjects(optionalPropertyObjects, ...optionalPropertyArray)
             } else {
-                // setOptionalPropertyObjects(optionalPropertyArray)
+                setOptionalPropertyObjects(optionalPropertyArray)
             }
 
             setOptionalCount(optionalCount + optionalPropertyArray.length)
@@ -192,12 +192,12 @@ const SchemaMappingDrawer = ({action}) => {
             if(requiredPropertyObjects && requiredPropertyObjects.length > 0){
                 setRequiredPropertyObjects(requiredPropertyObjects, ...requiredPropertyArray)
             } else {
-                // setRequiredPropertyObjects(requiredPropertyArray)
+                setRequiredPropertyObjects(requiredPropertyArray)
             }
             if(optionalPropertyObjects && optionalPropertyObjects.length > 0){
                 setOptionalPropertyObjects(optionalPropertyObjects, ...optionalPropertyArray)
             } else {
-                // setOptionalPropertyObjects(optionalPropertyArray)
+                setOptionalPropertyObjects(optionalPropertyArray)
             }
 
         }
@@ -212,10 +212,10 @@ const SchemaMappingDrawer = ({action}) => {
     useEffect (() => {
         if (!requiredPropertyObjects)
         {processProperties()}
-    }, [requiredPropertyObjects, processProperties])
+    }, [requiredPropertyObjects])
 
     const requiredProperties = () => {
-        if(action?.requestBody2) {
+
             return !requiredPropertyObjects ? (
                 <Loader/>
             ) : requiredPropertyObjects.length == 0 ? (
@@ -294,20 +294,12 @@ const SchemaMappingDrawer = ({action}) => {
                         </div>
                 )})
             ) }
-        else {
-            return (
-                <Loader/>
-            )
-    }}
 
 
     return (
         <div style={{padding: 10}}>
             <div style={{display: 'flex', alignItems: 'baseline', justifyContent:'space-between'}}>
                 <Text style={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 600}}>Schema Mapping </Text>
-                <ActionIcon size="xl">
-                    <BiBrain size={24}/>
-                </ActionIcon>
             </div>
 
             <Divider/>
