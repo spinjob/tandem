@@ -153,10 +153,54 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
     const tree = useRef();
 
     const selectedMapping = useStore(state => state.selectedMapping)
+    const setSelectedMapping = useStore(state => state.setSelectedMapping)
     const selectedEdge = useStore(state => state.selectedEdge)
     const [selectedItem, setSelectedItem] = useState(null)
+    const [selectedSourceProperty, setSelectedSourceProperty] = useState(null)
 
+    const getSchemaFromPath = (path) => {
+        var schemaLocationArray = path.split('.')
+       
+        if(schemaLocationArray.length == 1) {
+            return {...schema[schemaLocationArray[0]], path: path, key: schemaLocationArray[0]}
+        } else {
+            var parent = schema
+            var parentContext = []
 
+            
+            for (var i = 0; i < schemaLocationArray.length; i++) {
+                var child = parent[schemaLocationArray[i]]
+
+                if(child?.properties && i !== schemaLocationArray.length - 1){
+                    parent = child.properties
+                        if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
+                            parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1], path: path})
+                        }
+                    }                        
+
+                else if(child?.items && i !== schemaLocationArray.length - 1){
+                    if(child.items.properties) {
+                        parent = child.items.properties
+                        parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
+                    } else {
+                        if(parentContext.length > 0){
+                            return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
+                        }
+                        return {...child.items, path: path, key: schemaLocationArray[i]}
+                    }
+                }
+                else {     
+                    var childKey = schemaLocationArray[i]
+                    if(parentContext.length > 0){
+                        return {...child, path: path, key: schemaLocationArray[i], parentContext}
+                    }
+                    return {...child, key: childKey, path: path}
+                }
+    
+            }
+        }
+    }
+        
     const renderItemTitle = (title, item) => {
         var propertyName = title?.split('.').pop()
 
@@ -171,12 +215,15 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
     }
 
     useEffect(() => {
-     if(node && selectedEdge && selectedMapping){
-        if(node?.id == selectedEdge?.target && selectedMapping?.path && selectedMapping?.path != selectedItem?.path ) {
-            tree.current?.selectItems([selectedMapping.path])
-       } 
-     }
-       
+        if(node && selectedEdge && selectedMapping){
+            //If the node this tree is rendered for is the Target node, then the selected property will be stored as the target.
+            if(node?.id == selectedEdge?.target && selectedMapping?.targetProperty?.path && selectedMapping?.targetProperty?.path != selectedItem?.path ) {
+                tree.current?.selectItems([selectedMapping?.targetProperty?.path])
+            } 
+        
+            //If the node this tree is rendered for is the Source node, then the selected property will be stored as the source.
+            
+        }
     })
 
     return isLoading ? (
@@ -203,11 +250,26 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
             canDragAndDrop={false}
             canRenameItem={false}
             renderItemTitle={({title, item}) => renderItemTitle(title, item)}
-            onSelectItems={(items) => {}}
+            onSelectItems={(items) => {
+                if(node?.id == selectedEdge?.source){
+                    if(selectedSourceProperty == items[0] ) {
+                        tree.current?.selectItems([])
+                        setSelectedSourceProperty(null)
+                        setSelectedMapping({sourceProperty: {}})
+                    } else if(items[0] == null) {
+                        setSelectedSourceProperty(null)
+                        setSelectedMapping({sourceProperty: {}})
+                    }
+                    else {
+                        setSelectedSourceProperty(items[0])
+                        setSelectedMapping({sourceProperty: getSchemaFromPath(items[0])})
+                    }
+
+                }
+            }}
             >
             <Tree ref={tree} treeId={'tree-1'} rootItem="root" treeLabel="Tree Example" />
             </UncontrolledTreeEnvironment>
-
         </div>
     )
 

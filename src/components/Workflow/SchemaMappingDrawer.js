@@ -4,7 +4,7 @@ import {RxArrowRight} from 'react-icons/rx'
 import {BiBrain} from 'react-icons/bi'
 import useStore from '../../context/store'
 
-const SchemaMappingDrawer = ({action}) => {
+const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
 
     const [requiredCount, setRequiredCount] = useState(0)
     const [optionalCount, setOptionalCount] = useState(0)
@@ -13,6 +13,50 @@ const SchemaMappingDrawer = ({action}) => {
     const selectedMapping = useStore(state => state.selectedMapping)
     const setSelectedMapping = useStore(state => state.setSelectedMapping)
 
+
+    const getParentContext = (path, schema) => {
+        var schemaLocationArray = path.split('.')
+
+        if(schemaLocationArray.length == 1) {
+            return []
+        } else {
+            var parent = schema
+            var parentContext = []
+            
+            for (var i = 0; i < schemaLocationArray.length; i++) {
+                var child = parent[schemaLocationArray[i]]
+
+                if(child?.properties && i !== schemaLocationArray.length - 1){
+                    parent = child.properties
+                        if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
+                            // parentContext = parentContext.len ? parentContext: {contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1]}
+                            parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1]})
+                        }
+                    }                        
+
+                else if(child?.items && i !== schemaLocationArray.length - 1){
+                    if(child.items.properties) {
+                        parent = child.items.properties
+                        // parentContext = parentContext.contextType ? parentContext : {contextType: 'array', parentContextKey: schemaLocationArray[i], path: path}
+                        parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
+                    } else {
+                        if(parentContext.length > 0){
+                            return parentContext
+                        }
+                        return []
+                    }
+                }
+                else {     
+                    
+                    if(parentContext.length > 0){
+                        return parentContext
+                    }
+                    return []
+                }
+    
+            }
+        }
+    }
 
     const processNestedProperties = (properties, parent) => {
         const nestedPropertyKeys = Object.keys(properties)
@@ -33,32 +77,54 @@ const SchemaMappingDrawer = ({action}) => {
                 if(property.properties){
                     var {required} = processNestedProperties(property.properties, parent+ "." + property.key)
                     var {optional} = processNestedProperties(property.properties, parent+ "." + property.key)
-                    var filteredRequiredArray = required.filter((item) => { 
-                        return item.type !== "object" && item.type !== "array"
-                    })
-                    var filteredOptionalArray = optional.filter((item) => {
-                        return item.type !== "object" && item.type !== "array"
-                    })
-                    requiredNestedPropertyArray.push(...filteredRequiredArray)
-                    optionalNestedPropertyArray.push(...filteredOptionalArray)
+                    requiredNestedPropertyArray.push(...required)
+                    optionalNestedPropertyArray.push(...optional)
+                }
+                if(property.items){
+                    if(property.items.properties){
+                        var {required} = processNestedProperties(property.items.properties, property.key)
+                        var {optional} = processNestedProperties(property.items.properties, property.key)
+                        requiredNestedPropertyArray.push(...required)
+                        optionalNestedPropertyArray.push(...optional)
+                    } else {
+                        requiredNestedPropertyArray.push(property)
+                    }
                 }
             } else {
-                optionalNestedPropertyArray.push(property)
                 if(property.properties){
                     processNestedProperties(property.properties)
                     var {required} = processNestedProperties(property.properties, parent+ "." + property.key)
                     var {optional} = processNestedProperties(property.properties, parent+ "." + property.key)
-                    var filteredRequiredArray = required.filter((item) => { 
-                        return item.type !== "object" && item.type !== "array"
-                    })
-                    var filteredOptionalArray = optional.filter((item) => {
-                        return item.type !== "object" && item.type !== "array"
-                    })
                     optionalNestedPropertyArray.push(...required, ...optional)
+                } if(property.items){
+                    if(property.items.properties){
+                        var {required} = processNestedProperties(property.items.properties, property.key)
+                        var {optional} = processNestedProperties(property.items.properties, property.key)
+                        optionalNestedPropertyArray.push(...required, ...optional)
+                    } else {
+                        optionalNestedPropertyArray.push(property)
+                    }
+                } else {
+                    optionalNestedPropertyArray.push(property)
                 }
             } 
         })
-        return {required: requiredNestedPropertyArray, optional: optionalNestedPropertyArray}
+
+        const requiredNestedPropertyArrayWithParentContext = requiredNestedPropertyArray.map((property) => {
+            return {
+                ...property,
+                parentContext: getParentContext(property.path, action.requestBody2.schema)
+            }
+        })
+
+        const optionalNestedPropertyArrayWithParentContext = optionalNestedPropertyArray.map((property) => {
+            return {
+                ...property,
+                parentContext: getParentContext(property.path, action.requestBody2.schema)
+            }
+        })
+        
+        return {required: requiredNestedPropertyArrayWithParentContext, optional: optionalNestedPropertyArrayWithParentContext}
     }
 
     const processProperties = () => {
@@ -83,6 +149,15 @@ const SchemaMappingDrawer = ({action}) => {
                             var {optional} = processNestedProperties(property.properties, property.key)
                             requiredPropertyArray.push(...required)
                             optionalPropertyArray.push(...optional)
+                        } else if(property.items){
+                            if(property.items.properties){
+                                var {required} = processNestedProperties(property.items.properties, property.key)
+                                var {optional} = processNestedProperties(property.items.properties, property.key)
+                                requiredPropertyArray.push(...required)
+                                optionalPropertyArray.push(...optional)
+                            } else {
+                                requiredPropertyArray.push(property)
+                            }
                         } else {
                             requiredPropertyArray.push(property)
                         }
@@ -91,6 +166,14 @@ const SchemaMappingDrawer = ({action}) => {
                         var {required} = processNestedProperties(property.properties, property.key)
                         var {optional} = processNestedProperties(property.properties, property.key)
                         optionalPropertyArray.push(...required, ...optional)
+                    } else if(property.items){
+                        if(property.items.properties){
+                            var {required} = processNestedProperties(property.items.properties, property.key)
+                            var {optional} = processNestedProperties(property.items.properties, property.key)
+                            optionalPropertyArray.push(...required, ...optional)
+                        } else {
+                            optionalPropertyArray.push(property)
+                        }
                     } else {
                         optionalPropertyArray.push(property)
                     }
@@ -155,6 +238,7 @@ const SchemaMappingDrawer = ({action}) => {
 
             setOptionalCount(optionalCount + optionalPropertyArray.length)
             setRequiredCount(requiredCount + requiredPropertyArray.length)
+            console.log(optionalPropertyArray)
 
         }
 
@@ -201,8 +285,6 @@ const SchemaMappingDrawer = ({action}) => {
             }
 
         }
-
-
         setOptionalCount(optionalCount + optionalPropertyArray.length)
         setRequiredCount(requiredCount + requiredPropertyArray.length)
 
@@ -226,7 +308,7 @@ const SchemaMappingDrawer = ({action}) => {
                 requiredPropertyObjects.map((property, index) => {
                     return (
                         <div key={property.path} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent:'center',paddingTop: 12}}>
-                            <Container className={selectedMapping?.path == property.path ? 'active' : ''} sx={{
+                            <Container className={selectedMapping?.targetProperty?.path == property.path ? 'active' : ''} sx={{
                                 borderRadius: 4, 
                                 width: 440,
                                 display:'flex',
@@ -241,8 +323,20 @@ const SchemaMappingDrawer = ({action}) => {
                                 <Button
                                     value={property.path}
                                     onClick={()=>{
-                                        setSelectedMapping(property)
-                                        console.log(property)
+                                        if(property.schema){
+                                            const targetProperty = {
+                                                ...property.schema,
+                                                path: property.path,
+                                                key: property.key,
+                                                name: property.name,
+                                                required: property.required,
+                                                in: property.in ? property.in : null
+                                            }
+                                            setSelectedMapping({targetProperty: targetProperty})
+                                        } else {
+                                            setSelectedMapping({targetProperty: property})
+                                        }
+
                                     }}
                                     sx={{
                                         '&:hover': {
@@ -259,20 +353,44 @@ const SchemaMappingDrawer = ({action}) => {
                                     }}
                                         >
                                     <div style={{width: 200, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                        <div style={{
-                                            fontFamily: 'Visuelt',
-                                            fontWeight: 100,
-                                            color: '#5A5A5A',
-                                            backgroundColor: '#FFFFFF',
-                                            border: '1px dashed #5A5A5A',
-                                            borderRadius: 4,
-                                            height: 35,
-                                            display:'flex',
-                                            flexDirection: 'row',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            width: 180
-                                        }}>Not Mapped</div>
+                                    {
+                                        selectedMapping?.targetProperty?.path == property.path && selectedMapping?.sourceProperty?.path ? (
+                                            <div style={{
+                                                fontFamily: 'Visuelt',
+                                                fontWeight: 100,
+                                                color: '#5A5A5A',
+                                                backgroundColor: '#F2F0ED',
+
+                                                borderRadius: 4,
+                                                height: 35,
+                                                display:'flex',
+                                                flexDirection: 'row',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                width: 180
+                                            }}>          
+                                                <Text style={{fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{selectedMapping?.sourceProperty?.path}</Text> 
+                                            </div>
+                                        ) : (
+                                            <div style={{
+                                                fontFamily: 'Visuelt',
+                                                fontWeight: 100,
+                                                color: '#5A5A5A',
+                                                backgroundColor: '#FFFFFF',
+                                                border: '1px dashed #5A5A5A',
+                                                borderRadius: 4,
+                                                height: 35,
+                                                display:'flex',
+                                                flexDirection: 'row',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                width: 180
+                                            }}>          
+                                                <Text style={{fontFamily: 'Visuelt', fontWeight: 100}}>Not Mapped</Text> 
+                                            </div>
+
+                                        )
+                                    }
                                     </div>
                                     <div style={{paddingRight: 2, paddingLeft:2}}>
                                         <RxArrowRight color={'black'} style={{height: 20, width: 40}}/>
@@ -283,10 +401,12 @@ const SchemaMappingDrawer = ({action}) => {
                                         </div>
                                     </div>
                                 </Button>
-                                {selectedMapping?.path == property.path && (
+                                {selectedMapping?.targetProperty?.path == property.path && (
                                     <div style={{width: '100%', paddingBottom: 5, display:'flex', flexDirection:'center', justifyContent: 'center', alignItems:'center'}}>
-                                        <Button style={{width: 480, height: 50, borderRadius: 8, backgroundColor: 'black'}}>
-                                            <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'white'}}>Configure Fields</Text>
+                                        <Button onClick={(e)=>{toggleMappingModal(e)}} style={{width: 480, height: 50, borderRadius: 8, backgroundColor: 'black'}}>
+                                            <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'white'}}>{
+                                                selectedMapping?.sourceProperty?.path ? 'Map Properties' : 'Configure Property'
+                                            }</Text>
                                        </Button>      
                                     </div>   
                                  ) }
@@ -324,7 +444,7 @@ const SchemaMappingDrawer = ({action}) => {
                         ) :  optionalPropertyObjects.map((property, index) => {
                             return (
                                 <div key={property.path} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent:'center',paddingTop: 12}}>
-                                <Container className={selectedMapping?.path == property.path ? 'active' : ''} sx={{
+                                <Container className={selectedMapping?.targetProperty?.path == property.path ? 'active' : ''} sx={{
                                     borderRadius: 4, 
                                     width: 440,
                                     display:'flex',
@@ -339,7 +459,7 @@ const SchemaMappingDrawer = ({action}) => {
                                     <Button
                                         value={property.path}
                                         onClick={()=>{
-                                            setSelectedMapping(property)
+                                            setSelectedMapping({targetProperty: property})
                                         }}
                                         sx={{
                                             '&:hover': {
@@ -356,6 +476,25 @@ const SchemaMappingDrawer = ({action}) => {
                                         }}
                                             >
                                         <div style={{width: 200, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
+                                        {
+                                        selectedMapping?.targetProperty?.path == property.path && selectedMapping?.sourceProperty?.path ? (
+                                            <div style={{
+                                                fontFamily: 'Visuelt',
+                                                fontWeight: 100,
+                                                color: '#5A5A5A',
+                                                backgroundColor: '#F2F0ED',
+
+                                                borderRadius: 4,
+                                                height: 35,
+                                                display:'flex',
+                                                flexDirection: 'row',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                width: 180
+                                            }}>          
+                                                <Text style={{fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{selectedMapping?.sourceProperty?.path}</Text> 
+                                            </div>
+                                        ) : (
                                             <div style={{
                                                 fontFamily: 'Visuelt',
                                                 fontWeight: 100,
@@ -369,7 +508,12 @@ const SchemaMappingDrawer = ({action}) => {
                                                 justifyContent: 'center',
                                                 alignItems: 'center',
                                                 width: 180
-                                            }}>Not Mapped</div>
+                                            }}>          
+                                                <Text style={{fontFamily: 'Visuelt', fontWeight: 100}}>Not Mapped</Text> 
+                                            </div>
+
+                                        )
+                                    }
                                         </div>
                                         <div style={{paddingRight: 2, paddingLeft:2}}>
                                             <RxArrowRight color={'black'} style={{height: 20, width: 40}}/>
@@ -380,11 +524,12 @@ const SchemaMappingDrawer = ({action}) => {
                                             </div>
                                         </div>
                                     </Button>
-                                    {selectedMapping?.path == property.path && (
+                                    {selectedMapping?.targetProperty?.path == property.path && (
                                         <div style={{width: '100%', paddingBottom: 5, display:'flex', flexDirection:'center', justifyContent: 'center', alignItems:'center'}}>
-                                            <Button style={{width: 480, height: 50, borderRadius: 8, backgroundColor: 'black'}}>
-                                                <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'white'}}>Configure Fields</Text>
-                                           </Button>      
+                                            <Button onClick={(e)=>{toggleMappingModal(e)}} style={{width: 480, height: 50, borderRadius: 8, backgroundColor: 'black'}}>
+                                                <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'white'}}>{
+                                                    selectedMapping?.sourceProperty?.path ? 'Map Properties' : 'Configure Property'
+                                                }</Text>                                           </Button>      
                                         </div>   
                                      ) }
                                 </Container>

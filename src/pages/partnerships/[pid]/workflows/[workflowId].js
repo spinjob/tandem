@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router';
 import { useCallback, useState, useMemo, useEffect} from 'react';
-import { shallow } from 'zustand/shallow';
 import {
     createStyles,
     Menu,
@@ -13,11 +12,12 @@ import {
     Select,
     Text,
     ActionIcon,
-    useMantineTheme,
+    Image,
     SegmentedControl,
     UnstyledButton,
     ScrollArea,
-    Drawer
+    Drawer,
+    Modal
   } from '@mantine/core';
 
 import ReactFlow, {
@@ -38,10 +38,12 @@ import {AiOutlinePlusSquare} from 'react-icons/ai'
 import {FiChevronDown} from 'react-icons/fi'
 import 'reactflow/dist/style.css';
 import axios from 'axios';
+import {v4 as uuidv4} from 'uuid';
 
 import ButtonEdge from '../../../../components/Workflow/ButtonEdge';
 import SchemaMappingDrawer from '../../../../components/Workflow/SchemaMappingDrawer';
 import ActionMappingView from '../../../../components/Workflow/ActionMappingView';
+import MappingModal from '../../../../components/Workflow/MappingModal';
 
 const nodeTypes = {trigger: TriggerNode, action: ActionNode}
 const edgeTypes = {buttonEdge: ButtonEdge}
@@ -86,14 +88,6 @@ const useStyles = createStyles((theme,opened, checked ) => ({
 
 import useStore from '../../../../context/store';
 
-const selector = (state) => ({
-  nodes: state.nodes,
-  edges: state.edges,
-  onNodesChange: state.onNodesChange,
-  onEdgesChange: state.onEdgesChange,
-  onConnect: state.onConnect,
-});
-
 function ActionNode ({id, data}) {
     const {classes, cx} = useStyles();
 
@@ -118,8 +112,7 @@ function ActionNode ({id, data}) {
                 onClick={() => {
                     setSelectedAction(action)
                     data.selectedAction = action
-                    console.log(data)
-                    setNodeViews([
+                   setNodeViews([
                         {
                             id: id,
                             selectedAction: action
@@ -538,12 +531,14 @@ function TriggerNode ({data}) {
                     </>
             ) : nodeActions[data.id] ? (
                 <div>
-                   <ActionMappingView action={nodeActions[data.id]} type={'webhook'}/>
+                   <ActionMappingView node={data} action={nodeActions[data.id]} type={'trigger-webhook'}/>
                 </div>
             ) : (
-                <div>
-                    <Text>No Data Coming from Trigger</Text>
-                </div>
+                    <div style={{display: 'flex', flexDirection:'column',alignItems: 'center', justifyContent:'center',height: 350}}>
+                        <Image src="https://i.ibb.co/yFHmNmy/Screen-Shot-2023-02-22-at-2-17-50-PM.png" alt="No Data Coming from Trigger" width={80} height={80}/>
+                        <Text style={{fontFamily: 'Visuelt'}}>No Schema Available</Text>
+                        <Text style={{fontFamily: 'Visuelt', fontWeight:100, fontSize:'14px', width: 200, alignContent:'center'}}>You can configure a property or select one from your partnership configurations on the right.</Text>
+                    </div>
             )
         }
         </div>
@@ -689,7 +684,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
             if (targetIsPane) {
                 // Remove the wrapper bounds in order to get the correct position
                 const { top, left } = reactFlowWrapper.current.getBoundingClientRect();
-                const id = getId();
+                const id = getId()+ '-'+ uuidv4();
                 const newNode = {
                     id,
                     //We are removing half of the node width to center the new node
@@ -776,13 +771,18 @@ const WorkflowStudio = () => {
     const [workflowWebhooks, setWorkflowWebhooks] = useState(null);
     const [adaptionDrawerOpen, setAdaptionDrawerOpen] = useState(false);
     const [selectedAdaption, setSelectedAdaption] = useState(null);
-    const [nodes, setNodes] = useState(null);
-    const [edges, setEdges] = useState(null);
     const nodeActions = useStore((state) => state.nodeActions);
     const nodeViews = useStore((state) => state.nodeViews);
+    const [mappingModalOpen, setMappingModalOpen] = useState(false);
     const setNodeViews = useStore((state) => state.setNodeViews);
     const setSelectedEdge = useStore((state) => state.setSelectedEdge);
+    const selectedMapping = useStore((state) => state.selectedMapping);
+    const setSelectedMapping = useStore((state) => state.setSelectedMapping);
     
+    const toggleMappingModal = () => {
+        setMappingModalOpen(!mappingModalOpen)
+    }
+
     const toggleDrawer = (event, edge, nodes, edges) => {
         var sourceNodeObject = {
             id: edge.source
@@ -801,6 +801,7 @@ const WorkflowStudio = () => {
             targetNodeObject['view'] = 'mapping'
         }
 
+        setSelectedMapping({sourceProperty: {}, targetProperty: {}})
         setAdaptionDrawerOpen(!adaptionDrawerOpen);  
         setNodeViews([sourceNodeObject, targetNodeObject])
         setSelectedEdge(edge)
@@ -866,8 +867,20 @@ const WorkflowStudio = () => {
 
     return workflow && partnership && apis && workflowActions && workflowWebhooks ? (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%'}}>
+            <Modal
+                centered
+                opened={mappingModalOpen}
+                onClose={() => setMappingModalOpen(false)}
+                overlayColor={'#000'}
+                overlayOpacity={0.50}
+                radius={'lg'}
+                size={'60%'}
+               
+            >
+               <MappingModal/>
+            </Modal>
             <Drawer lockScroll={false} size={500} style={{overflowY: 'scroll', zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
-            <SchemaMappingDrawer action= {nodeActions[selectedAdaption?.target]}/>   
+            <SchemaMappingDrawer action= {nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
             </Drawer>
             <div style={{
                 display: 'flex',

@@ -1,8 +1,7 @@
 import WorkflowSchemaTree from "./workflow-schema-tree"
-import {Text, Accordion} from '@mantine/core'
+import {Text, Accordion, Image} from '@mantine/core'
 
-const ActionMappingView = ({action, node, edge})=> {
-    console.log(edge)
+const ActionMappingView = ({action, node, edge, type})=> {
 
     const processParameterSchema = (schema) => {
         var parameterSchemaKeys = Object.keys(schema)
@@ -28,19 +27,21 @@ const ActionMappingView = ({action, node, edge})=> {
     }
     
     return action?.type == "scheduled" ? (
-        <div>
-            <Text>No Data Coming from Trigger</Text>
+        <div style={{display: 'flex', flexDirection:'column',alignItems: 'center', justifyContent:'center',height: 350}}>
+            <Image src="https://i.ibb.co/yFHmNmy/Screen-Shot-2023-02-22-at-2-17-50-PM.png" alt="No Data Coming from Trigger" width={80} height={80}/>
+            <Text style={{fontFamily: 'Visuelt'}}>No Schema Available</Text>
+            <Text style={{fontFamily: 'Visuelt', fontWeight:100, fontSize:'14px', width: 200, alignContent:'center'}}>You can configure a property or select one from your partnership configurations on the right.</Text>
         </div>
         
     ) : (
         <div style={{padding: 20}}>
-            {node?.id == edge?.target ? (
+            {node?.id == edge?.target || type == "trigger-webhook" ? (
                 <div>
                     <div style={{paddingBottom: 20}}>
                         <Text style={{fontFamily:'Visuelt'}}>Action Request Schema</Text>
                         <Text style={{fontFamily:'Visuelt', fontWeight: 100}}>{upperCaseString(action?.method)} {action?.path}</Text>
                     </div>
-                    <Accordion  radius="lg" chevronPosition="left" variant="separated" defaultValue="requestBody">
+                    <Accordion multiple={true} radius="lg" chevronPosition="left" variant="separated" defaultValue={["requestBody","header","path"]}>
         
                         {action?.parameterSchema?.path ? (
                                 <Accordion.Item value="path" >
@@ -92,7 +93,7 @@ const ActionMappingView = ({action, node, edge})=> {
                         <Text style={{fontFamily:'Visuelt'}}>Action Response Schema</Text>
                         <Text style={{fontFamily:'Visuelt', fontWeight: 100}}>{upperCaseString(action?.method)} {action?.path}</Text>
                     </div>
-                    <Accordion  radius="lg" chevronPosition="left" variant="separated"defaultValue={action?.responses[0]?.http_status_code}>
+                    <Accordion multiple={true} radius="lg" chevronPosition="left" variant="separated"defaultValue={[action?.responses[0]?.http_status_code]}>
                     {
                         action?.responses?.map((response, index) => {
                             return (

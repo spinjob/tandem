@@ -14,15 +14,20 @@ export type WorkflowData = {
   actions: Array<object>;
 }
 
+export type Mapping = {
+  sourceProperty: object;
+  targetProperty: object;
+}
+
 export type RFState = {
   workflow: WorkflowData;
   nodeActions: object;
   nodeViews: object;
-  selectedMapping: object;
+  selectedMapping: Mapping;
   selectedEdge: object;
   mappings: object;
   setSelectedEdge: (selectedEdge: object) => void;
-  setSelectedMapping: (selectedMapping: object) => void;
+  setSelectedMapping: (selectedMapping: Mapping) => void;
   setMappings: (mappings: object) => void;
   setNodeViews: (nodeViews: Array<NodeData>) => void;
   setNodeAction: (nodeId: string, action: object) => void;
@@ -34,7 +39,7 @@ const useStore = create<RFState>((set, get) => (
 {
     workflow: {id: "", apis: [], webhooks: [], actions: []},
     nodeViews: {},
-    selectedMapping: {},
+    selectedMapping: {sourceProperty: {}, targetProperty: {}},
     selectedEdge: {},
     mappings: {},
     setSelectedEdge: (selectedEdge: object) => {
@@ -45,9 +50,12 @@ const useStore = create<RFState>((set, get) => (
       set({
         mappings:  mappings
       })},
-    setSelectedMapping: (selectedMapping: object) => {
+    setSelectedMapping: (updatedMapping: Mapping) => {
       set({
-        selectedMapping: selectedMapping
+         selectedMapping: {
+            sourceProperty: updatedMapping.sourceProperty ? updatedMapping.sourceProperty : get().selectedMapping.sourceProperty,
+            targetProperty: updatedMapping.targetProperty ? updatedMapping.targetProperty : get().selectedMapping.targetProperty
+         }
       })},
     setNodeViews: (updatedNodeViews: Array<NodeData>) => {
       var currentNodeViews = get().nodeViews
