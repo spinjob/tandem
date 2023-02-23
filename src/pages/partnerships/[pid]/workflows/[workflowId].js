@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useCallback, useState, useMemo, useEffect} from 'react';
+import { useCallback, useState, useMemo, useEffect, useRef} from 'react';
 import {
     createStyles,
     Menu,
@@ -11,6 +11,8 @@ import {
     Button,
     Select,
     Text,
+    TextInput,
+    TextArea,
     ActionIcon,
     Image,
     SegmentedControl,
@@ -32,10 +34,11 @@ import ReactFlow, {
   } from 'reactflow';
 
 import { TimeInput } from '@mantine/dates';  
-import { useRef } from 'react';
 import {TiFlowSwitch} from 'react-icons/ti'
-import {AiOutlinePlusSquare} from 'react-icons/ai'
+import {AiOutlinePlusSquare, AiFillCheckCircle} from 'react-icons/ai'
 import {FiChevronDown} from 'react-icons/fi'
+import {HiOutlineArrowLeft, HiOutlineTrash, HiOutlineDocumentDownload, HiOutlineDotsHorizontal} from 'react-icons/hi'
+import {IoHelpBuoyOutline} from 'react-icons/io5'
 import 'reactflow/dist/style.css';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
@@ -91,9 +94,9 @@ import useStore from '../../../../context/store';
 function ActionNode ({id, data}) {
     const {classes, cx} = useStyles();
 
-    const [selectedAction, setSelectedAction] = useState(null)
+    const [selectedAction, setSelectedAction] = useState(data.selectedAction?.uuid ? data.selectedAction : null)
     const [actionMenuOpened, setActionMenuOpened] = useState(false);
-    const [selectedApi, setSelectedApi] = useState(data.apis[0].uuid)
+    const [selectedApi, setSelectedApi] = useState(data.selectedAction?.parent_interface_uuid ? data.selectedAction?.parent_interface_uuid : data.apis[0].uuid)
     const setNodeViews = useStore((state) => state.setNodeViews)
     const setNodeAction = useStore((state) => state.setNodeAction)
     const nodeActions = useStore((state) => state.nodeActions)
@@ -204,14 +207,19 @@ function ActionNode ({id, data}) {
 function TriggerNode ({data}) {
     const {classes, cx} = useStyles();
 
-    const [selected, setSelected] = useState("scheduled")
-    const [selectedApi, setSelectedApi] = useState(data.apis[0].uuid)
-    
-    const triggerTypeOptions = data.webhooks.length > 0 ? [{label: 'Scheduled', value: 'scheduled'}, {label: 'Webhook', value: 'webhook'}] : [{label: 'Scheduled', value: 'scheduled'}]
     const nodeViews = useStore((state) => state.nodeViews)
     const setNodeViews = useStore((state) => state.setNodeViews)
     const setNodeAction = useStore((state) => state.setNodeAction)
     const nodeActions = useStore((state) => state.nodeActions)
+    const globalWorkflowState = useStore((state) => state.workflow)
+    const setGlobalWorkflowState = useStore((state) => state.setWorkflow)
+
+    const [selected, setSelected] = useState(globalWorkflowState?.trigger?.type ? globalWorkflowState?.trigger?.type : "scheduled")
+    const [selectedApi, setSelectedApi] = useState(globalWorkflowState?.trigger?.selectedWebhook?.parent_interface_uuid ? globalWorkflowState?.trigger?.selectedWebhook?.parent_interface_uuid : data.apis[0].uuid)
+    
+    const triggerTypeOptions = data.webhooks.length > 0 ? [{label: 'Scheduled', value: 'scheduled'}, {label: 'Webhook', value: 'webhook'}] : [{label: 'Scheduled', value: 'scheduled'}]
+
+
     //Scheduled Trigger State
     const [selectedCadence, setSelectedCadence] = useState("weekly")
     const [selectedRunTime, setSelectedRunTime] = useState(null)
@@ -219,7 +227,6 @@ function TriggerNode ({data}) {
     const [selectedDays, setSelectedDays] = useState(null)
     const [cadenceOpened, setCadenceOpened] = useState(false);
     const [timezoneOpened, setTimezoneOpened] = useState(false);
-
 
     const cadenceOptions = [{label: 'Daily', value: 'daily', type: 'scheduled'},{label: 'Weekly', value: 'weekly', type: 'scheduled'}]
     const dayOptions = [{label: 'Su', value: 'sunday', type: 'scheduled'},{label: 'Mo', value: 'monday', type: 'scheduled'}, {label: 'Tu', value: 'tuesday', type: 'scheduled'}, {label: 'We', value: 'wednesday',type: 'scheduled'}, {label: 'Th', value: 'thursday', type: 'scheduled'}, {label: 'Fr', value: 'friday', type: 'scheduled'}, {label: 'Sa', value: 'saturday', type: 'scheduled'}]
@@ -232,6 +239,7 @@ function TriggerNode ({data}) {
                 setSelectedDays(selectedDays.filter((day) => {return day != event.currentTarget.value}))
             } else {
                 setSelectedDays([...selectedDays, event.currentTarget.value])
+                
             }
         } else {
             setSelectedDays([event.currentTarget.value])
@@ -239,7 +247,9 @@ function TriggerNode ({data}) {
        
     }
     //Webhook Trigger State
-    const [selectedWebhook, setSelectedWebhook] = useState(null)
+    const [selectedWebhook, setSelectedWebhook] = useState(
+        globalWorkflowState?.trigger?.selectedWebhook ? globalWorkflowState?.trigger?.selectedWebhook : null
+    )
     const [webhookOpened, setWebhookOpened] = useState(false);
     const filteredWebhooks = data.webhooks.filter((webhook) => {    
         return webhook.parent_interface_uuid == selectedApi
@@ -258,6 +268,23 @@ function TriggerNode ({data}) {
                             selectedAction: webhook
                         }
                     ])
+
+                    if(globalWorkflowState.trigger && globalWorkflowState.trigger.type == "webhook"){
+                        setGlobalWorkflowState({
+                            trigger: {
+                                ...globalWorkflowState.trigger,
+                                selectedWebhook: webhook
+                            }
+                        })
+                    } else {
+                        setGlobalWorkflowState({
+                            trigger: {
+                                id: data.id,
+                                type: "webhook",
+                                selectedWebhook: webhook
+                            }
+                        })
+                    }
                 }}
                 style={{width: 230}}>
                 <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px'}}>
@@ -340,7 +367,7 @@ function TriggerNode ({data}) {
                                                             </Group>
                                                     ) : (
                                                             <Group spacing="xs">
-                                                                <span className={classes.label}>Choose a webhook</span>
+                                                                <span className={classes.label}>Choose a cadence</span>
                                                             </Group>
                                                     )} 
                                                     <FiChevronDown className={classes.icon} />
@@ -355,6 +382,23 @@ function TriggerNode ({data}) {
                                                                         onClick={() => {
                                                                             setSelectedCadence(cadence)
                                                                             setNodeAction(data.id, cadence)
+
+                                                                            if(globalWorkflowState.trigger && globalWorkflowState.trigger.type == "scheduled"){
+                                                                                setGlobalWorkflowState({
+                                                                                    trigger: {
+                                                                                        ...globalWorkflowState.trigger,
+                                                                                        cadence: cadence.value
+                                                                                    }
+                                                                                })
+                                                                            } else {
+                                                                                setGlobalWorkflowState({
+                                                                                    trigger: {
+                                                                                        id: data.id,
+                                                                                        type: "scheduled",
+                                                                                        cadence: cadence.value
+                                                                                    }
+                                                                                })
+                                                                            }
                                                                         }}
                                                                         style={{width: 230}}>
                                                                         <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px'}}>
@@ -373,7 +417,25 @@ function TriggerNode ({data}) {
                                                     <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Time</Text>
                                                     <div style={{display:'block'}}>
                                                     <TimeInput
-                                                        onChange={setSelectedRunTime} 
+                                                        onChange={(e) => {
+                                                            setSelectedRunTime(e)
+                                                            if(globalWorkflowState.trigger && globalWorkflowState.trigger.type == "scheduled"){
+                                                                setGlobalWorkflowState({
+                                                                    trigger: {
+                                                                        ...globalWorkflowState.trigger,
+                                                                        time: e.toString()
+                                                                    }
+                                                                })
+                                                            } else {
+                                                                setGlobalWorkflowState({
+                                                                    trigger: {
+                                                                        id: data.id,
+                                                                        type: "scheduled",
+                                                                        time: e.toString()
+                                                                    }
+                                                                })
+                                                            }
+                                                        }} 
                                                         defaultValue={new Date()}
                                                         format="12"
                                                         amLabel="am"
@@ -413,7 +475,28 @@ function TriggerNode ({data}) {
                                                                             return (    
                                                                                 <Menu.Item
                                                                                     key={timezone.value}
-                                                                                    onClick={() => setSelectedTimezone(timezone)}
+                                                                                    onClick={() => {
+                                                                                        
+                                                                                        setSelectedTimezone(timezone)
+
+                                                                                        if(globalWorkflowState.trigger && globalWorkflowState.trigger.type == "scheduled"){
+                                                                                            setGlobalWorkflowState({
+                                                                                                trigger: {
+                                                                                                    ...globalWorkflowState.trigger,
+                                                                                                    timezone: timezone.value
+                                                                                                }
+                                                                                            })
+                                                                                        } else {
+                                                                                            setGlobalWorkflowState({
+                                                                                                trigger: {
+                                                                                                    id: data.id,
+                                                                                                    type: "scheduled",
+                                                                                                    timezone: timezone.value
+                                                                                                }
+                                                                                            })
+                                                                                        }
+                                                                                    
+                                                                                    }}
                                                                                     style={{width: 230}}>
                                                                                     <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px'}}>
                                                                                         {timezone.label}
@@ -439,7 +522,37 @@ function TriggerNode ({data}) {
                                                                         checked={
                                                                             selectedDays?.includes(day.value)
                                                                         } 
-                                                                        onClick={addDay} 
+                                                                        onClick={(e)=>{
+                                                                            
+                                                                            addDay(e)
+
+                                                                            if(globalWorkflowState.trigger && globalWorkflowState.trigger.type == "scheduled"){
+                                                                                if(globalWorkflowState.trigger.days){
+                                                                                    setGlobalWorkflowState({
+                                                                                        trigger: {
+                                                                                            ...globalWorkflowState.trigger,
+                                                                                            days: [...globalWorkflowState.trigger.days, day.value]
+                                                                                        }
+                                                                                    })
+                                                                                } else {
+                                                                                    setGlobalWorkflowState({
+                                                                                        trigger: {
+                                                                                            ...globalWorkflowState.trigger,
+                                                                                            days: [day.value]
+                                                                                        }
+                                                                                    })
+                                                                                }
+                                        
+                                                                            } else {
+                                                                                setGlobalWorkflowState({
+                                                                                    trigger: {
+                                                                                        id: data.id,
+                                                                                        type: "scheduled",
+                                                                                        days: [day.value]
+                                                                                    }
+                                                                                })
+                                                                            }
+                                                                        }} 
                                                                         sx={{
                                                                             backgroundColor: selectedDays?.includes(day.value) ? 'black' : 'white',
                                                                             color: selectedDays?.includes(day.value) ? 'white' : '#858585',
@@ -464,7 +577,25 @@ function TriggerNode ({data}) {
                                                     <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Time</Text>
                                                     <div style={{display:'block'}}>
                                                         <TimeInput
-                                                            onChange={setSelectedRunTime} 
+                                                            onChange={(e) => {
+                                                                setSelectedRunTime(e)
+                                                                if(globalWorkflowState.trigger && globalWorkflowState.trigger.type == "scheduled"){
+                                                                    setGlobalWorkflowState({
+                                                                        trigger: {
+                                                                            ...globalWorkflowState.trigger,
+                                                                            time: e.toString()
+                                                                        }
+                                                                    })
+                                                                } else {
+                                                                    setGlobalWorkflowState({
+                                                                        trigger: {
+                                                                            id: data.id,
+                                                                            type: "scheduled",
+                                                                            time: e.toString()
+                                                                        }
+                                                                    })
+                                                                }
+                                                            }} 
                                                             defaultValue={new Date()}
                                                             format="12"
                                                             amLabel="am"
@@ -504,7 +635,27 @@ function TriggerNode ({data}) {
                                                                                 return (    
                                                                                     <Menu.Item
                                                                                         key={timezone.value}
-                                                                                        onClick={() => setSelectedTimezone(timezone)}
+                                                                                        onClick={() => {
+                                                                                            
+                                                                                            setSelectedTimezone(timezone)
+
+                                                                                            if(globalWorkflowState.trigger && globalWorkflowState.trigger.type == "scheduled"){
+                                                                                                setGlobalWorkflowState({
+                                                                                                    trigger: {
+                                                                                                        ...globalWorkflowState.trigger,
+                                                                                                        timezone: timezone.value
+                                                                                                    }
+                                                                                                })
+                                                                                            } else {
+                                                                                                setGlobalWorkflowState({
+                                                                                                    trigger: {
+                                                                                                        id: data.id,
+                                                                                                        type: "scheduled",
+                                                                                                        timezone: timezone.value
+                                                                                                    }
+                                                                                                })
+                                                                                            }
+                                                                                        }}
                                                                                         style={{width: 230}}>
                                                                                         <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px'}}>
                                                                                             {timezone.label}
@@ -595,11 +746,9 @@ const NewNodeButtonMenu = () => {
     )
 }
 
-
 function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
 
-    //For existing workflows, will need to load the nodes and edges from the workflow object
-    const initialNodes = [
+    var initialNodes = [
         {
             id: 'ewb-1',
             type: 'trigger',
@@ -624,34 +773,48 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
         }
       ];
 
-    const initialEdges = [  {
+    var initialEdges = [  {
         id: 'edge-1-2',
         source: 'ewb-1',
         target: 'ewb-2',
         type: 'buttonEdge',
         data: { 
-            targetSchema: {
-                display: true,
-                required: 0
-            },
-            sourceSchema: {
-                display: true,
-            }
         }
       },];
+
+    //For existing workflows, will need to load the nodes and edges from the workflow object
+    if(workflow?.nodes?.length > 0){
+        initialNodes = workflow.nodes
+
+    }
+
+    if(workflow?.edges?.length > 0){
+        initialEdges = workflow.edges.map((edge) => {
+            return {
+                ...edge,
+                type: 'buttonEdge'
+            }
+        })
+
+    }
 
      let id = 1;
      const getId = () => `${id++}`;
 
     const reactFlowWrapper = useRef(null);
     const connectingNodeId = useRef(null);
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+ 
+    const {project} = useReactFlow();
     const [captureElementClick, setCaptureElementClick] = useState(false);
     const [selectedAction, setSelectedAction] = useState(null);
-    const {project} = useReactFlow();
     const nodeActions = useStore((state) => state.nodeActions);
     const nodeViews = useStore((state) => state.nodeViews);
+    const globalNodeState = useStore((state) => state.nodes);
+    const globalEdgeState = useStore((state) => state.edges);
+    const setGlobalNodeState = useStore((state) => state.setNodes);
+    const setGlobalEdgeState = useStore((state) => state.setEdges);
+    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
     const onConnect = useCallback(
         (params) => setEdges((eds) => addEdge({ ...params, type: 'buttonEdge'}, eds)),
@@ -676,7 +839,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                     }
                 })
             )
-        }
+    }
     
     const onConnectEnd = useCallback(
         (event) => {
@@ -700,9 +863,21 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                 }
                 setNodes((nds) => nds.concat(newNode));
                 setEdges((eds) => eds.concat({id, source: connectingNodeId.current, target: id, type: 'buttonEdge'}));
+                setGlobalEdgeState(edges)
+                setGlobalNodeState(nodes)
             }
         }, [project, setNodes, setEdges, getId, apis, actions, onChange]
     );
+
+    useEffect(()=> {
+        if(nodes.length !== globalNodeState.length) {
+            setGlobalNodeState(nodes)
+        } 
+        if(edges.length !== globalEdgeState.length) {
+            setGlobalEdgeState(edges)
+        }
+
+    }, [nodes, edges, globalNodeState, globalEdgeState, setGlobalNodeState, setGlobalEdgeState])
 
     return (
         <div style={{ height: '100%', backgroundColor:'#FBFAF9'}}>
@@ -740,21 +915,136 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
 
 const WorkflowHeader = ({workflow}) => {
     const { classes } = useStyles();
+    const [isNameFieldActive, setIsNameFieldActive] = useState(false);
+    const [nameFieldWidth, setNameFieldWidth] = useState(0);
+    const [workflowName, setWorkflowName] = useState(workflow?.name ? workflow.name : 'My Untitled Workflow');
+    const globalNodeState = useStore((state) => state.nodes);
+    const globalEdgeState = useStore((state) => state.edges);
+    const globalWorkflowState = useStore((state) => state.workflow);
+    const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
+    const [saveInProgress, setSaveInProgress] = useState(false);
+
+    const processWorkflowSave = () => {
+        setSaveInProgress(true)
+
+        axios.put(process.env.NEXT_PUBLIC_API_BASE_URL +'/projects/' + workflow.parent_project_uuid + '/workflows/' + workflow.uuid,{
+            name: workflowName,
+            nodes: globalNodeState,
+            edges: globalEdgeState,
+            trigger: globalWorkflowState.trigger,
+            steps: [],
+            status: "Draft",
+            updated_at: new Date(),
+            parent_project_uuid: workflow.parent_project_uuid
+        }).then((response) => {
+            console.log(response)
+            setSaveInProgress(false)
+        } )
+        .catch((error) => {
+            console.log(error)
+            setSaveInProgress(false)
+        } )
+    }
+
+    useEffect(() => {
+        if(workflowName.length > 0) {
+            setNameFieldWidth(workflowName.length * 8)
+        } else {
+            setWorkflowName('My Untitled Workflow')
+        }
+    }, [workflowName])
 
         return (
             <Header height={30} sx={{ zIndex: 2, backgroundColor: "transparent", borderBottom: 0 }} >
               <Container className={classes.inner} fluid>
                 <Group>
-                  <Text style={{fontFamily:'Visuelt', fontWeight: 600, fontSize:'28px'}}>My Untitled Workflow</Text>
+                <ActionIcon>
+                    <HiOutlineArrowLeft size={30} color={'black'} />
+                </ActionIcon>
+
+                { isNameFieldActive ?
+                    (
+                        <Container fluid sx={{
+                            border: '1px solid #FFFFFF',
+                            borderRadius: 5,
+                            height: 50,
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: {nameFieldWidth}
+                        }}>
+                    
+                            <TextInput value={workflowName} onChange={(event) => { setWorkflowName(event.target.value);}} size={28} variant={'unstyled'}  style={{width:`${workflowName.length + 8}ch`}}/>
+                        {
+                        isNameFieldActive ? (
+                            <>
+                                <div style={{marginLeft: 10}}/>
+                                <ActionIcon size='xl'>
+                                <AiFillCheckCircle size={22} color={'#9595FF'} onClick={() => {
+                                    
+                                    setIsNameFieldActive(!isNameFieldActive)
+                                    setGlobalWorkflowState({...globalWorkflowState, name: workflowName})
+
+                                    }}  />
+                                </ActionIcon>
+                            </>
+                           
+                        ) : (
+                            null
+                        )
+                    }  
+                        </Container>
+                    ) : (
+                        <Text onClick={() => setIsNameFieldActive(!isNameFieldActive)} style={{fontFamily:'Visuelt', fontWeight: 600, fontSize:'28px'}}>{workflowName}</Text>
+                    )
+                }
+
                 </Group>
-                <Group spacing={5} className={classes.links}>
-                    <ActionIcon size='xl'>
-                        <TiFlowSwitch size={23} />
-                    </ActionIcon>
+                <Group>
+                    <Button
+                    loading={saveInProgress}
+                    onClick={() => processWorkflowSave()} 
+                    sx={{
+                        backgroundColor: '#000000',
+                        color: '#FFFFFF',
+                        fontFamily: 'Visuelt',
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        height: 40,
+                        border: '2px solid #000000',
+                        ':hover': {
+                            backgroundColor: '#BABABA',
+                            color: '#FFFFFF',
+                            fontFamily: 'Visuelt',
+                            fontSize: '16px',
+                            fontWeight: 500,
+                            height: 40,
+                            border: '2px solid #BABABA',
+                        }
+                    }}>
+                        Save Workflow
+                    </Button>
+                    <Menu transition="fade" position='bottom-end' shadow="md" width={150}>
+                        <Menu.Target>
+                            <ActionIcon size="lg" radius="md" variant='outline'>
+                               <HiOutlineDotsHorizontal size={15} color={'grey'} />
+                            </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown >
+                            <Menu.Item
+                                style={{fontFamily:'Visuelt', fontWeight: 100}} 
+                                icon={<HiOutlineDocumentDownload size={20} color={'black'} />}
+                            >Export Map</Menu.Item>
+                            <Menu.Item
+                                style={{fontFamily:'Visuelt', fontWeight: 100}}  
+                                icon={<IoHelpBuoyOutline size={20} color={'black'} />}
+                            >Help</Menu.Item>
+                            <Menu.Item
+                                style={{fontFamily:'Visuelt', fontWeight: 100}} 
+                                icon={<HiOutlineTrash size={20} color={'black'} />}
+                            >Delete Workflow</Menu.Item>
+                        </Menu.Dropdown>
+                    </Menu>
                 </Group>
-                <Button radius="xl" sx={{ height: 30 }}>
-                  Get early access
-                </Button>
               </Container>
             </Header>
           );
@@ -778,6 +1068,10 @@ const WorkflowStudio = () => {
     const setSelectedEdge = useStore((state) => state.setSelectedEdge);
     const selectedMapping = useStore((state) => state.selectedMapping);
     const setSelectedMapping = useStore((state) => state.setSelectedMapping);
+    const setNodeAction = useStore((state) => state.setNodeAction);
+
+    const globalWorkflowState = useStore((state) => state.workflow);
+    const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
     
     const toggleMappingModal = () => {
         setMappingModalOpen(!mappingModalOpen)
@@ -807,13 +1101,24 @@ const WorkflowStudio = () => {
         setSelectedEdge(edge)
         setSelectedAdaption(edge)
     }
-
+   
     useEffect(() => {
         if (pid && workflowId && !workflow) {
             axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/workflows/' + workflowId + '/details').then((res) => {
                 setWorkflow(res.data);
-                console.log("WORKFLOW: ")
-                console.log(res.data)
+                setGlobalWorkflowState({
+                    id: res.data[0].uuid,
+                    projectId: res.data[0].parent_project_uuid,
+                    trigger: res.data[0].trigger,
+                });
+
+                if(res.data[0].nodes.length > 0) {
+                
+                    res.data[0].nodes.forEach((node) => {
+                        setNodeAction(node.id, node.data?.selectedAction)
+                    });
+                
+                }
             }).catch((err) => {
                 console.log(err);
             })
@@ -830,6 +1135,9 @@ const WorkflowStudio = () => {
                         apiArray.push(res.data);
                         setApis(apiArray);
                         console.log("APIs: ")
+                        setGlobalWorkflowState({
+                            apis: apiArray
+                        })
                         console.log(res.data)
                     }).catch((err) => {
                         console.log(err);
@@ -841,6 +1149,9 @@ const WorkflowStudio = () => {
                         "interfaces": res.data[0].interfaces
                     }).then((res) => {
                         setWorkflowActions(res.data);
+                        setGlobalWorkflowState({
+                            actions: res.data
+                        })
                         console.log("WORKFLOW ACTIONS: ")
                         console.log(res.data)
                     } ).catch((err) => {
@@ -852,6 +1163,9 @@ const WorkflowStudio = () => {
                         "interfaces": res.data[0].interfaces
                     }).then((res) => {
                         setWorkflowWebhooks(res.data);
+                        setGlobalWorkflowState({
+                            webhooks: res.data
+                        })
                         console.log("WORKFLOW WEBHOOKS: ")
                         console.log(res.data)
                     } ).catch((err) => {
@@ -891,11 +1205,11 @@ const WorkflowStudio = () => {
                 boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)',
                 zIndex: 1,
             }}>
-                <WorkflowHeader style={{ boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader workflow={workflow[0]} style={{ boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', width: '93vw', height: '93vh'}}>
                 <ReactFlowProvider>
-                    <Flow toggleDrawer={toggleDrawer} workflow={workflow} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
+                    <Flow toggleDrawer={toggleDrawer} workflow={workflow[0]} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
                 </ReactFlowProvider>
             </div>
         </div>

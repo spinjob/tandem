@@ -31,19 +31,6 @@ const MappingModal = () => {
             </Card>
         )}
 
-    const renderContextHeaders = (context, index) => {
-
-        return index === 0 ? (
-            <div style={{ width: '100%',height: 50, backgroundColor: '#B5B6FF'}} />
-        ) : 
-
-        (
-            <div style={{width: '100%%', height: 70, backgroundColor: '#B5B6FF'}} />
-        )
-
-    
-    }
-
     const renderPropertyCard = (property) => {
 
         return (
