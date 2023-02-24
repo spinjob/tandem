@@ -78,9 +78,9 @@ useEffect(() => {
       <div style={{height:50}}/>
       <Tabs color="gray" defaultValue="workflows">
         <Tabs.List>
-          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="workflows">Workflows</Tabs.Tab>
-          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="apis">APIs</Tabs.Tab>
-          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="configurations">Configurations</Tabs.Tab>        
+          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500}} value="workflows">Workflows</Tabs.Tab>
+          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500}} value="apis">APIs</Tabs.Tab>
+          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500}} value="configurations">Configurations</Tabs.Tab>        
         </Tabs.List>
 
         <Tabs.Panel value="workflows">
