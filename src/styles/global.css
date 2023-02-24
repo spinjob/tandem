@@ -250,17 +250,7 @@
     text-decoration-thickness: 2px;
   }
   
-  @media (hover: hover) {
-    a:hover {
-      text-decoration-color: var(--gray-800);
-    }
-  }
-  
-  @media (hover: hover) and (prefers-color-scheme: dark) {
-    a:hover {
-      text-decoration-color: white;
-    }
-  }
+
   
   @media (prefers-color-scheme: dark) {
     a {
@@ -469,24 +459,6 @@
     }
   }
 
-  
-  @media (hover: hover) {
-    input[type="submit"]:hover,
-    input[type="reset"]:hover,
-    input[type="button"]:hover,
-    button:hover {
-      background-color: var(--gray-800);
-    }
-  }
-  
-  @media (hover: hover) and (prefers-color-scheme: dark) {
-    input[type="submit"]:hover,
-    input[type="reset"]:hover,
-    input[type="button"]:hover,
-    button:hover {
-      background-color: var(--gray-300);
-    }
-  }
   
   button:focus-visible,
   input[type="submit"]:focus-visible,

@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import { Text, Divider, Card, Code, ScrollArea, Tabs} from '@mantine/core';
+import { Text, Divider, Card, Code, ScrollArea, Tabs, Accordion} from '@mantine/core';
 import ActionsTable from './actions-table'
 import {VscSymbolArray} from 'react-icons/vsc'
 import {RxQuestionMarkCircled} from 'react-icons/rx'
@@ -130,15 +130,16 @@ const ApiActions = ({actions}) => {
         return(
             <Tabs.List>
                     {
-                      action.requestBody2?.schema ? (
-                        <Tabs.Tab style={{fontFamily: 'apercu-regular-pro', fontSize: '18px', fontWeight: 200}} value="requestBody">Request Body</Tabs.Tab>
-                    ) : null 
-                    } 
-                    {
                       action.parameterSchema?.header ? (
                         <Tabs.Tab style={{fontFamily: 'apercu-regular-pro', fontSize: '18px', fontWeight: 200}} value="header">Header</Tabs.Tab>
                     ) : null 
                     } 
+                    {
+                      action.requestBody2?.schema ? (
+                        <Tabs.Tab style={{fontFamily: 'apercu-regular-pro', fontSize: '18px', fontWeight: 200}} value="requestBody">Request Body</Tabs.Tab>
+                    ) : null 
+                    } 
+                    
                     {
                       action.parameterSchema?.path ? (
                         <Tabs.Tab style={{fontFamily: 'apercu-regular-pro', fontSize: '18px', fontWeight: 200}} value="path">Path Parameters</Tabs.Tab>
@@ -203,39 +204,13 @@ const ApiActions = ({actions}) => {
                                 </Card.Section>
                                 
                                 <Card.Section style={{padding: 30}}>
-                                    <Tabs>
+                                    <Tabs defaultValue={
+                                        selectedAction.requestBody2?.schema ? 'requestBody' :
+                                        selectedAction.parameterSchema?.header ? 'header' :
+                                        selectedAction.parameterSchema?.path ? 'path' :
+                                        selectedAction.responses ? 'responseBody' : null
+                                    }>
                                         {renderActionTabs(selectedAction)}
-                                        <Tabs.Panel style={{paddingTop: 30}} label="requestBody" value="requestBody">
-                                            {
-                                                selectedAction.requestBody2 && selectedAction.requestBody2.schema ? (
-                                                    <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
-                                                    <div style={{width: '50%'}}>
-                                                            <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
-                                                                <SchemaTree schemaType={'requestBody'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={selectedAction.requestBody2.schema} actionUuid={selectedAction.uuid}/>
-                                                            </ScrollArea>
-                                                        </div>
-                                                        <div style={{width: '50%'}}>
-                                                            {
-                                                                selectedSchemaProperty ? (
-                                                                    <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
-                                                                        <Card.Section>
-                                                                            <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
-                                                                            <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
-                                                                            <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
-                                                                        </Card.Section>
-                                                                    </Card>
-                                                                ) : (
-                                                                    <div>
-                                                                        <Text>No property selected</Text>
-                                                                    </div>
-                                                                )
-                                                            }
-                                                        </div>
-                                                    </div>
-
-                                                ) : (<div/>)
-                                            }
-                                        </Tabs.Panel>
                                         <Tabs.Panel style={{paddingTop: 30}} label="header" value="header">
                                              {
                                                 selectedAction.parameterSchema && selectedAction.parameterSchema.header ? (
@@ -257,7 +232,7 @@ const ApiActions = ({actions}) => {
                                                                 </Card>
                                                             ) : (
                                                                 <div>
-                                                                    <Text>No property selected</Text>
+                                                                    
                                                                 </div>
                                                             )
                                                         }
@@ -266,6 +241,37 @@ const ApiActions = ({actions}) => {
                                                 ) : (
                                                     <div/>
                                                 )
+                                            }
+                                        </Tabs.Panel>
+                                        <Tabs.Panel style={{paddingTop: 30}} label="requestBody" value="requestBody">
+                                            {
+                                                selectedAction.requestBody2 && selectedAction.requestBody2.schema ? (
+                                                    <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
+                                                    <div style={{width: '50%'}}>
+                                                            <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
+                                                                <SchemaTree schemaType={'requestBody'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={selectedAction.requestBody2.schema} actionUuid={selectedAction.uuid}/>
+                                                            </ScrollArea>
+                                                        </div>
+                                                        <div style={{width: '50%'}}>
+                                                            {
+                                                                selectedSchemaProperty ? (
+                                                                    <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
+                                                                        <Card.Section>
+                                                                            <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
+                                                                            <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
+                                                                            <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
+                                                                        </Card.Section>
+                                                                    </Card>
+                                                                ) : (
+                                                                    <div>
+                                                                        
+                                                                    </div>
+                                                                )
+                                                            }
+                                                        </div>
+                                                    </div>
+
+                                                ) : (<div/>)
                                             }
                                         </Tabs.Panel>
                                         <Tabs.Panel style={{paddingTop: 30}} label="path" value="path">
@@ -289,7 +295,7 @@ const ApiActions = ({actions}) => {
                                                                 </Card>
                                                             ) : (
                                                                 <div>
-                                                                    <Text>No property selected</Text>
+                                                                   
                                                                 </div>
                                                             )
                                                         }
@@ -298,15 +304,39 @@ const ApiActions = ({actions}) => {
                                                 ) : (
                                                     <div/>
                                                 )
-                                            }
+                                        }
                                         </Tabs.Panel>
                                         <Tabs.Panel label="responseBody" value="responseBody">
-                                            <div style={{display:'flex', flexDirection:'row'}}>
-                                                <div style={{width: '50%'}}>
-                                                    <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
-                                                    </ScrollArea>
+                                        {
+                                                selectedAction.responses ? (
+                                                    <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
+                                                    <div style={{width: '50%'}}>
+                                                        <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
+                                                            {/* <SchemaTree schemaType={'path'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={selectedAction.responses[0].schema} actionUuid={selectedAction.uuid}/> */}
+                                                        </ScrollArea>
+                                                    </div>
+                                                    <div style={{width: '50%'}}>
+                                                        {
+                                                            selectedSchemaProperty ? (
+                                                                <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
+                                                                     <Card.Section>
+                                                                          <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
+                                                                          <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
+                                                                          <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
+                                                                     </Card.Section>
+                                                                </Card>
+                                                            ) : (
+                                                                <div>
+                                                                  
+                                                                </div>
+                                                            )
+                                                        }
+                                                    </div>
                                                 </div>
-                                            </div>
+                                                ) : (
+                                                    <div/>
+                                                )
+                                        }
                                         </Tabs.Panel>
                                     </Tabs>                                    
                                 </Card.Section>

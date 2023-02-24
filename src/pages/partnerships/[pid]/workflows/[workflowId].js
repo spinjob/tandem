@@ -214,6 +214,7 @@ function TriggerNode ({data}) {
     const globalWorkflowState = useStore((state) => state.workflow)
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow)
 
+    console.log("globalWorkflowState", globalWorkflowState)
     const [selected, setSelected] = useState(globalWorkflowState?.trigger?.type ? globalWorkflowState?.trigger?.type : "scheduled")
     const [selectedApi, setSelectedApi] = useState(globalWorkflowState?.trigger?.selectedWebhook?.parent_interface_uuid ? globalWorkflowState?.trigger?.selectedWebhook?.parent_interface_uuid : data.apis[0].uuid)
     
@@ -221,14 +222,14 @@ function TriggerNode ({data}) {
 
 
     //Scheduled Trigger State
-    const [selectedCadence, setSelectedCadence] = useState("weekly")
-    const [selectedRunTime, setSelectedRunTime] = useState(null)
-    const [selectedTimezone, setSelectedTimezone] = useState(null)
-    const [selectedDays, setSelectedDays] = useState(null)
+    const [selectedCadence, setSelectedCadence] = useState(globalWorkflowState?.trigger?.cadence ? {label: globalWorkflowState?.trigger?.cadence, value: globalWorkflowState?.trigger?.cadence, type:'scheduled' } : {label:'Daily', value:'Daily', type:'scheduled'})
+    const [selectedRunTime, setSelectedRunTime] = useState(globalWorkflowState?.trigger?.time ? globalWorkflowState?.trigger?.time : null)
+    const [selectedTimezone, setSelectedTimezone] = useState(globalWorkflowState?.trigger?.timezone ? {label: globalWorkflowState?.trigger?.timezone, value: globalWorkflowState?.trigger?.timezone, type: 'scheduled'} : {label: 'UTC', value: 'UTC', type: 'scheduled'})
+    const [selectedDays, setSelectedDays] = useState(globalWorkflowState?.trigger?.days ? globalWorkflowState?.trigger?.days : [])
     const [cadenceOpened, setCadenceOpened] = useState(false);
     const [timezoneOpened, setTimezoneOpened] = useState(false);
 
-    const cadenceOptions = [{label: 'Daily', value: 'daily', type: 'scheduled'},{label: 'Weekly', value: 'weekly', type: 'scheduled'}]
+    const cadenceOptions = [{label: 'Daily', value: 'Daily', type: 'scheduled'},{label: 'Weekly', value: 'Weekly', type: 'scheduled'}]
     const dayOptions = [{label: 'Su', value: 'sunday', type: 'scheduled'},{label: 'Mo', value: 'monday', type: 'scheduled'}, {label: 'Tu', value: 'tuesday', type: 'scheduled'}, {label: 'We', value: 'wednesday',type: 'scheduled'}, {label: 'Th', value: 'thursday', type: 'scheduled'}, {label: 'Fr', value: 'friday', type: 'scheduled'}, {label: 'Sa', value: 'saturday', type: 'scheduled'}]
     const timezoneOptions = [{label: 'UTC', value: 'utc', type: 'scheduled'}, {label: 'EST', value: 'est', type: 'scheduled'}, {label: 'CST', value: 'cst', type: 'scheduled'}, {label: 'MST', value: 'mst', type: 'scheduled'}, {label: 'PST', value: 'pst', type: 'scheduled'}]
 
@@ -357,7 +358,7 @@ function TriggerNode ({data}) {
                                                 onClose={() => setCadenceOpened(false)}
                                                 radius="md"
                                                 width="target"
-                                                zIndex={1}   
+                                                zIndex={1}  
                                                 >
                                                 <Menu.Target>
                                                 <UnstyledButton className={classes.control}>
@@ -373,7 +374,7 @@ function TriggerNode ({data}) {
                                                     <FiChevronDown className={classes.icon} />
                                                 </UnstyledButton>
                                                 </Menu.Target>
-                                                <Menu.Dropdown style={{backgroundColor: 'white'}}>{
+                                                <Menu.Dropdown value={selectedCadence} style={{backgroundColor: 'white'}}>{
                                                     <ScrollArea type="hover" style={{height: 80}}>
                                                         {cadenceOptions.map((cadence) => {
                                                                 return (
@@ -412,7 +413,7 @@ function TriggerNode ({data}) {
                                         </Menu>
                                     </div>
                                     <div style={{height: 15}}/>
-                                        { selectedCadence && selectedCadence.value === "daily" ? (
+                                        { selectedCadence && selectedCadence.value === "Daily" ? (
                                                 <div style={{display:'block'}}>
                                                     <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Time</Text>
                                                     <div style={{display:'block'}}>
@@ -509,7 +510,7 @@ function TriggerNode ({data}) {
                                                     </Menu>
                                                     </div>
                                                 </div>
-                                            ): selectedCadence && selectedCadence.value === "weekly" ? (
+                                            ): selectedCadence && selectedCadence.value === "Weekly" ? (
                                                 <div style={{display:'block'}}>
                                                     <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Day(s)</Text>
                                                     <div style={{border:"1px #E7E7E7 solid", borderRadius: 4, height: 40, width: 270, padding: 5}}>
@@ -923,6 +924,7 @@ const WorkflowHeader = ({workflow}) => {
     const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
     const [saveInProgress, setSaveInProgress] = useState(false);
+    const router = useRouter();
 
     const processWorkflowSave = () => {
         setSaveInProgress(true)
@@ -958,7 +960,7 @@ const WorkflowHeader = ({workflow}) => {
             <Header height={30} sx={{ zIndex: 2, backgroundColor: "transparent", borderBottom: 0 }} >
               <Container className={classes.inner} fluid>
                 <Group>
-                <ActionIcon>
+                <ActionIcon onClick={() => router.back()}>
                     <HiOutlineArrowLeft size={30} color={'black'} />
                 </ActionIcon>
 
@@ -1113,9 +1115,12 @@ const WorkflowStudio = () => {
                 });
 
                 if(res.data[0].nodes.length > 0) {
-                
                     res.data[0].nodes.forEach((node) => {
-                        setNodeAction(node.id, node.data?.selectedAction)
+                        if(node.data?.selectedAction){
+                            setNodeAction(node.id, node.data?.selectedAction)
+                        } else if (res.data[0]?.trigger?.type == "webhook" && node.type == "trigger"){
+                            setNodeAction(node.id, res.data[0]?.trigger?.selectedWebhook)
+                        }
                     });
                 
                 }

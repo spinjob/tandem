@@ -144,11 +144,7 @@ const ApiWebhooks = ({actions}) => {
                         <Tabs.Tab style={{fontFamily: 'apercu-regular-pro', fontSize: '18px', fontWeight: 200}} value="path">Path Parameters</Tabs.Tab>
                     ) : null 
                     } 
-                    {
-                      action.responses ? (
-                        <Tabs.Tab style={{fontFamily: 'apercu-regular-pro', fontSize: '18px', fontWeight: 200}} value="responseBody">Response Body</Tabs.Tab>
-                    ) : null 
-                    } 
+                    
                     
             </Tabs.List>
            
@@ -203,7 +199,12 @@ const ApiWebhooks = ({actions}) => {
                                 </Card.Section>
                                 
                                 <Card.Section style={{padding: 30}}>
-                                    <Tabs>
+                                    <Tabs defaultValue={
+                                        selectedWebhook.requestBody2?.schema ? 'requestBody' :
+                                        selectedWebhook.parameterSchema?.header ? 'header' :
+                                        selectedWebhook.parameterSchema?.path ? 'path' :
+                                        selectedWebhook.responses ? 'responseBody' : null
+                                        }>
                                         {renderActionTabs(selectedWebhook)}
                                         <Tabs.Panel style={{paddingTop: 30}} label="requestBody" value="requestBody">
                                             {
@@ -226,7 +227,7 @@ const ApiWebhooks = ({actions}) => {
                                                                     </Card>
                                                                 ) : (
                                                                     <div>
-                                                                        <Text>No property selected</Text>
+                                                                      
                                                                     </div>
                                                                 )
                                                             }
@@ -257,7 +258,7 @@ const ApiWebhooks = ({actions}) => {
                                                                 </Card>
                                                             ) : (
                                                                 <div>
-                                                                    <Text>No property selected</Text>
+                                                                  
                                                                 </div>
                                                             )
                                                         }
@@ -289,7 +290,7 @@ const ApiWebhooks = ({actions}) => {
                                                                 </Card>
                                                             ) : (
                                                                 <div>
-                                                                    <Text>No property selected</Text>
+                                                                   
                                                                 </div>
                                                             )
                                                         }
@@ -300,14 +301,15 @@ const ApiWebhooks = ({actions}) => {
                                                 )
                                             }
                                         </Tabs.Panel>
-                                        <Tabs.Panel label="responseBody" value="responseBody">
+                                        {/* <Tabs.Panel label="responseBody" value="responseBody">
                                             <div style={{display:'flex', flexDirection:'row'}}>
                                                 <div style={{width: '50%'}}>
                                                     <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
+                                                        <SchemaTree schemaType={'responseBody'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={selectedWebhook.responses[0].schema} actionUuid={selectedWebhook.uuid}/>
                                                     </ScrollArea>
                                                 </div>
                                             </div>
-                                        </Tabs.Panel>
+                                        </Tabs.Panel> */}
                                     </Tabs>                                    
                                 </Card.Section>
                             </Card>

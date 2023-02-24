@@ -1,11 +1,12 @@
 import axios from 'axios'
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router'
-import {Tabs, Text, TextInput, Loader, Breadcrumbs, Anchor} from '@mantine/core'
+import {Tabs, Text, TextInput, Loader, Breadcrumbs, Anchor, Card} from '@mantine/core'
 import ApiSchemas from '../../components/Api/api-schemas'
 import ApiActions from '../../components/Api/api-actions';
 import ApiWebhooks from '../../components/Api/api-webhooks';
 import ApiSecurityScheme from '../../components/Api/api-security-schema';
+import ApiMetadata from '../../components/Api/api-details';
 
 const ViewApi = () => {
 
@@ -144,28 +145,47 @@ const ViewApi = () => {
             </div>
             <Breadcrumbs separator="→">{items}</Breadcrumbs>
             <div style={{height: 20}}></div>
-            <Tabs color="gray" defaultValue="actions">
+            <div style={{display:'flex', paddingBottom: 40, paddingTop: 30}}>
+                    <Card style={{height: 180, width: 280, paddingTop: 38, paddingLeft: 50, backgroundColor: '#eaeaff'}}radius={'xl'}>
+                        <Card.Section>
+                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '18px'}}>Schemas</Text>
+                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '60px'}}>{schemas?.length}</Text>
+                        </Card.Section>
+                    </Card>
+                    <div style={{width: 30}}/>
+                    <Card style={{height: 180, width: 280, paddingTop: 38, paddingLeft: 50, backgroundColor: '#eaeaff'}}radius={'xl'}>
+                        <Card.Section>
+                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '20px'}}>Actions</Text>
+                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '60px'}}>{actions?.length}</Text>
+                        </Card.Section>
+                    </Card>
+                    <div style={{width: 30}}/>
+                    <Card style={{height: 180, width: 280, paddingTop: 38, paddingLeft: 50, backgroundColor: '#eaeaff'}}radius={'xl'}>
+                        <Card.Section>
+                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '20px'}}>Webhooks</Text>
+                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '60px'}}>{webhooks?.length}</Text>
+                        </Card.Section>
+                    </Card>
+                </div>
+            <Tabs radius={"sm"} color={'dark'} defaultValue="metadata">
                 <Tabs.List>
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="actions">Actions</Tabs.Tab>
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="security">Authentication</Tabs.Tab> 
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="schemas">Schemas</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="metadata">Details</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="actions">Actions</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="schemas">Schemas</Tabs.Tab>
                     {
-                        webhooks ? (
-                            <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="webhooks">Webhooks</Tabs.Tab>
-                        ) : null
-
+                        webhooks.length > 0 ? (
+                            <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="webhooks">Webhooks</Tabs.Tab>
+                        ) : (
+                            <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} disabled value="webhooks">Webhooks</Tabs.Tab>
+                        )  
                     }
+                    {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="security">Authentication</Tabs.Tab>  */}
                     {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="parameters">Parameters</Tabs.Tab>          */}
-                    {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="metadata">Details</Tabs.Tab> */}
-                  
                 </Tabs.List>
 
                 <Tabs.Panel value="metadata" label="Metadata">
                     {apiMetadata ? (
-                        <div>
-                            <Text>API Name: {apiMetadata.name}</Text>
-                            <Text>API Version: {apiMetadata.version}</Text>
-                        </div>
+                        <ApiMetadata metadata={apiMetadata}/>
                     ) : (
                         <Loader/>
                     )}
