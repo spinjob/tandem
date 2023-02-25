@@ -250,7 +250,12 @@
     text-decoration-thickness: 2px;
   }
   
-
+  
+  @media (hover: hover) and (prefers-color-scheme: dark) {
+    a:hover {
+      text-decoration-color: white;
+    }
+  }
   
   @media (prefers-color-scheme: dark) {
     a {

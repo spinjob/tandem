@@ -12,6 +12,8 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     const [optionalMapped, setOptionalMapped] = useState(0)
     const [requiredPropertyObjects, setRequiredPropertyObjects] = useState(null)
     const [optionalPropertyObjects, setOptionalPropertyObjects] = useState(null)
+    const setActionProperties = useStore(state => state.setActionProperties)
+    const actionProperties = useStore(state => state.actionProperties)
     const selectedMapping = useStore(state => state.selectedMapping)
     const setSelectedMapping = useStore(state => state.setSelectedMapping)
     const mappings = useStore(state => state.mappings)
@@ -290,13 +292,15 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         setOptionalCount(optionalCount + optionalPropertyArray.length)
         setRequiredCount(requiredCount + requiredPropertyArray.length)
 
-
+        
     }
  
     useEffect (() => {
         console.log("Use Effect: Null Property Objects")
-        if (!requiredPropertyObjects || !optionalPropertyObjects)
-        {processProperties()}
+        if (!requiredPropertyObjects || !optionalPropertyObjects){
+                processProperties()
+        }
+        
     }, [requiredPropertyObjects, optionalPropertyObjects])
 
     useEffect (() => {
@@ -304,7 +308,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         var requiredMappingsSet = 0
         var optionalMappingsSet = 0
 
-        if(mappings[targetNode.id] && requiredPropertyObjects && optionalPropertyObjects){
+        if(mappings[targetNode?.id] && requiredPropertyObjects && optionalPropertyObjects){
             var propertyKeys = Object.keys(mappings[targetNode.id])
 
             propertyKeys.forEach((key) => {

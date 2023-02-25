@@ -1252,8 +1252,8 @@ const WorkflowStudio = () => {
                 overlayColor={'#000'}
                 overlayOpacity={0.50}
                 radius={'lg'}
-                size={'60%'}
-                title={<Text style={{padding: 20, fontFamily:'Visuelt', fontSize: '30px', fontWeight: 600}}>Mapping Configuration</Text>}
+                size={1000}
+                title={<Text style={{padding:20, fontFamily:'Visuelt', fontSize: '30px', fontWeight: 600}}>Mapping Configuration</Text>}
                
             >
                <MappingModal sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} edge={selectedEdge} nodes={nodeActions} />

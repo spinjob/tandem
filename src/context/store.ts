@@ -57,6 +57,8 @@ export type RFState = {
   selectedMapping: SelectedMapping;
   selectedEdge: object;
   mappings: {[key: string]: object};
+  actionProperties: {[key: string]: object};
+  setActionProperties: (actionProperties: {[key: string]: object}) => void;
   setWorkflow: (workflow: WorkflowData) => void;
   addMapping: (newMapping: NewMapping) => void;
   setNodes: (nodes: Array<object>) => void;
@@ -79,6 +81,7 @@ const useStore = create<RFState>((set, get) => (
     selectedMapping: {sourceProperty: {}, targetProperty: {}, sourceNode: "", targetNode: ""},
     selectedEdge: {},
     mappings: {},
+    actionProperties: {},
     setWorkflow: (workflow: WorkflowData) => {
       set({
         workflow: {
@@ -92,6 +95,25 @@ const useStore = create<RFState>((set, get) => (
         }
       })
     },
+    setActionProperties: (actionProperties: {[key: string]: object}) => {
+      var currentActionProperties = get().actionProperties;
+      var updatedActionProperties : {[key: string]: object} = {}
+      var actionPropertiesKeys = Object.keys(actionProperties)
+      var actionPropertiesValues = Object.values(actionProperties)
+      actionPropertiesKeys.map((actionPropertyKey: string, index) => {
+        var actionPropertyValue = actionPropertiesValues[index]
+        var newActionProperty = {
+          ...currentActionProperties[actionPropertyKey],
+          ...actionPropertyValue
+        }
+        updatedActionProperties[actionPropertyKey] = newActionProperty
+      })
+
+      set({
+        actionProperties: actionProperties
+      })
+    },
+    
     setNodes: (nodes: Array<object>) => {
       set({
         nodes: nodes

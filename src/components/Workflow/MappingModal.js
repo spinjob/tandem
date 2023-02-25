@@ -7,6 +7,7 @@ import {RxArrowRight} from 'react-icons/rx'
 import {VscSymbolArray} from 'react-icons/vsc'
 import {BiBook} from 'react-icons/bi'
 import {HiOutlineKey} from 'react-icons/hi'
+import AdaptionDesigner from './AdaptionDesigner'
 
 const MappingModal = ({edge, nodes, sourceNode, targetNode}) => { 
 
@@ -219,7 +220,7 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode}) => {
                     <Card shadow={"sm"}style={{border: '1px solid #EBEBEB', borderRadius: 15, width: '100%'}}>
                         <Card.Section style={{padding: 20, display:'flex', flexDirection: 'row', alignItems:'center',height:80, width: '100%'}}>
                             <div style={{display:'flex', flexDirection: 'row', alignItems:'center', justifyContent:'space-between',width: '100%'}}>
-                                <Text>
+                                <Text style={{fontWeight: functionDesignerOpened ? 600 : null }}>
                                     Adaption to Input
                                 </Text>
                                 <Switch onChange={(event)=>{
@@ -231,13 +232,11 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode}) => {
                         </Card.Section>
                         {
                             functionDesignerOpened ? (
-                                <Card.Section style={{padding: 20, display:'flex', flexDirection: 'row', alignItems:'center',height:1000, width: '100%'}}>
-                                <div style={{display:'flex', flexDirection: 'row', alignItems:'center', justifyContent:'space-between',width: '100%'}}>
-                                    <Text>
-                                        Designer
-                                    </Text>
-                                </div>  
-                    </Card.Section>
+                                <Card.Section style={{paddingLeft: 20, paddingRight: 20, paddingBottom: 20, display:'flex', flexDirection: 'column', alignItems:'center', width: '100%',}}>
+                                    <Divider size={'xs'} style={{width: '100%'}}/>
+                                    <div style={{height: 20}}/>
+                                    <AdaptionDesigner selectedMapping={selectedMapping} mappings={mappings} source={sourceNode} target={targetNode}/> 
+                                </Card.Section>
                             ) : (null) 
                         }
                     </Card>
