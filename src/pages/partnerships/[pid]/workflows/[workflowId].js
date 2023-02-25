@@ -798,6 +798,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
             id: 'trigger',
             type: 'trigger',
             position: { x: 350, y: 400 },
+            deletable: false,
             data: {
                 label: 'trigger',
                 id: 'trigger',
@@ -809,6 +810,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
             id: 'action-1',
             type: 'action',
             position: { x: 850, y: 400},
+            deletable: false,
             data: {
                 label: 'action-1',
                 id: 'action-1',
@@ -822,7 +824,8 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
         id: 'trigger-to-action-1',
         source: 'trigger',
         target: 'action-1',
-        type: 'buttonEdge'
+        type: 'buttonEdge',
+        deletable: false
       },];
 
     //For existing workflows, will need to load the nodes and edges from the workflow object
@@ -851,6 +854,8 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
     const nodeViews = useStore((state) => state.nodeViews);
     const globalNodeState = useStore((state) => state.nodes);
     const globalEdgeState = useStore((state) => state.edges);
+    const selectedEdge = useStore((state) => state.selectedEdge);
+    
     const setGlobalNodeState = useStore((state) => state.setNodes);
     const setGlobalEdgeState = useStore((state) => state.setEdges);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -919,6 +924,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
         }, [project, setNodes, setEdges, apis, actions, onChange]
     );
 
+
     useEffect(()=> {
         if(nodes.length !== globalNodeState.length) {
             setGlobalNodeState(nodes)
@@ -942,7 +948,6 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                     onEdgesChange={onEdgesChange}
                     onConnectStart={onConnectStart}
                     onConnectEnd={onConnectEnd}
-                    onConnect={onConnect}
                     edgeTypes={edgeTypes}
                     fitView
                     nodeTypes={nodeTypes}
@@ -1132,6 +1137,10 @@ const WorkflowStudio = () => {
     const selectedEdge = useStore((state) => state.selectedEdge);
     const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
+
+    console.log('globalWorkflowState', globalWorkflowState)
+    console.log('mappings', mappings)
+    console.log('selectedMapping', selectedMapping)
 
     
     const toggleMappingModal = () => {

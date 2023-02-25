@@ -13,7 +13,7 @@ export default function App(props: AppProps) {
   const [dbUser, setDbUser] = useState(null)
   const [isNavOpen,setIsNavOpen] = useState(false)
   const [appMargin, setAppMargin] = useState(300)
-
+  
   const setIsOpened = (opened: boolean) => {
     setIsNavOpen(opened)
     if(opened){

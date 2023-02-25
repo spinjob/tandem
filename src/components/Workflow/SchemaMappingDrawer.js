@@ -295,6 +295,13 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         
     }
  
+    useEffect (()=> {
+        if (requiredPropertyObjects?.length > 0 && Object.keys(actionProperties).length >0){
+            var requiredActionProperties = {
+                
+            }
+        }
+    })
     useEffect (() => {
         console.log("Use Effect: Null Property Objects")
         if (!requiredPropertyObjects || !optionalPropertyObjects){
