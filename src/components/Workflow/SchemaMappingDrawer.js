@@ -4,15 +4,18 @@ import {RxArrowRight} from 'react-icons/rx'
 import {BiBrain} from 'react-icons/bi'
 import useStore from '../../context/store'
 
-const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
+const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode}) => {
 
     const [requiredCount, setRequiredCount] = useState(0)
     const [optionalCount, setOptionalCount] = useState(0)
+    const [requiredMapped, setRequiredMapped] = useState(0)
+    const [optionalMapped, setOptionalMapped] = useState(0)
     const [requiredPropertyObjects, setRequiredPropertyObjects] = useState(null)
     const [optionalPropertyObjects, setOptionalPropertyObjects] = useState(null)
     const selectedMapping = useStore(state => state.selectedMapping)
     const setSelectedMapping = useStore(state => state.setSelectedMapping)
-
+    const mappings = useStore(state => state.mappings)
+    
 
     const getParentContext = (path, schema) => {
         var schemaLocationArray = path.split('.')
@@ -238,7 +241,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
 
             setOptionalCount(optionalCount + optionalPropertyArray.length)
             setRequiredCount(requiredCount + requiredPropertyArray.length)
-            console.log(optionalPropertyArray)
 
         }
 
@@ -292,9 +294,36 @@ const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
     }
  
     useEffect (() => {
-        if (!requiredPropertyObjects)
+        console.log("Use Effect: Null Property Objects")
+        if (!requiredPropertyObjects || !optionalPropertyObjects)
         {processProperties()}
-    }, [requiredPropertyObjects])
+    }, [requiredPropertyObjects, optionalPropertyObjects])
+
+    useEffect (() => {
+        console.log("Use Effect: Property Mapping Counts")
+        var requiredMappingsSet = 0
+        var optionalMappingsSet = 0
+
+        if(mappings[targetNode.id] && requiredPropertyObjects && optionalPropertyObjects){
+            var propertyKeys = Object.keys(mappings[targetNode.id])
+
+            propertyKeys.forEach((key) => {
+                requiredPropertyObjects.filter((property) => {
+                    if(property.path == key){
+                        requiredMappingsSet++
+                    }
+                })
+                optionalPropertyObjects.filter((property) => {
+                    if(property.path == key){
+                        optionalMappingsSet++
+                    }
+                })
+            })
+        }
+        setRequiredMapped(requiredMappingsSet)
+        setOptionalMapped(optionalMappingsSet)
+
+    }, [requiredPropertyObjects, optionalPropertyObjects, mappings])
 
     const requiredProperties = () => {
 
@@ -302,7 +331,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
                 <Loader/>
             ) : requiredPropertyObjects.length == 0 ? (
                 <div>
-                    <Text>No Optional Properties</Text>
+                    <Text>No Required Properties</Text>
                 </div>
             ) : (
                 requiredPropertyObjects.map((property, index) => {
@@ -323,18 +352,23 @@ const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
                                 <Button
                                     value={property.path}
                                     onClick={()=>{
-                                        if(property.schema){
-                                            const targetProperty = {
-                                                ...property.schema,
-                                                path: property.path,
-                                                key: property.key,
-                                                name: property.name,
-                                                required: property.required,
-                                                in: property.in ? property.in : null
-                                            }
-                                            setSelectedMapping({targetProperty: targetProperty})
+                                        if(mappings[targetNode.id] && mappings[targetNode.id][property.path]){
+                                            var mapping = mappings[targetNode.id][property.path]
+                                            setSelectedMapping({targetProperty: mapping.output, sourceProperty: mapping.input})
                                         } else {
-                                            setSelectedMapping({targetProperty: property})
+                                            if(property.schema){
+                                                const targetProperty = {
+                                                    ...property.schema,
+                                                    path: property.path,
+                                                    key: property.key,
+                                                    name: property.name,
+                                                    required: property.required,
+                                                    in: property.in ? property.in : null
+                                                }
+                                                setSelectedMapping({targetProperty: targetProperty})
+                                            } else {
+                                                setSelectedMapping({targetProperty: property})
+                                            }
                                         }
 
                                     }}
@@ -371,7 +405,24 @@ const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
                                             }}>          
                                                 <Text style={{fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{selectedMapping?.sourceProperty?.path}</Text> 
                                             </div>
-                                        ) : (
+                                        ) : mappings[targetNode.id] && mappings[targetNode.id][property.path] ? (
+                                            <div style={{
+                                                fontFamily: 'Visuelt',
+                                                fontWeight: 100,
+                                                color: '#5A5A5A',
+                                                backgroundColor: '#F2F0ED',
+                                                borderRadius: 4,
+                                                height: 35,
+                                                display:'flex',
+                                                flexDirection: 'row',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                width: 180
+                                            }}>          
+                                                <Text style={{fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{mappings[targetNode.id][property.path]?.sourcePath}</Text> 
+                                            </div>
+                                        )
+                                        : (
                                             <div style={{
                                                 fontFamily: 'Visuelt',
                                                 fontWeight: 100,
@@ -405,7 +456,9 @@ const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
                                     <div style={{width: '100%', paddingBottom: 5, display:'flex', flexDirection:'center', justifyContent: 'center', alignItems:'center'}}>
                                         <Button onClick={(e)=>{toggleMappingModal(e)}} style={{width: 480, height: 50, borderRadius: 8, backgroundColor: 'black'}}>
                                             <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'white'}}>{
-                                                selectedMapping?.sourceProperty?.path ? 'Map Properties' : 'Configure Property'
+                                                mappings[targetNode.id] && mappings[targetNode.id][property.path] ? "Edit Mapping"
+                                                : selectedMapping?.sourceProperty?.path ? 'Map Properties' 
+                                                : 'Configure Property'
                                             }</Text>
                                        </Button>      
                                     </div>   
@@ -413,7 +466,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
                             </Container>
                         </div>
                 )})
-            ) }
+    ) }
 
 
     return (
@@ -426,7 +479,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
                 <Text style={{padding: 20, fontFamily: 'Visuelt', fontSize: '12px', fontWeight: 400, color: 'grey'}}>Below are all of the required and optional properties for {action?.name}. The API documentation indicates that all of the required properties must have a value mapped or set - not doing so will likely result in failure.</Text>
                 <div style={{paddingLeft: 20, paddingRight: 20, paddingTop: 10, display:'flex',flexDirection:'row', justifyContent: 'space-between'}}>
                     <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>Required Properties</Text>
-                    <Text style={{fontFamily:'Visuelt'}}>{0}/{requiredCount}</Text>
+                    <Text style={{fontFamily:'Visuelt'}}>{requiredMapped}/{requiredCount}</Text>
                 </div>
                 
                 <div style={{paddingBottom: 20, display: 'flex', flexDirection: 'column'}}>
@@ -435,7 +488,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
             
                 <div style={{paddingLeft: 20, paddingRight: 20, paddingTop: 10, display:'flex',flexDirection:'row', justifyContent: 'space-between'}}>
                     <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>Optional Properties</Text>
-                    <Text style={{fontFamily:'Visuelt'}}>{0}/{optionalCount}</Text>
+                    <Text style={{fontFamily:'Visuelt'}}>{optionalMapped}/{optionalCount}</Text>
                     </div>
                     <ScrollArea.Autosize maxHeight={700} width={50}>
                    { 
@@ -459,7 +512,13 @@ const SchemaMappingDrawer = ({action, toggleMappingModal}) => {
                                     <Button
                                         value={property.path}
                                         onClick={()=>{
-                                            setSelectedMapping({targetProperty: property})
+                                            if(mappings[targetNode.id] && mappings[targetNode.id][property.path]){
+                                                var mapping = mappings[targetNode.id][property.path]
+                                                setSelectedMapping({targetProperty: mapping.output, sourceProperty: mapping.input})
+                                            } else {
+                                                setSelectedMapping({targetProperty: property})
+                                            }
+                                          
                                         }}
                                         sx={{
                                             '&:hover': {

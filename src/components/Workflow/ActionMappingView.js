@@ -1,5 +1,5 @@
 import WorkflowSchemaTree from "./workflow-schema-tree"
-import {Text, Accordion, Image} from '@mantine/core'
+import {Text, Accordion, Image, Tooltip} from '@mantine/core'
 
 const ActionMappingView = ({action, node, edge, type})=> {
 
@@ -39,7 +39,8 @@ const ActionMappingView = ({action, node, edge, type})=> {
                 <div>
                     <div style={{paddingBottom: 20}}>
                         <Text style={{fontFamily:'Visuelt'}}>Action Request Schema</Text>
-                        <Text style={{fontFamily:'Visuelt', fontWeight: 100}}>{upperCaseString(action?.method)} {action?.path}</Text>
+                        <Text truncate style={{fontFamily:'Visuelt', fontWeight: 100}}>{upperCaseString(action?.method)} {action?.path}</Text>
+                        
                     </div>
                     <Accordion multiple={true} radius="lg" chevronPosition="left" variant="separated" defaultValue={["requestBody","header","path"]}>
         
@@ -91,7 +92,7 @@ const ActionMappingView = ({action, node, edge, type})=> {
                 <div>
                     <div style={{paddingBottom: 20}}>
                         <Text style={{fontFamily:'Visuelt'}}>Action Response Schema</Text>
-                        <Text style={{fontFamily:'Visuelt', fontWeight: 100}}>{upperCaseString(action?.method)} {action?.path}</Text>
+                        <Text truncate style={{fontFamily:'Visuelt', fontWeight: 100}}>{upperCaseString(action?.method)} {action?.path}</Text>
                     </div>
                     <Accordion multiple={true} radius="lg" chevronPosition="left" variant="separated"defaultValue={[action?.responses[0]?.http_status_code]}>
                     {

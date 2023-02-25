@@ -8,17 +8,49 @@ import {VscSymbolArray} from 'react-icons/vsc'
 import {BiBook} from 'react-icons/bi'
 import {HiOutlineKey} from 'react-icons/hi'
 
-const MappingModal = () => { 
+const MappingModal = ({edge, nodes, sourceNode, targetNode}) => { 
 
     const selectedMapping = useStore(state => state.selectedMapping)
     const setSelectedMapping = useStore(state => state.setSelectedMapping)
     const selectedWorkflow = useStore(state => state.selectedWorkflow)
     const setSelectedWorkflow = useStore(state => state.setSelectedWorkflow)
     const workflowMappings = useStore(state => state.workflowMappings)
+    const mappings = useStore(state => state.mappings)
     const setWorkflowMappings = useStore(state => state.setWorkflowMappings)
+    const addMapping = useStore(state => state.addMapping)
+    const [functionDesignerOpened, setFunctionDesignerOpened] = useState(false)
+    const stepIndex = edge?.target ? Number(edge.target.split('-')[1]) : null
+    const sourceNodeAction = nodes[edge.source]
+    const targetNodeAction = nodes[edge.target]
 
-    const [mapping, setMapping] = useState({})
-    
+    const [functions, setFunctions] = useState({})
+
+    const saveMapping = () => {
+        const newMapping = {
+            id: uuidv4(),
+            stepIndex: stepIndex,
+            input: {
+                ...selectedMapping?.sourceProperty,
+                in: selectedMapping?.sourceProperty?.in ? selectedMapping?.sourceProperty?.in : "body",
+                actionId: sourceNodeAction.uuid,
+                apiId: sourceNodeAction.parent_interface_uuid
+            },
+            output:{
+                ...selectedMapping?.targetProperty,
+                in: selectedMapping?.targetProperty?.in ? selectedMapping?.targetProperty?.in : "body",
+                actionId: targetNodeAction.uuid,
+                apiId: targetNodeAction.parent_interface_uuid
+            },
+            sourcePath: selectedMapping?.sourceProperty?.path,
+            targetPath: selectedMapping?.targetProperty?.path,
+            sourceNode: sourceNode.id,
+            targetNode: targetNode.id,
+        }
+
+        addMapping(newMapping)
+
+    }
+
     const renderConfigurationCard = () => {
         return(
             <Card shadow="sm" p="lg" radius="lg" withBorder>
@@ -151,12 +183,12 @@ const MappingModal = () => {
             </Card>
         )}
 
+    
+
 
     return(
 
             <div style={{paddingRight: 15, paddingLeft: 15}}>
-                <Text style={{fontFamily:'Visuelt', fontSize: '30px', fontWeight: 600}}>Mapping Configuration</Text>
-                <div style={{height: 40}}/>
                 <div style={{display:'flex', flexDirection: 'row', alignItems:'center'}}>
                     {
                         selectedMapping?.sourceProperty?.path ? (
@@ -184,17 +216,30 @@ const MappingModal = () => {
                 </div>
                 <div style={{height: 40}}/>
                 <div style={{display:'flex', flexDirection: 'row', alignItems:'center'}}>
-                    <Card shadow={"sm"}style={{border: '1px solid #EBEBEB', borderRadius: 15, height:80, width: '100%'}}>
+                    <Card shadow={"sm"}style={{border: '1px solid #EBEBEB', borderRadius: 15, width: '100%'}}>
                         <Card.Section style={{padding: 20, display:'flex', flexDirection: 'row', alignItems:'center',height:80, width: '100%'}}>
                             <div style={{display:'flex', flexDirection: 'row', alignItems:'center', justifyContent:'space-between',width: '100%'}}>
                                 <Text>
                                     Adaption to Input
                                 </Text>
-                                <Switch color="dark">
-
+                                <Switch onChange={(event)=>{
+                                    console.log(event.target.checked)
+                                    setFunctionDesignerOpened(event.target.checked)
+                                }} color="dark">
                                 </Switch>
                             </div>
                         </Card.Section>
+                        {
+                            functionDesignerOpened ? (
+                                <Card.Section style={{padding: 20, display:'flex', flexDirection: 'row', alignItems:'center',height:1000, width: '100%'}}>
+                                <div style={{display:'flex', flexDirection: 'row', alignItems:'center', justifyContent:'space-between',width: '100%'}}>
+                                    <Text>
+                                        Designer
+                                    </Text>
+                                </div>  
+                    </Card.Section>
+                            ) : (null) 
+                        }
                     </Card>
                 </div>
                 <div style={{height: 20}}/>
@@ -221,7 +266,11 @@ const MappingModal = () => {
                     }}>
                         Cancel
                     </Button>
-                    <Button sx={{
+                    <Button
+                    onClick={()=>{
+                        saveMapping()
+                    }}
+                    sx={{
                         backgroundColor: '#000000',
                         color: '#FFFFFF',
                         fontFamily: 'Visuelt',
@@ -239,7 +288,7 @@ const MappingModal = () => {
                             border: '2px solid #BABABA',
                         }
                     }}>
-                        Save Mapping
+                        Set Mapping
                     </Button>
                 </div>
             </div>

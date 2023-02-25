@@ -155,8 +155,8 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
     const selectedMapping = useStore(state => state.selectedMapping)
     const setSelectedMapping = useStore(state => state.setSelectedMapping)
     const selectedEdge = useStore(state => state.selectedEdge)
-    const [selectedItem, setSelectedItem] = useState(null)
     const [selectedSourceProperty, setSelectedSourceProperty] = useState(null)
+    const [selectedTargetProperty, setSelectedTargetProperty] = useState(null)
 
     const getSchemaFromPath = (path) => {
         var schemaLocationArray = path.split('.')
@@ -216,15 +216,17 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
 
     useEffect(() => {
         if(node && selectedEdge && selectedMapping){
+
             //If the node this tree is rendered for is the Target node, then the selected property will be stored as the target.
-            if(node?.id == selectedEdge?.target && selectedMapping?.targetProperty?.path && selectedMapping?.targetProperty?.path != selectedItem?.path ) {
+            if(node?.id == selectedEdge?.target && selectedMapping?.targetProperty?.path && selectedMapping?.targetProperty?.path !== selectedTargetProperty) {
                 tree.current?.selectItems([selectedMapping?.targetProperty?.path])
+
             } 
         
             //If the node this tree is rendered for is the Source node, then the selected property will be stored as the source.
             
         }
-    })
+    }, [selectedMapping, selectedEdge, node])
 
     return isLoading ? (
         <Center>
@@ -232,7 +234,7 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
         </Center>
     )
     : (
-        <div style={{width: 200}}>      
+        <div style={{width: 200}}>
         <style>{`
             :root {
             --rct-color-focustree-item-selected-bg: #000000;
@@ -249,8 +251,10 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
             viewState={{selectedItems: [selectedMapping.path]}}
             canDragAndDrop={false}
             canRenameItem={false}
+            defaultInteractionMode={'click-arrow-to-expand'}
             renderItemTitle={({title, item}) => renderItemTitle(title, item)}
             onSelectItems={(items) => {
+
                 if(node?.id == selectedEdge?.source){
                     if(selectedSourceProperty == items[0] ) {
                         tree.current?.selectItems([])
@@ -261,8 +265,32 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                         setSelectedMapping({sourceProperty: {}})
                     }
                     else {
+       
                         setSelectedSourceProperty(items[0])
                         setSelectedMapping({sourceProperty: getSchemaFromPath(items[0])})
+                    }
+
+                }
+
+                if(node?.id == selectedEdge?.target){
+                    
+                    if(selectedTargetProperty == items[0] ) {
+                        console.log("deselecting")
+                        tree.current?.selectItems([])
+                        setSelectedTargetProperty(null)
+                        setSelectedMapping({targetProperty: {}})
+                    } else if(selectedMapping?.targetProperty?.path == items[0]) {
+                       
+                    }
+                    else if(items[0] == null) {
+                        setSelectedTargetProperty(null)
+                        setSelectedMapping({targetProperty: {}})
+                    }
+                    else {
+                       
+                        setSelectedTargetProperty(items[0])
+                        setSelectedMapping({targetProperty: getSchemaFromPath(items[0])})
+                        
                     }
 
                 }

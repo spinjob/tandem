@@ -23,7 +23,6 @@ import {
   } from '@mantine/core';
 
 import ReactFlow, {
-    Background,
     useNodesState,
     useEdgesState,
     addEdge,
@@ -33,15 +32,20 @@ import ReactFlow, {
     ReactFlowProvider,
   } from 'reactflow';
 
+  import { Background } from '@reactflow/background';
+
 import { TimeInput } from '@mantine/dates';  
-import {TiFlowSwitch} from 'react-icons/ti'
 import {AiOutlinePlusSquare, AiFillCheckCircle} from 'react-icons/ai'
 import {FiChevronDown} from 'react-icons/fi'
 import {HiOutlineArrowLeft, HiOutlineTrash, HiOutlineDocumentDownload, HiOutlineDotsHorizontal} from 'react-icons/hi'
+import {TiFlowSwitch} from 'react-icons/ti'
+import {TbWebhook} from 'react-icons/tb'
 import {IoHelpBuoyOutline} from 'react-icons/io5'
+import {GrSchedulePlay, GrTrigger} from 'react-icons/gr'
 import 'reactflow/dist/style.css';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
+import { toPng } from 'html-to-image';
 
 import ButtonEdge from '../../../../components/Workflow/ButtonEdge';
 import SchemaMappingDrawer from '../../../../components/Workflow/SchemaMappingDrawer';
@@ -91,6 +95,35 @@ const useStyles = createStyles((theme,opened, checked ) => ({
 
 import useStore from '../../../../context/store';
 
+function downloadImage(dataUrl){
+    const a = document.createElement('a');
+
+    a.setAttribute('download', 'reactflow.png');
+    a.setAttribute('href', dataUrl);
+    a.click();
+
+}
+
+function DownloadButton() {
+    const onClick = () => {
+        toPng(document.querySelector('.react-flow'), {
+            filter: (node) => {
+                if (node?.classList?.contains('react-flow__minimap') || node?.classList?.contains('react-flow__controls')
+                ) {
+                    return false;
+                }
+                return true;
+            },
+        }).then(downloadImage);
+    };
+    return(
+        <Button onClick={onClick} style={{backgroundColor: '#EAEAFF', color: '#3F3F3F', fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px', borderRadius: 8, height: 40, width: 40, display: 'flex', justifyContent: 'center', alignItems: 'center', border: '1px solid #E7E7E7', boxShadow:"rgba(0, 0, 0, 0.04) 0px 3px 5px" }}>
+            <HiOutlineDocumentDownload size={20} />
+        </Button>
+    )
+}
+
+
 function ActionNode ({id, data}) {
     const {classes, cx} = useStyles();
 
@@ -102,6 +135,7 @@ function ActionNode ({id, data}) {
     const nodeActions = useStore((state) => state.nodeActions)
     const nodeViews = useStore((state) => state.nodeViews)
     const selectedEdge = useStore((state) => state.selectedEdge)
+
     
     const filteredActions = data.actions.filter((action) => {
         return action.parent_interface_uuid == selectedApi
@@ -141,7 +175,7 @@ function ActionNode ({id, data}) {
                         <div style={{ display:'flex', flexDirection: 'row'}}>
                             <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '16px', fontWeight: 600}}>{data.apis.filter((api) => api.uuid == selectedApi)[0].name}</Text>
                             <div style={{width: 10}}/>
-                            <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '16px'}}>{selectedAction.method + " " + selectedAction.path}</Text>
+                            <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '16px'}}>{selectedAction.name}</Text>
                         </div>
                     ) : (
                         <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '16px'}}>Action</Text>
@@ -214,7 +248,6 @@ function TriggerNode ({data}) {
     const globalWorkflowState = useStore((state) => state.workflow)
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow)
 
-    console.log("globalWorkflowState", globalWorkflowState)
     const [selected, setSelected] = useState(globalWorkflowState?.trigger?.type ? globalWorkflowState?.trigger?.type : "scheduled")
     const [selectedApi, setSelectedApi] = useState(globalWorkflowState?.trigger?.selectedWebhook?.parent_interface_uuid ? globalWorkflowState?.trigger?.selectedWebhook?.parent_interface_uuid : data.apis[0].uuid)
     
@@ -298,7 +331,18 @@ function TriggerNode ({data}) {
     return (
         <div style={{zIndex:1, paddingBottom: 20, backgroundColor:'white', display:'flex', flexDirection:'column', width: 320, borderRadius:8, border: !nodeViews[data.id] || !nodeViews[data.id]?.view || nodeViews[data.id]?.view !== "mapping" ? '.5px solid #E7E7E7' : '2px solid black', boxShadow:"rgba(0, 0, 0, 0.04) 0px 3px 5px" }}>
             <div style={{paddingLeft: 10, width: '100%',backgroundColor: '#F2F0ED', height: 40, borderTopLeftRadius:8,borderTopRightRadius: 8, alignItems:'center', display:'flex'}}>
-                <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '16px'}}>Workflow Trigger</Text>
+                {
+                    selected === "scheduled" ? (
+                        <GrSchedulePlay size={20} style={{paddingRight: 5}}/>
+                    ): selected === "webhook" ? (
+                        <TbWebhook size={20} style={{paddingRight: 5}}/>
+                    ) : (
+                        <GrTrigger size={20} style={{paddingRight: 5}}/>
+                    )
+                }       
+                <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '16px'}}>{
+                    selected === "scheduled" ? "Scheduled Trigger" : selected === "webhook" ? "Webhook Trigger" : "Workflow Trigger"
+                }</Text>
             </div>
             <Handle type="input" position={Position.Right}/>
             { 
@@ -751,23 +795,23 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
 
     var initialNodes = [
         {
-            id: 'ewb-1',
+            id: 'trigger',
             type: 'trigger',
             position: { x: 350, y: 400 },
             data: {
-                label: '1',
-                id: 'ewb-1',
+                label: 'trigger',
+                id: 'trigger',
                 apis: apis,
                 webhooks: webhooks
             } 
         },
         {
-            id: 'ewb-2',
+            id: 'action-1',
             type: 'action',
             position: { x: 850, y: 400},
             data: {
-                label: '2',
-                id: 'ewb-2',
+                label: 'action-1',
+                id: 'action-1',
                 apis: apis,
                 actions: actions
             } 
@@ -775,12 +819,10 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
       ];
 
     var initialEdges = [  {
-        id: 'edge-1-2',
-        source: 'ewb-1',
-        target: 'ewb-2',
-        type: 'buttonEdge',
-        data: { 
-        }
+        id: 'trigger-to-action-1',
+        source: 'trigger',
+        target: 'action-1',
+        type: 'buttonEdge'
       },];
 
     //For existing workflows, will need to load the nodes and edges from the workflow object
@@ -799,9 +841,6 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
 
     }
 
-     let id = 1;
-     const getId = () => `${id++}`;
-
     const reactFlowWrapper = useRef(null);
     const connectingNodeId = useRef(null);
  
@@ -816,6 +855,14 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
     const setGlobalEdgeState = useStore((state) => state.setEdges);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+    const { setViewport } = useReactFlow();
+
+    const handleTransform = useCallback((xPosition, yPosition) => {
+      setViewport({ x: xPosition, y: yPosition, zoom: 0 }, { duration: 800 });
+    }, [setViewport]);
+
+    const snapGrid = [25, 25];
 
     const onConnect = useCallback(
         (params) => setEdges((eds) => addEdge({ ...params, type: 'buttonEdge'}, eds)),
@@ -848,7 +895,9 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
             if (targetIsPane) {
                 // Remove the wrapper bounds in order to get the correct position
                 const { top, left } = reactFlowWrapper.current.getBoundingClientRect();
-                const id = getId()+ '-'+ uuidv4();
+                const newActionStepIndex = Number(connectingNodeId.current.split('action-')[1].split('-')[0]) + 1
+
+                const id = "action-" + newActionStepIndex + '-'+ uuidv4();
                 const newNode = {
                     id,
                     //We are removing half of the node width to center the new node
@@ -867,7 +916,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                 setGlobalEdgeState(edges)
                 setGlobalNodeState(nodes)
             }
-        }, [project, setNodes, setEdges, getId, apis, actions, onChange]
+        }, [project, setNodes, setEdges, apis, actions, onChange]
     );
 
     useEffect(()=> {
@@ -895,16 +944,19 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                     onConnectEnd={onConnectEnd}
                     onConnect={onConnect}
                     edgeTypes={edgeTypes}
+                    fitView
                     nodeTypes={nodeTypes}
                     onEdgeClick={(event, edge) => {
                         toggleDrawer(event, edge, nodes, edges)
+
+                        // var sourceNodePosition = nodes.filter((node) => node.id === edge.source)[0].position
+                        // var targetNodePosition = nodes.filter((node) => node.id === edge.target)[0].position
                         
-                        console.log(nodeViews)
                     }}
                     zoomOnScroll={false}
-                    style={{position:'absolute', zIndex: 2}}
+                    style={{position:'absolute', zIndex: 2, background:'#FBFAF9' }}
                     >
-                    <Background color="#FBFAF9" />
+                    {/* <Background color="#FBFAF9" /> */}
                 </ReactFlow>
             </div>
                 
@@ -921,6 +973,7 @@ const WorkflowHeader = ({workflow}) => {
     const [workflowName, setWorkflowName] = useState(workflow?.name ? workflow.name : 'My Untitled Workflow');
     const globalNodeState = useStore((state) => state.nodes);
     const globalEdgeState = useStore((state) => state.edges);
+    const mappings = useStore((state) => state.mappings);
     const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
     const [saveInProgress, setSaveInProgress] = useState(false);
@@ -937,9 +990,11 @@ const WorkflowHeader = ({workflow}) => {
             steps: [],
             status: "Draft",
             updated_at: new Date(),
-            parent_project_uuid: workflow.parent_project_uuid
+            parent_project_uuid: workflow.parent_project_uuid,
+            definition: {
+                mappings: mappings
+            }
         }).then((response) => {
-            console.log(response)
             setSaveInProgress(false)
         } )
         .catch((error) => {
@@ -1025,17 +1080,15 @@ const WorkflowHeader = ({workflow}) => {
                     }}>
                         Save Workflow
                     </Button>
+                    <DownloadButton />
                     <Menu transition="fade" position='bottom-end' shadow="md" width={150}>
                         <Menu.Target>
                             <ActionIcon size="lg" radius="md" variant='outline'>
                                <HiOutlineDotsHorizontal size={15} color={'grey'} />
                             </ActionIcon>
                         </Menu.Target>
+                      
                         <Menu.Dropdown >
-                            <Menu.Item
-                                style={{fontFamily:'Visuelt', fontWeight: 100}} 
-                                icon={<HiOutlineDocumentDownload size={20} color={'black'} />}
-                            >Export Map</Menu.Item>
                             <Menu.Item
                                 style={{fontFamily:'Visuelt', fontWeight: 100}}  
                                 icon={<IoHelpBuoyOutline size={20} color={'black'} />}
@@ -1063,23 +1116,30 @@ const WorkflowStudio = () => {
     const [workflowWebhooks, setWorkflowWebhooks] = useState(null);
     const [adaptionDrawerOpen, setAdaptionDrawerOpen] = useState(false);
     const [selectedAdaption, setSelectedAdaption] = useState(null);
+
+    //From Global State
     const nodeActions = useStore((state) => state.nodeActions);
+    const nodes = useStore((state) => state.nodes);
     const nodeViews = useStore((state) => state.nodeViews);
     const [mappingModalOpen, setMappingModalOpen] = useState(false);
     const setNodeViews = useStore((state) => state.setNodeViews);
     const setSelectedEdge = useStore((state) => state.setSelectedEdge);
     const selectedMapping = useStore((state) => state.selectedMapping);
     const setSelectedMapping = useStore((state) => state.setSelectedMapping);
+    const setMappings = useStore((state) => state.setMappings);
+    const mappings = useStore((state) => state.mappings);
     const setNodeAction = useStore((state) => state.setNodeAction);
-
+    const selectedEdge = useStore((state) => state.selectedEdge);
     const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
+
     
     const toggleMappingModal = () => {
         setMappingModalOpen(!mappingModalOpen)
     }
 
     const toggleDrawer = (event, edge, nodes, edges) => {
+
         var sourceNodeObject = {
             id: edge.source
         }
@@ -1096,7 +1156,6 @@ const WorkflowStudio = () => {
             sourceNodeObject['view'] = 'mapping'
             targetNodeObject['view'] = 'mapping'
         }
-
         setSelectedMapping({sourceProperty: {}, targetProperty: {}})
         setAdaptionDrawerOpen(!adaptionDrawerOpen);  
         setNodeViews([sourceNodeObject, targetNodeObject])
@@ -1108,11 +1167,16 @@ const WorkflowStudio = () => {
         if (pid && workflowId && !workflow) {
             axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/workflows/' + workflowId + '/details').then((res) => {
                 setWorkflow(res.data);
+
                 setGlobalWorkflowState({
                     id: res.data[0].uuid,
                     projectId: res.data[0].parent_project_uuid,
                     trigger: res.data[0].trigger,
                 });
+
+                if(res.data[0].definition?.mappings){
+                    setMappings(res.data[0].definition?.mappings)
+                }
 
                 if(res.data[0].nodes.length > 0) {
                     res.data[0].nodes.forEach((node) => {
@@ -1132,18 +1196,16 @@ const WorkflowStudio = () => {
             axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/details').then((res) => {
                 setPartnership(res.data);
                 var apiArray = [];
-                console.log("PARTNERSHIP: ")
-                console.log(res.data)
 
                 res.data[0].interfaces.forEach((api) => {
                     axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/' + api).then((res) => {
                         apiArray.push(res.data);
                         setApis(apiArray);
-                        console.log("APIs: ")
+                       
                         setGlobalWorkflowState({
                             apis: apiArray
                         })
-                        console.log(res.data)
+                    
                     }).catch((err) => {
                         console.log(err);
                     })
@@ -1157,8 +1219,6 @@ const WorkflowStudio = () => {
                         setGlobalWorkflowState({
                             actions: res.data
                         })
-                        console.log("WORKFLOW ACTIONS: ")
-                        console.log(res.data)
                     } ).catch((err) => {
                         console.log(err);
                     })
@@ -1171,8 +1231,7 @@ const WorkflowStudio = () => {
                         setGlobalWorkflowState({
                             webhooks: res.data
                         })
-                        console.log("WORKFLOW WEBHOOKS: ")
-                        console.log(res.data)
+                        
                     } ).catch((err) => {
                         console.log(err);
                     })
@@ -1194,12 +1253,13 @@ const WorkflowStudio = () => {
                 overlayOpacity={0.50}
                 radius={'lg'}
                 size={'60%'}
+                title={<Text style={{padding: 20, fontFamily:'Visuelt', fontSize: '30px', fontWeight: 600}}>Mapping Configuration</Text>}
                
             >
-               <MappingModal/>
+               <MappingModal sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} edge={selectedEdge} nodes={nodeActions} />
             </Modal>
             <Drawer lockScroll={false} size={500} style={{overflowY: 'scroll', zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
-            <SchemaMappingDrawer action= {nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
+            <SchemaMappingDrawer sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} action= {nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
             </Drawer>
             <div style={{
                 display: 'flex',
