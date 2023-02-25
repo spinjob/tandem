@@ -173,7 +173,7 @@ const ViewApi = () => {
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="actions">Actions</Tabs.Tab>
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="schemas">Schemas</Tabs.Tab>
                     {
-                        webhooks.length > 0 ? (
+                        webhooks?.length > 0 ? (
                             <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="webhooks">Webhooks</Tabs.Tab>
                         ) : (
                             <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} disabled value="webhooks">Webhooks</Tabs.Tab>
