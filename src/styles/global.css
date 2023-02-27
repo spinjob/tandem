@@ -169,6 +169,7 @@
     margin: calc((100vh / 25) * 1.563) calc((100vw / 25) * 1.563);
     background-color: white;
     font-weight: 400;
+    font-family: 'Visuelt';
     line-height: 1.563;
     color: var(--text-color);
     caret-color: var(--text-color);
@@ -250,6 +251,7 @@
     text-decoration-thickness: 2px;
   }
   
+
   
   @media (hover: hover) and (prefers-color-scheme: dark) {
     a:hover {

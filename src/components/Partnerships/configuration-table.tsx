@@ -121,7 +121,6 @@ function ConfigurationTable({ data }: TableSortProps) {
 
   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
     const { id } = event.currentTarget.dataset;
-    // router.push(`/partnerships/${id}`)
   };
 
   const rows = sortedData.map((row) => (
@@ -188,7 +187,7 @@ function ConfigurationTable({ data }: TableSortProps) {
             rows
           ) : (
             <tr>
-              <td colSpan={Object.keys(data[0]).length}>
+              <td colSpan={3}>
                 <Text weight={500} align="center">
                   Nothing found
                 </Text>

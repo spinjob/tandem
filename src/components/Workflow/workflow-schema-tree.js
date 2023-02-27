@@ -280,7 +280,7 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                         setSelectedTargetProperty(null)
                         setSelectedMapping({targetProperty: {}})
                     } else if(selectedMapping?.targetProperty?.path == items[0]) {
-                       
+                       //Target Node Property Selected from SchemaMappingDrawer
                     }
                     else if(items[0] == null) {
                         setSelectedTargetProperty(null)

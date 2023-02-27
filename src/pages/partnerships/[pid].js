@@ -90,7 +90,7 @@ useEffect(() => {
           <PartnershipApis pid={pid} partnershipApis={apis}/>
         </Tabs.Panel>
         <Tabs.Panel value="configurations">
-          <PartnershipConfigurations pid={pid}/>
+          <PartnershipConfigurations partnership={partnership}/>
         </Tabs.Panel>
 
       </Tabs>
