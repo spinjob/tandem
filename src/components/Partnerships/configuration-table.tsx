@@ -8,7 +8,8 @@ import {
   Text,
   Center,
   TextInput,
-  Avatar
+  Avatar,
+  Modal
 } from '@mantine/core';
 import { keys } from '@mantine/utils';
 import { useRouter } from 'next/router';
@@ -45,6 +46,8 @@ interface RowData {
 
 interface TableSortProps {
   data: RowData[];
+  selectConfiguration: (configurationKey: string | undefined) => void;
+
 }
 
 interface ThProps {
@@ -99,7 +102,7 @@ function sortData(
   );
 }
 
-function ConfigurationTable({ data }: TableSortProps) {
+function ConfigurationTable({ data, selectConfiguration }: TableSortProps) {
   const [search, setSearch] = useState('');
   const [sortedData, setSortedData] = useState(data);
   const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
@@ -121,12 +124,16 @@ function ConfigurationTable({ data }: TableSortProps) {
 
   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
     const { id } = event.currentTarget.dataset;
+    selectConfiguration(id)
   };
 
   const rows = sortedData.map((row) => (
-    <tr data-id={row.id} onClick={handleRowClick} key={row.id}>
-      <td data-id={row.id}>{row.key}</td>
-      <td data-id={row.id}>{
+    <tr data-id={row.key} onClick={(e) => {
+        handleRowClick(e)
+       
+      }} key={row.key}>
+      <td data-id={row.key}>{row.key}</td>
+      <td data-id={row.key}>{
         <Text style={{fontFamily:'apercu-regular-pro', fontSize:'15px', color:'grey'}}>{row.type}</Text>
       }</td>
       <td data-id={row.id}>{

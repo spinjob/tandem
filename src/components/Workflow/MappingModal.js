@@ -1,4 +1,4 @@
-import {Text,Image,ActionIcon, Switch, Button, SegmentedControl, Tooltip, Card, Center, Loader, Code, Divider, Badge, ScrollArea} from '@mantine/core'
+import {Text,Image,ActionIcon, Select, Switch, Button, SegmentedControl, Tooltip, Card, Center, Loader, Code, Divider, Badge, ScrollArea, TextInput, Textarea} from '@mantine/core'
 import axios from 'axios'
 import {useRef, useState,useEffect} from 'react'
 import useStore from '../../context/store'
@@ -9,7 +9,7 @@ import {BiBook} from 'react-icons/bi'
 import {HiOutlineKey} from 'react-icons/hi'
 import AdaptionDesigner from './AdaptionDesigner'
 
-const MappingModal = ({edge, nodes, sourceNode, targetNode}) => { 
+const MappingModal = ({edge, nodes, sourceNode, targetNode, partnership, toggleMappingModal}) => { 
 
     const selectedMapping = useStore(state => state.selectedMapping)
     const setSelectedMapping = useStore(state => state.setSelectedMapping)
@@ -23,6 +23,13 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode}) => {
     const stepIndex = edge?.target ? Number(edge.target.split('-')[1]) : null
     const sourceNodeAction = nodes[edge.source]
     const targetNodeAction = nodes[edge.target]
+    const [configurationMappingView, setConfigurationMappingView] = useState(partnership?.configuration ? "select" : "create")
+    const [newConfigKey, setNewConfigKey] = useState("")
+    const [newConfigValue, setNewConfigValue] = useState("")
+    const [newConfigType, setNewConfigType] = useState("string")
+    const [selectedConfiguration, setSelectedConfiguration] = useState(null)
+    const [canSaveConfiguration, setCanSaveConfiguration] = useState(false)
+    const [configurationMenuValue, setConfigurationMenuValue] = useState(partnership?.configuration ? "select" : "new")
 
     const [functions, setFunctions] = useState({})
 
@@ -33,8 +40,8 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode}) => {
             input: {
                 ...selectedMapping?.sourceProperty,
                 in: selectedMapping?.sourceProperty?.in ? selectedMapping?.sourceProperty?.in : "body",
-                actionId: sourceNodeAction.uuid,
-                apiId: sourceNodeAction.parent_interface_uuid
+                actionId: sourceNodeAction?.uuid ? sourceNodeAction.uuid : "configuration",
+                apiId: sourceNodeAction?.parent_interface_uuid ? sourceNodeAction.parent_interface_uuid : "configuration"
             },
             output:{
                 ...selectedMapping?.targetProperty,
@@ -44,32 +51,125 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode}) => {
             },
             sourcePath: selectedMapping?.sourceProperty?.path,
             targetPath: selectedMapping?.targetProperty?.path,
-            sourceNode: sourceNode.id,
-            targetNode: targetNode.id,
+            sourceNode: sourceNode?.id ? sourceNode.id : "configuration",
+            targetNode: targetNode.id, 
         }
 
         addMapping(newMapping)
 
     }
 
-    const renderConfigurationCard = () => {
+    const renderPartershipConfigurationMenu = () => {
+        var selectionOptionsArray = [{'label': 'New Workflow Configuration', 'value': 'new'}]
+        if(partnership?.configuration){
+            var configurationKeys = Object.keys(partnership.configuration)
+            configurationKeys.forEach((key) => {
+                selectionOptionsArray.push({label: key, value: key})
+            })
+        }
+        return selectionOptionsArray
+    }
+
+    const renderConfigurationCreationCard = () => {
         return(
-            <Card shadow="sm" p="lg" radius="lg" withBorder>
-                <Card.Section style={{padding: 20}}>
-                    <Text style={{fontFamily:'Visuelt', fontSize: '20px'}}>Configuration Key</Text>
-                    <Text style={{fontFamily:'apercu-regular-pro', fontSize: '15px', color: '#8E8E8E'}}>Configuration Type</Text>
-                    <div style={{height: 12}}/>                    
-                    <Text style={{fontFamily:'Visuelt', fontSize: '18px', color: '#6A6A6A'}}>Configuration Description</Text>
-                </Card.Section>
-            </Card>
-        )}
+            <div>
+                    <TextInput 
+                        label={<Text style={{fontFamily:'Visuelt', fontWeight: 500, fontSize:'12px'}}>Configuration Key</Text>}
+                        placeholder="Provide a key to identify this configuration."
+                        onChange={(e) => {
+                            setNewConfigKey(e.target.value)
+                        }}
+                        sx={{
+                            borderRadius: '5px',
+                            width: '100%',
+                            '& input': {
+                                fontFamily: 'Visuelt',
+                                fontSize: '14px',
+                                fontWeight: 100,
+                                color: '#000000',
+                                '&:focus': {
+                                    border: '1px solid #000000',
+                                }
+                            }
+                        }}
+                    />
+                    <Select
+                        label={<Text style={{fontFamily:'Visuelt', fontWeight: 500, fontSize:'12px'}}>Data Type</Text>}
+                        placeholder="Select a type"
+                        data={[{label: 'String', value: 'string'}, {label: 'Number', value: 'number'}, {label: 'Boolean', value: 'boolean'}]}
+                        dropdownPosition="bottom"
+                        onChange={(value) => {
+                            setNewConfigType(value)
+                        }}
+                        withinPortal={true}
+                        sx={{
+                            borderRadius: '5px',
+                            width: '100%',
+                            '& input': {
+                                fontFamily: 'Visuelt',
+                                fontSize: '14px',
+                                fontWeight: 100,
+                                color: '#000000',
+                                '&:focus': {
+                                    border: '1px solid #000000',
+                                }
+                            }
+                        }}
+                    />
+                    <Textarea
+                        label={<Text style={{fontFamily:'Visuelt', fontWeight: 500, fontSize:'12px'}}>Configuration Value</Text>}
+                        placeholder="Provide the value to configure"
+                        onChange={(e) => {
+                            setNewConfigValue(e.target.value)
+                        }}
+
+                        sx={{
+                            borderRadius:'5px',
+                            width: '100%',
+                            '& textarea': {
+                                fontFamily: 'Visuelt',
+                                fontSize: '14px',
+                                fontWeight: 100,
+                                color: '#000000',
+                                '&:focus': {
+                                    border: '1px solid #000000',
+                                }
+                            }
+                        }}
+                    />
+                        <div style={{height: 12}}/>
+                    <Button
+                        disabled={!canSaveConfiguration}
+                        onClick={() => {
+                            setSelectedConfiguration({type: newConfigType, value: newConfigValue, key: newConfigKey})
+                            setConfigurationMappingView('view')
+                            var sourceProperty = {
+                                key: newConfigKey,
+                                path: '$configuration.'+newConfigKey,
+                                type: newConfigType,
+                                value: newConfigValue,
+                            }
+                            setSelectedMapping({...selectedMapping, sourceProperty: sourceProperty})
+                        }}
+                        radius={'md'}
+                        sx={{
+                            width: '100%',
+                            height: 40,
+                            backgroundColor: '#000000',
+                            '&:hover': {
+                                backgroundColor: '#5A5A5A',
+                            }
+                        }}
+                    >
+                        <Text style={{fontFamily:'Visuelt', fontWeight: 500, fontSize:'15px'}}>Save</Text>
+                    </Button>
+                    <div style={{height: 12}}/>
+            </div>
+    )}
 
     const renderPropertyCard = (property) => {
-
         return (
-
-            <Card shadow="xs" p="lg" radius={15} withBorder>
-                
+            <Card shadow="xs" p="lg" radius={15} withBorder>          
                 {
                         property.parentContext?.length > 0 ? (
                             <Card.Section>
@@ -163,7 +263,6 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode}) => {
                             
                         ) : (null)
                 }
-
                 <Card.Section style={{padding: 20}}>
                     <Text style={{fontFamily:'Visuelt', fontSize: '20px'}}>{property.key}</Text>
                     <Text style={{fontFamily:'apercu-regular-pro', fontSize: '15px', color: '#8E8E8E'}}>{property.type}</Text>
@@ -182,13 +281,31 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode}) => {
                     <Text style={{fontFamily:'Visuelt', fontSize: '14px'}}>{property.path}</Text>
                 </Card.Section>
             </Card>
-        )}
+    )}
 
-    
+    const renderConfigurationViewCard = () => {
+        
+        return(
+            <div>
+                <Text style={{fontFamily:'apercu-regular-pro', fontSize: '15px', color: '#8E8E8E'}}>{selectedConfiguration.type}</Text>
+                <div style={{height: 12}}/>
+                <Divider/>     
+                <div style={{height: 12}}/>
+                <div style={{height: 12}}/>
+                <Text style={{fontFamily:'Visuelt', fontSize: '14px'}}>{selectedConfiguration.value}</Text>
+            </div>
+        )
+    }
 
+    useEffect(() => {
+        if (configurationMappingView == 'create' && newConfigKey != '' && newConfigValue != '' && newConfigType != '') {
+            setCanSaveConfiguration(true)
+        } else {
+            setCanSaveConfiguration(false)
+        }
+    }, [newConfigKey, newConfigValue, newConfigType])
 
     return(
-
             <div style={{paddingRight: 15, paddingLeft: 15}}>
                 <div style={{display:'flex', flexDirection: 'row', alignItems:'center'}}>
                     {
@@ -202,7 +319,83 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode}) => {
                             <div style={{display: 'block', width: '50%'}}>
                                 <Text style={{fontFamily:'Visuelt', fontSize: '18px'}}>Input</Text>
                                 <div style={{height: 8}}/>
-                                {renderConfigurationCard()}
+
+
+                                <Card shadow="sm" p="lg" radius="lg" withBorder>
+                                    <Card.Section style={{padding: 20, minHeight: 300}}>
+                                        {
+                                            configurationMappingView == 'select' ? (
+                                                <Text style={{fontFamily:'Visuelt', fontSize: '20px'}}>Configuration</Text>
+                                            ) : (
+                                                null
+                                            )
+                                        }
+                                       
+                                        <div style={{height: 12}}/>
+                                        <Select
+                                            withinPortal={true}
+                                            value={configurationMenuValue}
+                                            className={
+                                                configurationMappingView == 'view' ? 'view' : 'create' ? 'create' : 'select'
+                                            }
+                                            placeholder="Select Configuration"
+                                            data={renderPartershipConfigurationMenu()}
+                                            dropdownPosition="bottom"
+                                            zIndex={1000}
+                                            onChange={(value) => {
+                                                setConfigurationMenuValue(value)
+                                                if(value == 'new'){
+                                                    setConfigurationMappingView('create')
+                                                    setSelectedConfiguration(null)
+                                                    setNewConfigKey('')
+                                                    setNewConfigValue('')
+                                                    setNewConfigType('')
+
+                                                } else {
+                                                    setConfigurationMappingView('view')
+                                                    setSelectedConfiguration({type: partnership.configuration[value].type, value: partnership.configuration[value].value, key: value})
+
+                                                }
+                                            }}
+                                            sx={{
+                                                width: '100%',
+                                                height: 40,
+                                                fontFamily: 'Visuelt',
+                                                fontSize: '15px',
+                                                '& input': {
+                                                    fontFamily: 'Visuelt',
+                                                    fontSize: '18px',
+                                                    color: '#000000',
+                                                },
+                                                '&:focus': {
+                                                    border: '1px solid #000000',
+                                                },
+                                                '&.view': {
+                                                    border: 'none',
+                                                    padding:0
+                                                },
+                                                '&.create': {
+                                                    border: '1px solid #EBEBEB',
+                                                    paddingLeft: 5,
+                                                    borderRadius: 5
+                                                },
+                                            }}
+                                            variant={'unstyled'}
+                                        />
+                                        <div style={{height: 12}}/>
+                                        {
+                                            configurationMappingView == 'select' ? (
+                                                null
+                                            ) : configurationMappingView == 'create' ? (
+                                                renderConfigurationCreationCard()
+                                            ) : configurationMappingView == 'view' ? (
+                                                renderConfigurationViewCard(selectedConfiguration)
+                                            ) : (
+                                                null
+                                            )
+                                            }
+                                    </Card.Section>
+                                </Card>
                             </div>
                         )
                     }
@@ -245,7 +438,11 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode}) => {
                 <Divider size="xs" color={'#EBEBEB'}/>
                 <div style={{height: 20}}/>
                 <div style={{justifyContent:'space-between', width: '100%', display:'flex', flexDirection:'row'}}>
-                    <Button sx={{
+                    <Button 
+                    onClick={()=>{
+                        toggleMappingModal()
+                    }}
+                    sx={{
                         backgroundColor: '#FFFFFF',
                         color: '#000000',
                         fontFamily: 'Visuelt',

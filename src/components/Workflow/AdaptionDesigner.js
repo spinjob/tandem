@@ -32,11 +32,7 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
             name: 'Replace',
             formula: 'replace',
             description: 'Replaces the provided substring of the source text with the provided string'
-        }, {
-            name: 'Concatenate', 
-            formula:'concatenate',
-            description: 'Concatenates the source string with the provided string'
-        }, {
+        },{
             name: 'Substring',
             formula: 'substring',
             description: 'Extracts a substring from the source string'
@@ -56,7 +52,12 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
             name: 'Capitalize',
             formula: 'capitalize',
             description: 'Capitalizes the first letter of the source string and converts the rest to lowercase'
-        }
+        },
+        // {
+        //     name: 'Concatenate', 
+        //     formula:'concatenate',
+        //     description: 'Concatenates the source string with the provided string'
+        // }
     ]
 
     const renderOverflowDropdownMenu = (items) => {
@@ -68,7 +69,7 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
                     variant={'filled'} 
                     radius={'xl'}>
                     <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>More</Text>
-                    <div style={{width: 5}}/>
+                    <div style={{width: 5}}/>ß
                     <BsChevronDown 
                         style={{width: 15, height: 15, color: 'black'}}/>
                 </ActionIcon>
@@ -198,15 +199,69 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
 
     }
 
-    const renderParentContextBanner = () => {
-
-        return(
-            <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-                <Text>Parent Context</Text>
-            </div>
-        )
-
+    const renderParentContextBanner = (parentContextTypes) => {
+     
+       return parentContextTypes.map((parentContext, index) => {
+           if(parentContext.contextType == 'dictionary') {
+                return ( 
+                    <div key={parentContext.contextType + '_'+index} style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', width: '100%'}}>
+                        <div style={{display:'flex', flexDirection:'row', alignItems:'center', justifyContent:'center', width: '100%', height: 30, backgroundColor: '#F8F6F3', borderRadius: 12}}>
+                            <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>For each</Text>
+                            <div style={{width: 5}}/>
+                            <Text style={{fontFamily:'Visuelt', fontWeight: 500, color: 'black'}}> {parentContext.dictionaryKey}</Text>
+                            <div style={{width: 5}}/>
+                            <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>in</Text>
+                            <div style={{width: 5}}/>
+                            <Text style={{fontFamily:'Visuelt', fontWeight: 500, color: 'black'}}>{parentContext.parentContextKey}</Text>
+                            <div style={{width: 5}}/>
+                            { 
+                                index == parentContextTypes.length - 1 ? (
+                                    <>
+                                        <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>run this adaption on</Text>
+                                        <div style={{width: 5}}/>
+                                        <Text style={{fontFamily:'Visuelt', fontWeight: 500, color: 'black'}}> {selectedMapping?.sourceProperty?.path}:</Text>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>and...</Text>
+                                    </>
+                                )
+                            }
+                            
+                        </div>
+                        <div style={{height: 10}}/>
+                    </div>
+                )
+           } else if(parentContext.contextType == 'array') {
+                return  (  
+                    <div key={parentContext.contextType + '_'+index} style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', width: '100%'}}>
+                        <div style={{display:'flex', flexDirection:'row', alignItems:'center', justifyContent:'center', width: '100%', height: 30, backgroundColor: '#F8F6F3', borderRadius: 12}}>
+                            <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>For each item in</Text>
+                            <div style={{width: 5}}/>
+                            <Text style={{fontFamily:'Visuelt', fontWeight: 500, color: 'black'}}>{parentContext.parentContextKey}</Text>
+                            <div style={{width: 5}}/>
+                            { 
+                                index == parentContextTypes.length - 1 ? (
+                                    <>
+                                        <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>run this adaption on</Text>
+                                        <div style={{width: 5}}/>
+                                        <Text style={{fontFamily:'Visuelt', fontWeight: 500, color: 'black'}}> {selectedMapping?.sourceProperty?.path}:</Text>
+                                    </>
+                                ) : ( 
+                                    <>
+                                        <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>and...</Text>
+                                    </>
+                                )
+                            }
+                        </div>
+                        <div style={{height: 10}}/>
+                    </div>
+                )
+            }
+                
+        })
     }
+
     const removeFormula = (uuid) => {
         var newFormulas = formulas.filter((formula) => {
             return formula.uuid != uuid
@@ -239,21 +294,21 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
                                 formula.formula == 'append' ? 
                                         <AppendCard sourceProperty={selectedMapping?.sourceProperty}/>
                                 : formula.formula == 'prepend' ? 
-                                    <PrependCard/>
+                                    <PrependCard sourceProperty={selectedMapping?.sourceProperty}/>
                                 : formula.formula == 'replace' ? 
-                                    <ReplaceCard/>
-                                : formula.formula == 'concatenate' ?
-                                    <ConcatenateCard/>
+                                    <ReplaceCard sourceProperty={selectedMapping?.sourceProperty}/>
+                                // : formula.formula == 'concatenate' ?
+                                //     <ConcatenateCard sourceProperty={selectedMapping?.sourceProperty}/>
                                 : formula.formula == 'substring' ?
-                                    <SubstringCard/>
+                                    <SubstringCard sourceProperty={selectedMapping?.sourceProperty}/>
                                 : formula.formula == 'trim' ?
-                                    <TrimCard/>
+                                    <TrimCard sourceProperty={selectedMapping?.sourceProperty}/>
                                 : formula.formula == 'lowercase' ?
-                                    <LowercaseCard/>
+                                    <LowercaseCard sourceProperty={selectedMapping?.sourceProperty}/>
                                 : formula.formula == 'uppercase' ?
-                                    <UppercaseCard/>
+                                    <UppercaseCard sourceProperty={selectedMapping?.sourceProperty} />
                                 : formula.formula == 'capitalize' ?
-                                    <CapitalizeCard/>
+                                    <CapitalizeCard sourceProperty={selectedMapping?.sourceProperty}/>
                                 : null
                             }
                             </div>
@@ -270,6 +325,14 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
     
     return (
         <div style={{width: '100%',display: 'flex', flexDirection: 'column',}}>
+            {
+                selectedMapping?.sourceProperty?.parentContext ? (
+                    <div style={{width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                        {renderParentContextBanner(selectedMapping.sourceProperty.parentContext)}
+                        <div style={{height: 20}}/>
+                    </div>
+                ) : (null)
+            }
             <div style={{paddingBottom: 20, width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start'}}>
                 {renderConditionMenu()}
             </div>
