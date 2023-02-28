@@ -136,7 +136,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         const requiredPropertyArray = []
         const optionalPropertyArray = []
         
-        if(action?.requestBody2){
+        if(action?.requestBody2?.schema){
             const propertyKeys = Object.keys(action.requestBody2.schema)
             const propertyValues = Object.values(action.requestBody2.schema)
             const propertyObjects = propertyKeys.map((key, index) => {
