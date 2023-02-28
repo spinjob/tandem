@@ -1268,7 +1268,7 @@ const WorkflowStudio = () => {
                <MappingModal toggleMappingModal={toggleMappingModal} partnership={partnership[0]} sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} edge={selectedEdge} nodes={nodeActions} />
             </Modal>
             <Drawer lockScroll={false} size={500} style={{overflowY: 'scroll', zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
-            <SchemaMappingDrawer sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} action= {nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
+            <SchemaMappingDrawer nodes={nodes} sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
             </Drawer>
             <div style={{
                 display: 'flex',

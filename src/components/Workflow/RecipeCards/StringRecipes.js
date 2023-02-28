@@ -1,4 +1,4 @@
-import {Card, Text, TextInput, Button, ActionIcon, Modal, Loader} from '@mantine/core'
+import {Card, Text, TextInput, Button, ActionIcon, Modal, Select, Loader} from '@mantine/core'
 import {useState} from 'react'
 
 const AppendCard = ({ recipe, index, onEdit, onDelete, sourceProperty}) => {
@@ -153,8 +153,51 @@ const ConcatenateCard = ({ recipe, index, onEdit, onDelete, sourceProperty }) =>
 
 const SubstringCard = ({ recipe, index, onEdit, onDelete, sourceProperty  }) => {
     return( 
-        <div style={{border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'center'}}>
-            <Text>Inputs</Text>
+        <div style={{paddingLeft: 20, border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'start'}}>
+            <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>
+                Extract the 
+            </Text>
+            <div style={{height: 5}}/>
+            <Select
+                data={[
+                    {label: 'First', value: 'first'},
+                    {label: 'Last', value: 'last'},
+                ]}
+                sx={{
+                    '& select': {
+                        '&:focus':{
+                            borderColor: 'black'
+                        },
+                        fontFamily: 'Visuelt',
+                        fontSize: '16px',
+                        fontWeight: 100
+                    }
+                }}
+
+            />
+            <div style={{width: 10}}/>
+            <TextInput
+                placeholder="String to append"
+                sx={{
+                    '& input': {
+                        '&:focus':{
+                            borderColor: 'black'
+                        },
+                        fontFamily: 'Visuelt',
+                        fontSize: '16px',
+                        fontWeight: 100
+                    }
+                }}
+            />
+
+            <div style={{width: 10}}/>
+            <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>
+                to the beginning of the
+            </Text>
+            <div style={{width: 10}}/>
+            <Text  style={{fontFamily:'Visuelt', fontWeight: 500, color: 'black'}}>
+                {sourceProperty?.key}   
+            </Text>
         </div>
     )
 }

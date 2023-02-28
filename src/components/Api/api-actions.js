@@ -40,6 +40,23 @@ const ApiActions = ({actions}) => {
     
             }
 
+        } else if (schemaType == 'response'){
+            var pathArray = path.split('.')
+            var parent = selectedAction.responses[0].schema
+            for (var i = 0; i < pathArray.length; i++) {
+                var child = parent[pathArray[i]]
+                if(child?.properties && i !== pathArray.length - 1){
+                    parent = child.properties
+                }
+                else if(child?.items && i !== pathArray.length - 1){
+                    parent = child.items
+                }
+                else {
+                    var childKey = pathArray[i]
+                    return {...child, key: childKey}
+                }
+    
+            }
         }
         else if(schemaType == 'header') {
             
@@ -68,6 +85,8 @@ const ApiActions = ({actions}) => {
     }
 
     const selectProperty = (propertyPath, schemaType) => {
+        console.log(propertyPath)
+        console.log(schemaType)
         setSelectedSchemaProperty(processSchemaPath(propertyPath[0], schemaType))
         return
     }
@@ -312,7 +331,7 @@ const ApiActions = ({actions}) => {
                                                     <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
                                                     <div style={{width: '50%'}}>
                                                         <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
-                                                            {/* <SchemaTree schemaType={'path'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={selectedAction.responses[0].schema} actionUuid={selectedAction.uuid}/> */}
+                                                            <SchemaTree schemaType={'response'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={selectedAction.responses[0].schema} actionUuid={selectedAction.uuid}/>
                                                         </ScrollArea>
                                                     </div>
                                                     <div style={{width: '50%'}}>

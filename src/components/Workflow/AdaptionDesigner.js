@@ -69,7 +69,7 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
                     variant={'filled'} 
                     radius={'xl'}>
                     <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>More</Text>
-                    <div style={{width: 5}}/>ß
+                    <div style={{width: 5}}/>
                     <BsChevronDown 
                         style={{width: 15, height: 15, color: 'black'}}/>
                 </ActionIcon>

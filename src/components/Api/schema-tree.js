@@ -10,7 +10,7 @@ import {RxComponentBoolean, RxQuestionMarkCircled} from 'react-icons/rx'
 import { v4 as uuidv4 } from 'uuid';
 
 function generateTreeData (schema, parent) {
-    console.log(schema)
+
     const schemaKeys = Object.keys(schema)
     const schemaValues = Object.values(schema)
 
@@ -110,7 +110,6 @@ function generateTreeData (schema, parent) {
         }
         treeItems[path] = childNode
     })
-    console.log(treeItems)
 
     return treeItems
 }

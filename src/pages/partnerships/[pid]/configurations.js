@@ -78,7 +78,7 @@ const PartnershipConfigurations = ({ partnership }) => {
             setConfigurationMap(newConfigurationMap)
             saveConfigurations(newConfigurationMap)
         }
-        console.log(configurationMap)
+
         saveConfigurations()
         setModalOpened(false)
     }
