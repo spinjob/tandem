@@ -1,11 +1,14 @@
 import {Text, Divider, Button, Container, UnstyledButton, Tooltip, Accordion, Loader, ScrollArea, ActionIcon} from '@mantine/core'
-import { useEffect, useState } from 'react'
+import { useCallback,useEffect, useState } from 'react'
 import {RxArrowRight} from 'react-icons/rx'
 import {BiBrain} from 'react-icons/bi'
+import {HiOutlineLightningBolt} from 'react-icons/hi'
+
+import {RiCloseCircleFill} from 'react-icons/ri'
 import useStore from '../../context/store'
 import axios from 'axios'
 
-const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode, nodes}) => {
+const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode}) => {
 
     const [requiredCount, setRequiredCount] = useState(0)
     const [optionalCount, setOptionalCount] = useState(0)
@@ -13,42 +16,129 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     const [optionalMapped, setOptionalMapped] = useState(0)
     const [requiredPropertyObjects, setRequiredPropertyObjects] = useState(null)
     const [optionalPropertyObjects, setOptionalPropertyObjects] = useState(null)
-    const setActionProperties = useStore(state => state.setActionProperties)
-    const actionProperties = useStore(state => state.actionProperties)
+    const [outputPaths, setOutputPaths] = useState(null)
+    const [inputPaths, setInputPaths] = useState(null)
     const selectedMapping = useStore(state => state.selectedMapping)
     const setSelectedMapping = useStore(state => state.setSelectedMapping)
     const selectedEdge = useStore(state => state.selectedEdge)
     const mappings = useStore(state => state.mappings)
-    const selectedAdaption = useStore(state => state.selectedAdaption)
+    const [mappingSuggestions, setMappingSuggestions] = useState(null)
+    const [areSuggestionsLoading, setAreSuggestionsLoading] = useState(false)
+    const nodeActions = useStore(state => state.nodeActions)
+    const setMappings = useStore(state => state.setMappings)
+
+    /// Functions related to the generation of GPT-3 prompts and handling the response.
+
+    const getSchemaFromPath = (path, schema) => {
+        var schemaLocationArray = path.split('.')
+       
+        if(schemaLocationArray.length == 1) {
+            return {...schema[schemaLocationArray[0]], path: path, key: schemaLocationArray[0]}
+        } else {
+            var parent = schema
+            var parentContext = []
+
+            
+            for (var i = 0; i < schemaLocationArray.length; i++) {
+                var child = parent[schemaLocationArray[i]]
+
+                if(child?.properties && i !== schemaLocationArray.length - 1){
+                    parent = child.properties
+                        if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
+                            parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1], path: path})
+                        }
+                    }                        
+
+                else if(child?.items && i !== schemaLocationArray.length - 1){
+                    if(child.items.properties) {
+                        parent = child.items.properties
+                        parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
+                    } else {
+                        if(parentContext.length > 0){
+                            return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
+                        }
+                        return {...child.items, path: path, key: schemaLocationArray[i]}
+                    }
+                }
+                else {     
+                    var childKey = schemaLocationArray[i]
+                    if(parentContext.length > 0){
+                        return {...child, path: path, key: schemaLocationArray[i], parentContext}
+                    }
+                    return {...child, key: childKey, path: path}
+                }
     
-    const getMappingSuggestions = () => {
-
-        const promptPrefix = " Provided an input and output data schema (labeled 'input_schema' and 'output_schema') provide mappings between the input and output schema. Only respond with an array of JSON Objects with this definition { inputProperty: $inputPropertyJSONPath, outputProperty: $outputPropertyJSONPath}."
-        var inputSchema = " input_schema: " + JSON.stringify(sourceNode?.data?.selectedAction?.responses[0]?.schema)
-        var outputSchema = " output_schema: " + JSON.stringify(action.requestBody2.schema)
-        var prompt = promptPrefix + inputSchema + outputSchema
-
-        // axios.post(process.env.NEXT_PUBLIC_OPEN_AI_API_URL, {
-        //     "model": "text-davinci-003",
-        //     "prompt": prompt,
-        //     "max_tokens": 1000,
-        //     "temperature": 0,
-        //     "top_p": 1,
-        //     "n": 1,
-        //     "stream": false,
-        //     "logprobs": null,
-        // },{
-        //     headers: {
-        //         "Authorization": "Bearer " + process.env.NEXT_PUBLIC_OPEN_AI_API_KEY,
-        // }}).then((response) => {
-        //     console.log(response.data)
-        // }).catch((error) => {
-        //     console.log(error)
-        // }
-        // )
+            }
+        }
     }
 
+    async function getMappingSuggestions (prompt, inputSchema, outputSchema) {
+        setAreSuggestionsLoading(true)
 
+        try {
+            const response = await tokenizeWrapper(prompt)
+            console.log(response)
+            console.log(prompt)
+            if(response.length > 3500){
+                console.log("prompt too long")
+            } else {
+                axios.post(process.env.NEXT_PUBLIC_OPEN_AI_API_URL, {
+                    "model": "text-davinci-003",
+                    "prompt": response,
+                    "max_tokens": 1000,
+                    "temperature": 0,
+                    "top_p": 1,
+                    "n": 1,
+                    "stream": false,
+                    "logprobs": null,
+                },{
+                    headers: {
+                        "Authorization": "Bearer " + process.env.NEXT_PUBLIC_OPEN_AI_API_KEY,
+                }}).then((response) => {
+
+                    console.log(response.data)
+                    var mappings = JSON.parse(response.data.choices[0].text)
+                    if(mappings) {
+                        setMappingSuggestions(mappings)
+                        
+                    }
+                    setAreSuggestionsLoading(false)
+                }).catch((error) => {
+                    console.log(error)
+                    setAreSuggestionsLoading(false)
+                })
+            }
+        } catch (error) {
+            console.log(error)
+            setAreSuggestionsLoading(false)
+        }     
+
+    }
+
+    function tokenizeWrapper(prompt) {
+        return new Promise((resolve, reject) => {
+            tokenizePrompt(prompt, (response) => {
+                resolve(response)
+            }, (error) => {
+                reject(error)
+            })
+        })
+    }
+    
+    function tokenizePrompt(prompt, successCallback, failureCallback) {
+        axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + "/transform/encode", {
+            prompt: prompt  
+          }).then((response) => {
+                successCallback(response.data.encoded)
+                return response.data
+          }).catch((error) => {
+              console.log(error)
+              failureCallback(error)
+              return error
+        })
+    }   
+
+    // Function that retreives a properties parent context (i.e. if the property is nested in an array or dictionary)
     const getParentContext = (path, schema) => {
         var schemaLocationArray = path.split('.')
 
@@ -325,9 +415,131 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         
     }
  
+    const processNestedPaths = (schema, parentPath) => {
+        const schemaPathsArray = []
+        const propertyKeys = Object.keys(schema)
+        const propertyValues = Object.values(schema)
+        const propertyObjects = propertyKeys.map((key, index) => {
+            
+            if(propertyValues[index].type !== 'object' && propertyValues[index].type !== 'array'){
+                schemaPathsArray.push(`${parentPath}.${key}`)
+            }
+
+            return {
+                key: key,
+                path: `${parentPath}.${key}`,
+                ...propertyValues[index]
+            }
+        })
+
+        propertyObjects.forEach((property) => {
+            if(property.properties){
+                var paths = processNestedPaths(property.properties, `${parentPath}.${property.key}`)
+                schemaPathsArray.push(...paths)
+            } else if(property.items){
+                if(property.items.properties){
+                    var paths = processNestedPaths(property.items.properties, `${parentPath}.${property.key}`)
+                    schemaPathsArray.push(...paths)
+                } else {
+                    schemaPathsArray.push(property.items.type)
+                }
+            }
+        })
+        return schemaPathsArray
+    }
+
+
+    const processPaths = (schema) => {
+        const schemaPathsArray = []
+        const propertyKeys = Object.keys(schema)
+        const propertyValues = Object.values(schema)
+        
+        const propertyObjects = propertyKeys.map((key, index) => {
+            return {
+                key: key,
+                path: key,
+                ...propertyValues[index]
+            }
+        })
+
+        propertyObjects.forEach((property) => {
+            if(property.properties){
+                var paths = processNestedPaths(property.properties, property.key)
+                schemaPathsArray.push(...paths)
+            } else if(property.items){
+                if(property.items.properties){
+                    var paths = processNestedPaths(property.items.properties, property.key)
+                    schemaPathsArray.push(...paths)
+                } else {
+                    schemaPathsArray.push(property.items.type)
+                }
+            } else {
+                schemaPathsArray.push(property.key)
+            }
+
+        })
+
+
+        return schemaPathsArray
+    }
 
     useEffect (() => {
-        console.log("Use Effect: Null Property Objects")
+            if(!outputPaths){
+                var pathArray = []
+                if (action?.requestBody2?.schema) {
+                    console.log('Output: action request schema')
+                    var paths = processPaths(action.requestBody2.schema)
+                    if(pathArray.length > 0){
+                        pathArray = [...pathArray, ...paths]
+                    } else {
+                        pathArray.push(...paths)
+                    }
+                }
+                if (action?.parameterSchema?.path) {
+                    console.log('Output: action parameter schema')
+                    var paths = Object.keys(action.parameterSchema.path)
+                    var prefixedPaths = paths.map((path) => {
+                        return `path.${path}`
+                    })
+
+                    if(pathArray.length > 0){
+                        pathArray = [...pathArray, ...prefixedPaths]
+                    } else {
+                        pathArray.push(...prefixedPaths)
+                    }
+                }
+                if (action?.parameterSchema?.header) {
+                    console.log('Output: action parameter schema')
+                    var paths = Object.keys(action.parameterSchema.header)
+                    var prefixedPaths = paths.map((path) => {
+                        return `header.${path}`
+                    })
+                    if(pathArray.length > 0){
+                        pathArray = [...pathArray, ...prefixedPaths]
+                    } else {
+                        pathArray.push(...prefixedPaths)
+                    }
+                }
+                setOutputPaths(pathArray)
+            } 
+
+            if (sourceNode?.id == 'trigger' && nodeActions['trigger']?.requestBody2?.schema && !inputPaths) {
+                console.log('Input: trigger schema')
+                var paths = processPaths(nodeActions['trigger'].requestBody2.schema)
+                setInputPaths(paths)
+            } else if (Object.keys(nodeActions[sourceNode?.id]?.responses[0]?.schema).length > 0 && !inputPaths) {
+                console.log('Input: action response schema')
+                var paths = processPaths(nodeActions[sourceNode?.id]?.responses[0]?.schema)
+                setInputPaths(paths)
+            } else if (!inputPaths) {
+                console.log('Input: no input schema')
+                setInputPaths([])
+            }
+
+     }, [setOutputPaths, setInputPaths, action, nodeActions, sourceNode, targetNode])
+
+    useEffect (() => {
+
         if (!requiredPropertyObjects || !optionalPropertyObjects){
                 processProperties()
         }
@@ -335,7 +547,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     }, [requiredPropertyObjects, optionalPropertyObjects])
 
     useEffect (() => {
-        console.log("Use Effect: Property Mapping Counts")
+  
         var requiredMappingsSet = 0
         var optionalMappingsSet = 0
 
@@ -361,22 +573,30 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     }, [requiredPropertyObjects, optionalPropertyObjects, mappings])
 
     const renderPropertyMappingAccordions = (propertyType) => {
+
+        var propertyObjects = propertyType == 'required' ? requiredPropertyObjects : optionalPropertyObjects
         
-          if(propertyType == 'required')  
-          {
-            return !requiredPropertyObjects ? (
+
+            return !propertyObjects ? (
                 <Loader/>
-            ) : requiredPropertyObjects.length == 0 ? (
+            ) : propertyObjects.length == 0 ? (
                 <div>
-                    <Text>No Required Properties</Text>
+                    {
+                        propertyType == 'required' ? (
+                            <Text>No Required Properties</Text> 
+                        )    : (
+                            <Text>No Optional Properties</Text>
+                        )
+                    
+                    }
                 </div>
             ) : (
-                requiredPropertyObjects.map((property, index) => {
+                propertyObjects.map((property, index) => {
                     return (
                         <div key={property.path} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent:'center',paddingTop: 12}}>
                             <Container className={selectedMapping?.targetProperty?.path == property.path ? 'active' : ''} sx={{
                                 borderRadius: 4, 
-                                width: 440,
+                                width: 560,
                                 display:'flex',
                                 justifyContent: 'center',
                                 border: '1px solid #F2F0EC',
@@ -423,7 +643,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                         alignItems: 'center'
                                     }}
                                         >
-                                    <div style={{width: 200, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
+                                    <div style={{width: 250, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
                                     {
                                         selectedMapping?.targetProperty?.path == property.path && selectedMapping?.sourceProperty?.path ? (
                                             <div style={{
@@ -438,9 +658,21 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                                 flexDirection: 'row',
                                                 justifyContent: 'center',
                                                 alignItems: 'center',
-                                                width: 180
-                                            }}>          
-                                                <Text style={{fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{selectedMapping?.sourceProperty?.path}</Text> 
+                                                width: 250
+                                            }}> 
+                                                <Tooltip withinPortal={true} 
+                                                    color={'#000000'}
+                                                    label={
+                                                        <Text sx={{
+                                                            fontFamily: 'Visuelt',
+                                                            fontWeight: 100,
+                                                            color: 'white',
+                                                        }}>
+                                                            {selectedMapping?.sourceProperty?.path}
+                                                        </Text>
+                                                    } placement="top">           
+                                                    <Text style={{fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{selectedMapping?.sourceProperty?.path.split('.').length > 2 ? selectedMapping?.sourceProperty?.path.split('.')[0] + " [...] " + selectedMapping?.sourceProperty?.path.split('.').pop() : selectedMapping?.sourceProperty?.path}</Text> 
+                                                </Tooltip>
                                             </div>
                                         ) : mappings[targetNode?.id] && mappings[targetNode?.id][property.path] ? (
                                             <div style={{
@@ -454,12 +686,88 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                                 flexDirection: 'row',
                                                 justifyContent: 'center',
                                                 alignItems: 'center',
-                                                width: 180
-                                            }}>          
-                                                <Text truncate={true} style={{fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{mappings[targetNode?.id][property.path]?.sourcePath}</Text> 
+                                                width: 250,
+                                            }}>  
+
+                                                <ActionIcon
+                                                    sx={{
+                                                        width: '10%',
+                                                        justifyContent:'left',
+                                                        marginLeft: 8,
+                                                        
+                                                    }}
+                                                    onClick={() =>{
+                                                       var newMappings = {...mappings}
+                                                        delete newMappings[targetNode?.id][property.path]
+                                                        setMappings(newMappings)    
+                                                    }}
+                                                    >
+                                                    <RiCloseCircleFill style={{color:'#000000'}} />
+                                                </ActionIcon>    
+                                                 <Tooltip 
+                                                    withinPortal={true} 
+                                                    color={'#000000'}
+                                                    label={
+                                                        <Text sx={{
+                                                            fontFamily: 'Visuelt',
+                                                            fontWeight: 100,
+                                                            color: 'white',
+                                                        }}>
+                                                            {mappings[targetNode?.id][property.path]?.sourcePath}
+                                                        </Text>
+                                                        } 
+                                                    placement="top">      
+                                                    <Text truncate={true} style={{marginRight: 34, display:'flex', width: '90%',fontFamily: 'Visuelt', fontWeight: 100, color: 'black', justifyContent:'center'}}>{mappings[targetNode?.id][property.path]?.sourcePath.split('.').length > 2 ? mappings[targetNode?.id][property.path]?.sourcePath.split('.')[0] + " [...] " + mappings[targetNode?.id][property.path]?.sourcePath.split('.').pop() : mappings[targetNode?.id][property.path]?.sourcePath}</Text> 
+                                                </Tooltip>
                                             </div>
-                                        )
-                                        : (
+                                        ) : mappingSuggestions && mappingSuggestions[property.path] ? (
+                                            <div style={{
+                                                fontFamily: 'Visuelt',
+                                                fontWeight: 100,
+                                                color: '#5A5A5A',
+                                                backgroundColor: '#FFF0DB',
+                                                borderRadius: 4,
+                                                height: 35,
+                                                display:'flex',
+                                                flexDirection: 'row',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                width: 250,
+                                                
+                                            }}>
+                                                <div style={{width: '100%', display:'flex', flexDirection:'row',alignItems:'center', justifyContent:'center'}}>
+                                                    <ActionIcon
+                                                        sx={{
+                                                            width: '5%',
+                                                            position:'absolute',
+                                                            left: 0,
+                                                        }}
+                                                        onClick={() =>{
+                                                            var newMappingSuggestions = {...mappingSuggestions}
+                                                            delete newMappingSuggestions[property.path]
+                                                            setMappingSuggestions(newMappingSuggestions)
+                                                        }}
+                                                    >
+                                                        <RiCloseCircleFill style={{color:'#FFC069'}} />
+                                                    </ActionIcon>
+                                                    
+                                                    <Tooltip color={'#FFC069'} withinPortal={true} label={  
+                                                        <Text 
+                                                            sx={{
+                                                                fontFamily: 'Visuelt',
+                                                                fontWeight: 100,
+                                                                color: 'black'
+                                                            }}>
+                                                                {mappingSuggestions[property.path]}
+                                                        </Text>
+                                                        } position="top"> 
+                                                        <Text truncate={true} style={{justifyContent: 'center',display:'flex', flexDirection:'row', width: '95%', fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{mappingSuggestions[property.path].split('.').length > 2 ? mappingSuggestions[property.path].split('.')[0] + " [...] " + mappingSuggestions[property.path].split('.').pop() : mappingSuggestions[property.path]}</Text>
+                                                    </Tooltip>
+                                                </div>
+                                             
+                                            </div>
+
+                                        ) : (
                                             <div style={{
                                                 fontFamily: 'Visuelt',
                                                 fontWeight: 100,
@@ -472,7 +780,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                                 flexDirection: 'row',
                                                 justifyContent: 'center',
                                                 alignItems: 'center',
-                                                width: 180
+                                                width: 250
                                             }}>          
                                                 <Text style={{fontFamily: 'Visuelt', fontWeight: 100}}>Not Mapped</Text> 
                                             </div>
@@ -483,9 +791,19 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                     <div style={{paddingRight: 2, paddingLeft:2}}>
                                         <RxArrowRight color={'black'} style={{height: 20, width: 40}}/>
                                     </div>
-                                    <div style={{width: 200, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                        <div style={{backgroundColor: '#F2F0ED', width: 180, height: 35, borderRadius: 4, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                            <Tooltip withinPortal={true} label={property.path} placement="top">    
+                                    <div style={{width: 250, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
+                                        <div style={{backgroundColor: '#F2F0ED', width: 250, height: 35, borderRadius: 4, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
+                                            <Tooltip withinPortal={true} 
+                                            color={'#000000'}
+                                            label={
+                                                <Text sx={{
+                                                    fontFamily: 'Visuelt',
+                                                    fontWeight: 100,
+                                                    color: 'white',
+                                                }}>
+                                                    {property.path}
+                                                </Text>
+                                            } placement="top">    
                                                 <Text truncate style={{fontFamily: 'Visuelt', fontSize: '14px', fontWeight: 100, color: 'black'}}>{property.path.split('.').length > 2 ? property.path.split('.')[0] + " [...] " + property.path.split('.').pop() : property.path} </Text>
                                             </Tooltip>
                                         </div>
@@ -505,190 +823,78 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                             </Container>
                         </div>
                 )})) 
-         } else {
-            return !optionalPropertyObjects ? (
-                <Loader/>
-            ) : optionalPropertyObjects.length == 0 ? (
-                <div>
-                    <Text>No Optional Properties</Text>
-                </div>
-            ) : (
-                optionalPropertyObjects.map((property, index) => {
-                    return (
-                        <div key={property.path} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent:'center',paddingTop: 12}}>
-                            <Container className={selectedMapping?.targetProperty?.path == property.path ? 'active' : ''} sx={{
-                                borderRadius: 4, 
-                                width: 440,
-                                display:'flex',
-                                justifyContent: 'center',
-                                border: '1px solid #F2F0EC',
-                                '&.active': {
-                                    border: '1px solid #000000',
-                                    display:'block',
-                                    alignItems: 'center'
-                                }
-                                }}>
-                                <Button
-                                    value={property.path}
-                                    onClick={()=>{
-                                        if(mappings[targetNode?.id] && mappings[targetNode?.id][property.path]){
-                                            var mapping = mappings[targetNode?.id][property.path]
-                                            setSelectedMapping({targetProperty: mapping.output, sourceProperty: mapping.input})
-                                        } else {
-                                            if(property.schema){
-                                                const targetProperty = {
-                                                    ...property.schema,
-                                                    path: property.path,
-                                                    key: property.key,
-                                                    name: property.name,
-                                                    required: property.required,
-                                                    in: property.in ? property.in : null
-                                                }
-                                                setSelectedMapping({targetProperty: targetProperty})
-                                            } else {
-                                                setSelectedMapping({targetProperty: property})
-                                            }
-                                        }
 
-                                    }}
-                                    sx={{
-                                        '&:hover': {
-                                            backgroundColor: 'transparent'
-                                        },
-                                        backgroundColor: 'transparent',
-                                        width: '100%', 
-                                        height: 48,
-                                        borderRadius: 4, 
-                                        display: 'flex', 
-                                        flexDirection: 'row',
-                                        justifyContent: 'center', 
-                                        alignItems: 'center'
-                                    }}
-                                        >
-                                    <div style={{width: 200, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                    {
-                                        selectedMapping?.targetProperty?.path == property.path && selectedMapping?.sourceProperty?.path ? (
-                                            <div style={{
-                                                fontFamily: 'Visuelt',
-                                                fontWeight: 100,
-                                                color: '#5A5A5A',
-                                                backgroundColor: '#F2F0ED',
-
-                                                borderRadius: 4,
-                                                height: 35,
-                                                display:'flex',
-                                                flexDirection: 'row',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                width: 180
-                                            }}>          
-                                                <Text style={{fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{selectedMapping?.sourceProperty?.path}</Text> 
-                                            </div>
-                                        ) : mappings[targetNode?.id] && mappings[targetNode?.id][property.path] ? (
-                                            <div style={{
-                                                fontFamily: 'Visuelt',
-                                                fontWeight: 100,
-                                                color: '#5A5A5A',
-                                                backgroundColor: '#F2F0ED',
-                                                borderRadius: 4,
-                                                height: 35,
-                                                display:'flex',
-                                                flexDirection: 'row',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                width: 180
-                                            }}>          
-                                                <Text truncate={true} style={{fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{mappings[targetNode?.id][property.path]?.sourcePath}</Text> 
-                                            </div>
-                                        )
-                                        : (
-                                            <div style={{
-                                                fontFamily: 'Visuelt',
-                                                fontWeight: 100,
-                                                color: '#5A5A5A',
-                                                backgroundColor: '#FFFFFF',
-                                                border: '1px dashed #5A5A5A',
-                                                borderRadius: 4,
-                                                height: 35,
-                                                display:'flex',
-                                                flexDirection: 'row',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                width: 180
-                                            }}>          
-                                                <Text style={{fontFamily: 'Visuelt', fontWeight: 100}}>Not Mapped</Text> 
-                                            </div>
-
-                                        )
-                                    }
-                                    </div>
-                                    <div style={{paddingRight: 2, paddingLeft:2}}>
-                                        <RxArrowRight color={'black'} style={{height: 20, width: 40}}/>
-                                    </div>
-                                    <div style={{width: 200, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                        <div style={{backgroundColor: '#F2F0ED', width: 180, height: 35, borderRadius: 4, display: 'flex', flexDirection: 'row', justifyContent: 'center',alignItems: 'center'}}>
-                                            <Tooltip withinPortal={true} label={property.path} placement="top">    
-                                                <Text truncate style={{fontFamily: 'Visuelt', fontSize: '14px', fontWeight: 100, color: 'black'}}>{property.path.split('.').length > 2 ? property.path.split('.')[0] + " [...] " + property.path.split('.').pop() : property.path} </Text>
-                                            </Tooltip>
-                                        </div>
-                                    </div>
-                                </Button>
-                                {selectedMapping?.targetProperty?.path == property.path && (
-                                    <div style={{width: '100%', paddingBottom: 5, display:'flex', flexDirection:'center', justifyContent: 'center', alignItems:'center'}}>
-                                        <Button onClick={(e)=>{toggleMappingModal(e)}} style={{width: 480, height: 50, borderRadius: 8, backgroundColor: 'black'}}>
-                                            <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'white'}}>{
-                                                mappings[targetNode?.id] && mappings[targetNode?.id][property.path] ? "Edit Mapping"
-                                                : selectedMapping?.sourceProperty?.path ? 'Map Properties' 
-                                                : 'Configure Property'
-                                            }</Text>
-                                       </Button>      
-                                    </div>   
-                                 ) }
-                            </Container>
-                        </div>
-                )})) 
-         }
     }   
 
 
     return (
-        <div style={{padding: 10}}>
+        <div style={{padding: 12}}>
             <div style={{display: 'flex', alignItems: 'baseline', justifyContent:'space-between'}}>
                 <Text style={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 600}}>Schema Mapping </Text>
-                <ActionIcon onClick={()=>{getMappingSuggestions()}}>
-                    <BiBrain color={'black'}/>
-                </ActionIcon>
-
             </div>
 
             <Divider/>
-                <Text style={{padding: 20, fontFamily: 'Visuelt', fontSize: '12px', fontWeight: 400, color: 'grey'}}>Below are all of the required and optional properties for {action?.name}. The API documentation indicates that all of the required properties must have a value mapped or set - not doing so will likely result in failure.</Text>
-                <Accordion variant="separated" defaultValue="required">
-                    <Accordion.Item value="required">
+            <Text style={{paddingTop: 20, paddingBottom: 20, fontFamily: 'Visuelt', fontSize: '15px', fontWeight: 300, color: 'grey'}}>Below are all of the required and optional properties for {action?.name}. The API documentation indicates that all of the required properties must have a value mapped or set - not doing so will likely result in failure.</Text>   
+            <Button 
+                loading={ areSuggestionsLoading}
+                onClick={()=>{
+                    var promptPrefix = " Provided dot delimited paths to output data schema properties provide a single dot delimited path from the input schema array that maps best to each output property. Only respond with a parseable JSON dictionary object with this definition {  {{OUTPUT SCHEMA PROPERTY PATH}}: {{INPUT SCHEMA PROPERTY PATH}} }} }.  Neither the output or input property will be an array or an object. The name of the input and output actions are provided for further context."
+                    var requiredOutputPaths = outputPaths.filter((path) => {
+                        return requiredPropertyObjects.map((property) => {
+                            return property.path === path
+                        }).includes(true)
+                    })
+                    var inputAction = nodeActions[sourceNode?.id]?.name
+                    var outputAction = nodeActions[targetNode?.id]?.name
+                    var inputSchema = " {{INPUT REQUEST NAME:" + inputAction +"}}"+ "{{INPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(inputPaths) + " {{INPUT SCHEMA ARRAY OPTIONS END}} "
+                    var outputSchema = " {{OUTPUT REQUEST NAME:" + outputAction +"}}"+" {{OUTPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(requiredOutputPaths) + " {{OUTPUT SCHEMA ARRAY OPTIONS END}}"
+                    var prompt = promptPrefix + outputSchema + inputSchema
+
+                    getMappingSuggestions(prompt, inputSchema, outputSchema)
+                    
+                    }}
+            leftIcon={<HiOutlineLightningBolt />} variant="light" color={'orange'}>
+               {
+                     areSuggestionsLoading ? (
+                        <Text style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 300}}>
+                            Loading Potential Mappings
+                        </Text>
+                     ) : (
+                        <Text style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 400}}>
+                            Mapping Assist
+                        </Text>
+                     )
+               }
+               
+            </Button>
+            <div style={{height:20}}/>
+
+            <Accordion variant="separated" defaultValue="required">
+                <Accordion.Item value="required">
+                <Accordion.Control>
+                    <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>Required Properties</Text>
+                    <Text style={{fontFamily:'Visuelt'}}>{requiredMapped}/{requiredCount}</Text>
+                </Accordion.Control>
+                    <Accordion.Panel>
+                    <div style={{paddingBottom: 20, display: 'flex', flexDirection: 'column'}}>
+                    <ScrollArea.Autosize maxHeight={700} width={50}>
+                        {renderPropertyMappingAccordions('required')}
+                    </ScrollArea.Autosize>
+                    </div>
+                    </Accordion.Panel>
+                </Accordion.Item>
+                <Accordion.Item value="optional">
                     <Accordion.Control>
-                        <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>Required Properties</Text>
-                        <Text style={{fontFamily:'Visuelt'}}>{requiredMapped}/{requiredCount}</Text>
+                        <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>Optional Properties</Text>
+                        <Text style={{fontFamily:'Visuelt'}}>{optionalMapped}/{optionalCount}</Text>
                     </Accordion.Control>
-                        <Accordion.Panel>
-                        <div style={{paddingBottom: 20, display: 'flex', flexDirection: 'column'}}>
+                    <Accordion.Panel>
                         <ScrollArea.Autosize maxHeight={700} width={50}>
-                            {renderPropertyMappingAccordions('required')}
+                            {renderPropertyMappingAccordions('optional')}
                         </ScrollArea.Autosize>
-                        </div>
-                        </Accordion.Panel>
-                    </Accordion.Item>
-                    <Accordion.Item value="optional">
-                        <Accordion.Control>
-                            <Text style={{fontFamily: 'Visuelt', fontSize: '16px'}}>Optional Properties</Text>
-                            <Text style={{fontFamily:'Visuelt'}}>{optionalMapped}/{optionalCount}</Text>
-                        </Accordion.Control>
-                        <Accordion.Panel>
-                            <ScrollArea.Autosize maxHeight={700} width={50}>
-                                {renderPropertyMappingAccordions('optional')}
-                            </ScrollArea.Autosize>
-                        </Accordion.Panel>
-                    </Accordion.Item>
-                </Accordion>
+                    </Accordion.Panel>
+                </Accordion.Item>
+            </Accordion>
 
         </div>
     )

@@ -2,12 +2,11 @@
 const nextConfig = {
   output: 'standalone',
   reactStrictMode: true,
-  webpack: (config, options) => {
+  webpack: (config, {isServer}) => {
     config.module.rules.push({
       test: /\.(png|gif|woff|woff2|eot|ttf|svg)$/,
       type: 'asset/resource',
     })
-
     return config
   },
 }
