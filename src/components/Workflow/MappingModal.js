@@ -1,5 +1,6 @@
 import {Text,Image,ActionIcon, Select, Switch, Button, SegmentedControl, Tooltip, Card, Center, Loader, Code, Divider, Badge, ScrollArea, TextInput, Textarea} from '@mantine/core'
 import axios from 'axios'
+import { useListState } from "@mantine/hooks"
 import {useRef, useState,useEffect} from 'react'
 import useStore from '../../context/store'
 import {v4 as uuidv4} from 'uuid'
@@ -12,7 +13,9 @@ import AdaptionDesigner from './AdaptionDesigner'
 const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, partnership, toggleMappingModal}) => { 
 
     const selectedMapping = useStore(state => state.selectedMapping)
+    const selectedEdge  = useStore(state => state.selectedEdge)
     const setSelectedMapping = useStore(state => state.setSelectedMapping)
+    const nodeActions = useStore(state => state.nodeActions)
     const selectedWorkflow = useStore(state => state.selectedWorkflow)
     const setSelectedWorkflow = useStore(state => state.setSelectedWorkflow)
     const workflowMappings = useStore(state => state.workflowMappings)
@@ -30,9 +33,10 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
     const [selectedConfiguration, setSelectedConfiguration] = useState(null)
     const [canSaveConfiguration, setCanSaveConfiguration] = useState(false)
     const [configurationMenuValue, setConfigurationMenuValue] = useState(partnership?.configuration ? "select" : "new")
+    const [formulas, handlers] = useListState([])
+    const [didLoadInitialFormula, setDidLoadInitialFormula] = useState(false)
 
-    const [functions, setFunctions] = useState({})
-
+    console.log(mappings)
     const saveMapping = () => {
         const newMapping = {
             id: uuidv4(),
@@ -41,7 +45,8 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
                 ...selectedMapping?.sourceProperty,
                 in: selectedMapping?.sourceProperty?.in ? selectedMapping?.sourceProperty?.in : "body",
                 actionId: sourceNodeAction?.uuid ? sourceNodeAction.uuid : "configuration",
-                apiId: sourceNodeAction?.parent_interface_uuid ? sourceNodeAction.parent_interface_uuid : "configuration"
+                apiId: sourceNodeAction?.parent_interface_uuid ? sourceNodeAction.parent_interface_uuid : "configuration",
+                formulas: formulas
             },
             output:{
                 ...selectedMapping?.targetProperty,
@@ -168,7 +173,6 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
     )}
 
     const renderPropertyCard = (property) => {
-       
         return (
             <Card shadow="xs" p="lg" radius={15} withBorder>          
                 {
@@ -266,11 +270,11 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
                 }
                 <Card.Section style={{padding: 20}}>
                     <Text style={{fontFamily:'Visuelt', fontSize: '20px'}}>{property.key}</Text>
-                    <Text style={{fontFamily:'apercu-regular-pro', fontSize: '15px', color: '#8E8E8E'}}>{property.type}</Text>
+                    <Text style={{fontFamily:'apercu-regular-pro', fontSize: '15px', color: '#8E8E8E'}}>{property.type ? property.type : property.schema?.type ? property.schema.type : null}</Text>
                     <div style={{height: 12}}/>                    
                     {
-                        property?.description ? (
-                            <Text style={{fontFamily:'Visuelt', fontWeight: 100,fontSize: '16px', color: '#6A6A6A'}}>{property?.description}</Text>
+                        property?.description || property.schema?.description ? (
+                            <Text style={{fontFamily:'Visuelt', fontWeight: 100,fontSize: '16px', color: '#6A6A6A'}}>{property?.description ? property.description : property.schema?.description ? property.schema.description : null}</Text>
                         ) : (
                             null
                         )
@@ -304,7 +308,22 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
         } else {
             setCanSaveConfiguration(false)
         }
-    }, [newConfigKey, newConfigValue, newConfigType])
+    }, [newConfigKey, newConfigValue, newConfigType, configurationMappingView])
+
+
+    useEffect(() => {
+        if(mappings && selectedEdge && selectedMapping && !didLoadInitialFormula) {
+            var selectedTargetPropertyKey = selectedMapping?.targetProperty?.key
+            var targetActionKey = nodeActions[selectedEdge?.target]
+            var targetNodeId = selectedEdge?.target
+            var fullMapping = mappings[targetNodeId][selectedTargetPropertyKey]
+            if(fullMapping?.input?.formulas) {
+                handlers.setState(fullMapping.input.formulas)
+            }
+            setDidLoadInitialFormula(true)
+        }
+
+    }, [mappings, selectedEdge, selectedMapping, didLoadInitialFormula])
 
     return(
             <div style={{paddingRight: 15, paddingLeft: 15}}>
@@ -417,11 +436,36 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
                                 <Text style={{fontWeight: functionDesignerOpened ? 600 : null }}>
                                     Adaption to Input
                                 </Text>
-                                <Switch onChange={(event)=>{
-                                    console.log(event.target.checked)
-                                    setFunctionDesignerOpened(event.target.checked)
-                                }} color="dark">
-                                </Switch>
+                                <div style={{display:'flex', flexDirection:'row', alignItems: 'center'}}>
+                                    <Switch onChange={(event)=>{
+                                        setFunctionDesignerOpened(event.target.checked)
+                                    }} color="dark">
+                                    </Switch>
+                                    {
+                                        functionDesignerOpened ? (
+                                            <>
+                                                <div style={{width: 10}}/>
+                                                <Text
+                                                    sx={{
+                                                        fontFamily: 'Visuelt',
+                                                        fontSize: '22px',
+                                                        color: '#000000',
+                                                        fontWeight: 500
+                                                    }}
+                                                >On</Text>
+                                            </>
+                                            
+                                        ) : (
+                                            <>
+                                                <div style={{width: 10}}/>
+                                                <Text></Text>
+                                            </>
+                                        )
+                                    }
+                                   
+                                </div>
+                              
+                                
                             </div>
                         </Card.Section>
                         {
@@ -429,7 +473,7 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
                                 <Card.Section style={{paddingLeft: 20, paddingRight: 20, paddingBottom: 20, display:'flex', flexDirection: 'column', alignItems:'center', width: '100%',}}>
                                     <Divider size={'xs'} style={{width: '100%'}}/>
                                     <div style={{height: 20}}/>
-                                    <AdaptionDesigner selectedMapping={selectedMapping} mappings={mappings} source={sourceNode} target={targetNode}/> 
+                                    <AdaptionDesigner formulas={formulas} handlers={handlers} selectedMapping={selectedMapping} mappings={mappings} source={sourceNode} target={targetNode}/> 
                                 </Card.Section>
                             ) : (null) 
                         }

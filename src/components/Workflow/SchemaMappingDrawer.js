@@ -648,7 +648,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                     alignItems: 'center'
                                 }
                                 }}>
-                                <Button
+                                <Container
                                     value={property.path}
                                     onClick={()=>{
                                         if(mappings[targetNode?.id] && mappings[targetNode?.id][property.path]){
@@ -664,12 +664,11 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                                     required: property.required,
                                                     in: property.in ? property.in : null
                                                 }
-                                                setSelectedMapping({targetProperty: targetProperty})
+                                                setSelectedMapping({targetProperty: targetProperty, sourceProperty: {}})
                                             } else {
-                                                setSelectedMapping({targetProperty: property})
+                                                setSelectedMapping({targetProperty: property, sourceProperty: {}})
                                             }
                                         }
-
                                     }}
                                     sx={{
                                         '&:hover': {
@@ -693,15 +692,29 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                                 fontWeight: 100,
                                                 color: '#5A5A5A',
                                                 backgroundColor: '#F2F0ED',
-
                                                 borderRadius: 4,
                                                 height: 35,
                                                 display:'flex',
                                                 flexDirection: 'row',
                                                 justifyContent: 'center',
                                                 alignItems: 'center',
-                                                width: 250
-                                            }}> 
+                                                width: 250,
+                                            }}>  
+                                            <ActionIcon
+                                                    sx={{
+                                                        width: '10%',
+                                                        justifyContent:'left',
+                                                        marginLeft: 8,
+                                                        
+                                                    }}
+                                                    onClick={() =>{
+                                                       var newMappings = {...mappings}
+                                                        delete newMappings[targetNode?.id][property.path]
+                                                        setMappings(newMappings)    
+                                                    }}
+                                                    >
+                                                    <RiCloseCircleFill style={{color:'#000000'}} />
+                                                </ActionIcon>    
                                                 <Tooltip withinPortal={true} 
                                                     color={'#000000'}
                                                     label={
@@ -713,7 +726,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                                             {selectedMapping?.sourceProperty?.path}
                                                         </Text>
                                                     } placement="top">           
-                                                    <Text style={{fontFamily: 'Visuelt', fontWeight: 100, color: 'black'}}>{selectedMapping?.sourceProperty?.path.split('.').length > 2 ? selectedMapping?.sourceProperty?.path.split('.')[0] + " [...] " + selectedMapping?.sourceProperty?.path.split('.').pop() : selectedMapping?.sourceProperty?.path}</Text> 
+                                                    <Text style={{marginRight: 34, display:'flex', width: '90%',fontFamily: 'Visuelt', fontWeight: 100, color: 'black', justifyContent:'center'}}>{selectedMapping?.sourceProperty?.path.split('.').length > 2 ? selectedMapping?.sourceProperty?.path.split('.')[0] + " [...] " + selectedMapping?.sourceProperty?.path.split('.').pop() : selectedMapping?.sourceProperty?.path}</Text> 
                                                 </Tooltip>
                                             </div>
                                         ) : mappings[targetNode?.id] && mappings[targetNode?.id][property.path] ? (
@@ -850,7 +863,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                             </Tooltip>
                                         </div>
                                     </div>
-                                </Button>
+                                </Container>
                                 {selectedMapping?.targetProperty?.path == property.path && (
                                     <div style={{width: '100%', paddingBottom: 5, display:'flex', flexDirection:'center', justifyContent: 'center', alignItems:'center'}}>
 

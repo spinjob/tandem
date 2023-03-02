@@ -912,7 +912,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                 setGlobalEdgeState(edges)
                 setGlobalNodeState(nodes)
             }
-        }, [project, setNodes, setEdges, apis, actions, onChange]
+        }, [project, setNodes, setEdges, apis, actions, onChange, edges, nodes, setGlobalEdgeState, setGlobalNodeState]
     );
 
 
@@ -1157,7 +1157,6 @@ const WorkflowStudio = () => {
         setSelectedEdge(edge)
         setSelectedAdaption(edge)
     }
-    console.log(selectedEdge)
     
     function getSchemaFromPath(path) {
         var schema =  selectedEdge?.source == 'trigger' && nodeActions['trigger']?.requestBody2?.schema ? nodeActions['trigger']?.requestBody2?.schema : nodeActions[selectedEdge?.source]?.responses && Object.keys(nodeActions[selectedEdge?.source]?.responses[0]?.schema).length > 0 ? 
@@ -1205,6 +1204,7 @@ const WorkflowStudio = () => {
     
             }
         }
+
     }
    
     useEffect(() => {
@@ -1285,7 +1285,7 @@ const WorkflowStudio = () => {
             })
         }
 
-    }, [pid, workflowId, workflow, partnership, apis, setApis, setPartnership, workflowActions, setWorkflowActions, workflowWebhooks, setWorkflowWebhooks])
+    }, [pid, workflowId, workflow, partnership, apis, setApis, setPartnership, workflowActions, setWorkflowActions, workflowWebhooks, setWorkflowWebhooks, setGlobalWorkflowState, setNodeAction, setMappings])
 
     return workflow && partnership && apis && workflowActions && workflowWebhooks ? (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', marginLeft: -15}}>

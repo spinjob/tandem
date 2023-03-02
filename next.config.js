@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  reactStrictMode: true,
+  reactStrictMode: false,
+  swcMinify: true,
   webpack: (config, {isServer}) => {
     config.module.rules.push({
       test: /\.(png|gif|woff|woff2|eot|ttf|svg)$/,

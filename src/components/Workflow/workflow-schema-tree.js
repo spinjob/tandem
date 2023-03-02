@@ -235,7 +235,7 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
             //If the node this tree is rendered for is the Source node, then the selected property will be stored as the source.
             
         }
-    }, [selectedMapping, selectedEdge, node])
+    }, [selectedMapping, selectedEdge, node, selectedTargetProperty])
 
     return isLoading ? (
         <Center>

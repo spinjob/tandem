@@ -89,7 +89,7 @@ const PartnershipConfigurations = ({ partnership }) => {
         }).catch((err) => {
             console.log(err)
         })
-    }, [configurations])
+    }, [partnership])
 
     useEffect(() => {
         if(partnership?.configuration && !configurations){

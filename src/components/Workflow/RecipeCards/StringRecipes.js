@@ -1,8 +1,10 @@
 import {Card, Text, TextInput, Button, ActionIcon, Modal, Select, Loader} from '@mantine/core'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 
-const AppendCard = ({ recipe, index, onEdit, onDelete, sourceProperty}) => {
-    console.log(sourceProperty)
+const AppendCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourceProperty}) => {
+    
+    const [inputs, setInputs] = useState(recipe?.inputs?.append)
+
     return( 
         <div style={{paddingLeft: 20, border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'start'}}>
             <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>
@@ -11,6 +13,11 @@ const AppendCard = ({ recipe, index, onEdit, onDelete, sourceProperty}) => {
             <div style={{width: 10}}/>
             <TextInput
                 placeholder="String to append"
+                onChange={(e)=>{
+                    updateFormula(recipe.uuid, {append: e.currentTarget.value})
+                    setInputs(e.currentTarget.value)
+                }}
+                value={inputs}
                 sx={{
                     '& input': {
                         '&:focus':{
@@ -35,7 +42,8 @@ const AppendCard = ({ recipe, index, onEdit, onDelete, sourceProperty}) => {
     )
 }
 
-const PrependCard = ({ recipe, index, onEdit, onDelete, sourceProperty }) => {
+const PrependCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourceProperty }) => {
+    const [inputs, setInputs] = useState(recipe?.inputs?.prepend)
     return( 
         <div style={{paddingLeft: 20, border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'start'}}>
             <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>
@@ -43,6 +51,11 @@ const PrependCard = ({ recipe, index, onEdit, onDelete, sourceProperty }) => {
             </Text>
             <div style={{width: 10}}/>
             <TextInput
+                onChange={(e)=>{
+                    updateFormula(recipe.uuid, {prepend: e.currentTarget.value})
+                    setInputs(e.currentTarget.value)
+                }}
+                value={inputs}
                 placeholder="String to append"
                 sx={{
                     '& input': {
@@ -68,7 +81,17 @@ const PrependCard = ({ recipe, index, onEdit, onDelete, sourceProperty }) => {
     )
 }
 
-const ReplaceCard = ({ recipe, index, onEdit, onDelete, sourceProperty}) => {
+const ReplaceCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourceProperty}) => {
+    console.log(recipe)
+    const [replaceFormulaState, setReplaceFormulaState] = useState({
+        toReplace: '',
+        replaceWith: ''
+    })
+
+    useEffect(()=>{
+        updateFormula(recipe.uuid, replaceFormulaState)
+    }, [replaceFormulaState, updateFormula, recipe.uuid])
+    
     return( 
         <div style={{paddingLeft: 20, border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'start'}}>
             <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>
@@ -77,6 +100,9 @@ const ReplaceCard = ({ recipe, index, onEdit, onDelete, sourceProperty}) => {
             <div style={{width: 10}}/>
             <TextInput
                 placeholder="Characters to replace"
+                onChange={(e)=>{
+                    setReplaceFormulaState({...replaceFormulaState, toReplace: e.currentTarget.value})
+                }}
                 sx={{
                     '& input': {
                         '&:focus':{
@@ -95,6 +121,9 @@ const ReplaceCard = ({ recipe, index, onEdit, onDelete, sourceProperty}) => {
             <div style={{width: 10}}/>
             <TextInput
                 placeholder="Replacement string"
+                onChange={(e)=>{
+                    setReplaceFormulaState({...replaceFormulaState, replaceWith: e.currentTarget.value})
+                }}
                 sx={{
                     '& input': {
                         '&:focus':{
@@ -118,7 +147,7 @@ const ReplaceCard = ({ recipe, index, onEdit, onDelete, sourceProperty}) => {
     )
 }
 
-const ConcatenateCard = ({ recipe, index, onEdit, onDelete, sourceProperty }) => {
+const ConcatenateCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourceProperty }) => {
     return( 
         <div style={{paddingLeft: 20, border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'start'}}>
             <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>
@@ -151,7 +180,7 @@ const ConcatenateCard = ({ recipe, index, onEdit, onDelete, sourceProperty }) =>
     )
 }
 
-const SubstringCard = ({ recipe, index, onEdit, onDelete, sourceProperty  }) => {
+const SubstringCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourceProperty  }) => {
     return( 
         <div style={{paddingLeft: 20, border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'start'}}>
             <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>
@@ -202,7 +231,7 @@ const SubstringCard = ({ recipe, index, onEdit, onDelete, sourceProperty  }) => 
     )
 }
 
-const TrimCard = ({ recipe, index, onEdit, onDelete, sourceProperty  }) => {
+const TrimCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourceProperty  }) => {
     return( 
         <div style={{border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'center'}}>
             <Text>Inputs</Text>
@@ -210,7 +239,7 @@ const TrimCard = ({ recipe, index, onEdit, onDelete, sourceProperty  }) => {
     )
 }
 
-const UppercaseCard = ({ recipe, index, onEdit, onDelete, sourceProperty  }) => {
+const UppercaseCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourceProperty  }) => {
     return( 
         <div style={{border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'center'}}>
             <Text>Inputs</Text>
@@ -218,7 +247,7 @@ const UppercaseCard = ({ recipe, index, onEdit, onDelete, sourceProperty  }) => 
     )
 }
 
-const LowercaseCard = ({ recipe, index, onEdit, onDelete, sourceProperty  }) => {
+const LowercaseCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourceProperty  }) => {
     return(
         <div style={{border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'center'}}>
             <Text>Inputs</Text>
@@ -226,7 +255,7 @@ const LowercaseCard = ({ recipe, index, onEdit, onDelete, sourceProperty  }) => 
     )
 }
 
-const CapitalizeCard = ({ recipe, index, onEdit, onDelete, sourceProperty  }) => {
+const CapitalizeCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourceProperty  }) => {
     return( 
         <div style={{border: '1px solid #EBEBEB', borderRadius: 12, width:'100%', height: 100, backgroundColor: 'white', display:'flex', alignItems:'center', justifyContent:'center'}}>
             <Text>Inputs</Text>

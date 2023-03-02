@@ -1,5 +1,6 @@
 
 import { Divider, Badge, Button, Text, ActionIcon, Menu, TextInput } from "@mantine/core"
+import { useListState } from "@mantine/hooks"
 import {BiPlus} from 'react-icons/bi'
 import {BsChevronDown} from 'react-icons/bs'
 import {HiOutlineLightningBolt} from 'react-icons/hi'
@@ -7,10 +8,10 @@ import {RiCloseLine} from 'react-icons/ri'
 import { useState } from "react"
 import {v4 as uuidv4} from 'uuid'
 import {AppendCard, PrependCard, ReplaceCard, ConcatenateCard, SubstringCard, TrimCard, UppercaseCard, LowercaseCard, CapitalizeCard} from './RecipeCards/StringRecipes'
+import {FormulaBuilder} from './FormulaBuilder'
 
-const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
+const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, source, target}) => {
 
-    const [formulas, setFormulas] = useState([])
 
     const conditionMenuItems = [
         {
@@ -23,41 +24,45 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
         {
             name: 'Append',
             formula: 'append',
-            description: 'Adds the provided string to the end of the source string'
+            description: 'Adds the provided string to the end of the source string',
+            inputs: {}
         }, {
             name: 'Prepend',
             formula: 'prepend',
-            description: 'Adds the provided string to the beginning of the source string'
+            description: 'Adds the provided string to the beginning of the source string',
+            inputs: {}
         }, {
             name: 'Replace',
             formula: 'replace',
-            description: 'Replaces the provided substring of the source text with the provided string'
+            description: 'Replaces the provided substring of the source text with the provided string',
+            inputs: {}
+        
         },{
             name: 'Substring',
             formula: 'substring',
-            description: 'Extracts a substring from the source string'
+            description: 'Extracts a substring from the source string',
+            inputs: {}
         }, {
             name: 'Trim',
             formula: 'trim',
-            description: 'Removes leading and trailing whitespace from the source string'
+            description: 'Removes leading and trailing whitespace from the source string',
+            inputs: {}
         }, {
             name: 'Lowercase',
             formula: 'lowercase',
-            description: 'Converts the source string to lowercase'
+            description: 'Converts the source string to lowercase',
+            inputs: {}
         }, {
             name: 'Uppercase',
             formula: 'uppercase',
-            description: 'Converts the source string to uppercase'
+            description: 'Converts the source string to uppercase',
+            inputs: {}
         }, {
             name: 'Capitalize',
             formula: 'capitalize',
-            description: 'Capitalizes the first letter of the source string and converts the rest to lowercase'
-        },
-        // {
-        //     name: 'Concatenate', 
-        //     formula:'concatenate',
-        //     description: 'Concatenates the source string with the provided string'
-        // }
+            description: 'Capitalizes the first letter of the source string and converts the rest to lowercase',
+            inputs: {}
+        }
     ]
 
     const renderOverflowDropdownMenu = (items) => {
@@ -86,7 +91,7 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
                                         ...item,
                                         uuid: itemId
                                     }
-                                    setFormulas([...formulas, formulaObject])
+                                    handlers.setState([...formulas, formulaObject])
                                 }}
                             >
                                 <div style={{display:'flex', flexDirection:'row', alignItems:'center', justifyContent:'space-between'}}>
@@ -140,6 +145,10 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
         )
     }
 
+    function reorderFormulas(from, to) {
+        handlers.reorder(from, to)
+    }
+
     const renderRecipeMenu = () => {
         var sourcePropertyType = selectedMapping.sourceProperty.type
         var targetPropertyType = selectedMapping.targetProperty.type
@@ -161,7 +170,7 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
                                                 ...formula,
                                                 uuid: uuidv4()
                                             }
-                                            setFormulas([...formulas, formulaObject])
+                                            handlers.setState([...formulas, formulaObject])
                                         }}
                                         sx={{
                                             ':hover': {
@@ -266,63 +275,61 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
         var newFormulas = formulas.filter((formula) => {
             return formula.uuid != uuid
         })
-        setFormulas(newFormulas)
+        handlers.setState(newFormulas)
     }
 
+    //Utility Functions
+    const append = (value, input) => {
+        console.log(value, input)
+        return value + input.append
+    }
 
-    const renderFormulaCards = () => {
-        return(
-            formulas.map((formula) => {
-                    return(
-                        <>
-                            <div style={{display:'flex', flexDirection:'Column', border: '1px solid #E4E2DF', borderRadius: 12, width: '98%', padding: 18, paddingLeft: 20, paddingRight:20, background:'#F8F6F3', justifyContent: 'space-between', alignItems:'center'}}>
-                            <div style={{display:'flex', flexDirection:'row',width: '100%', justifyContent: 'space-between', alignItems:'start'}}> 
-                               <div style={{display:'block'}}>
-                                    <Text style={{fontFamily:'Visuelt', fontWeight: 500, fontSize:'16px'}}>{formula.name}</Text>
-                                    <Text style={{fontFamily:'Visuelt', fontWeight: 100, fontSize:'13px'}}>{formula.description}</Text>
-                               </div>
-                               
-                               <ActionIcon  
-                                    onClick={()=>{
-                                      removeFormula(formula.uuid) 
-                                    }}>
-                                    <RiCloseLine/>
-                               </ActionIcon>
-                            </div>
-                            <div style={{height: 20}}/>
-                            {
-                                formula.formula == 'append' ? 
-                                        <AppendCard sourceProperty={selectedMapping?.sourceProperty}/>
-                                : formula.formula == 'prepend' ? 
-                                    <PrependCard sourceProperty={selectedMapping?.sourceProperty}/>
-                                : formula.formula == 'replace' ? 
-                                    <ReplaceCard sourceProperty={selectedMapping?.sourceProperty}/>
-                                // : formula.formula == 'concatenate' ?
-                                //     <ConcatenateCard sourceProperty={selectedMapping?.sourceProperty}/>
-                                : formula.formula == 'substring' ?
-                                    <SubstringCard sourceProperty={selectedMapping?.sourceProperty}/>
-                                : formula.formula == 'trim' ?
-                                    <TrimCard sourceProperty={selectedMapping?.sourceProperty}/>
-                                : formula.formula == 'lowercase' ?
-                                    <LowercaseCard sourceProperty={selectedMapping?.sourceProperty}/>
-                                : formula.formula == 'uppercase' ?
-                                    <UppercaseCard sourceProperty={selectedMapping?.sourceProperty} />
-                                : formula.formula == 'capitalize' ?
-                                    <CapitalizeCard sourceProperty={selectedMapping?.sourceProperty}/>
-                                : null
-                            }
-                            </div>
-                            <div style={{height: 20}}/>
-                        </>
-                       
-                        
-                    )
-            })
+    const prepend = (value, input) => {
+        return input.prepend + value
+    }
+
+    const replace = (value, input) => {
+        var toReplace = input.toReplace
+        var replaceWith = input.replaceWith
+        return value.replace(toReplace, replaceWith)
+    }
+
+    function updateFormula(uuid, inputs) {
+        console.log(uuid, inputs)
+        handlers.applyWhere(
+            (item)=> item.uuid == uuid,
+            (item)=> {
+                var updatedItem = {
+                    ...item,
+                    inputs: inputs
+                }
+                return updatedItem
+               
+            }
         )
-       
+        console.log(formulas)
     }
 
-    
+    function renderSampleOutput (exampleValue, position) {
+        var output = exampleValue
+        var formulaOutputs = []
+        for (let i = 0; i < formulas.length; i++) {
+            var formula = formulas[i]
+            if(formula.formula == 'append' && Object.keys(formula.inputs).length > 0) {
+                output = append(output, formula.inputs)
+                formulaOutputs.push(output)
+            } else if(formula.formula == 'prepend' && Object.keys(formula.inputs).length > 0) {
+                output = prepend(output, formula.inputs)
+                formulaOutputs.push(output)
+            } else if(formula.formula == 'replace' && Object.keys(formula.inputs).length > 0) {
+                output = replace(output, formula.inputs)
+                formulaOutputs.push(output)
+            }
+        }
+        return formulaOutputs
+    }
+
+
     return (
         <div style={{width: '100%',display: 'flex', flexDirection: 'column',}}>
             {
@@ -340,7 +347,7 @@ const AdaptionDesigner = ({ mappings, selectedMapping, source, target}) => {
                 {renderRecipeMenu()}
             </div>
             <div style={{width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                {renderFormulaCards()}
+                <FormulaBuilder renderSampleOutput={renderSampleOutput} updateFormula={updateFormula} reorderFormulas={reorderFormulas} removeFormula={removeFormula} data={formulas}/>
             </div>
         </div>
     )
