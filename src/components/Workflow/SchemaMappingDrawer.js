@@ -1,9 +1,8 @@
 import {Text, Divider, Button, Container, UnstyledButton, Tooltip, Accordion, Loader, ScrollArea, ActionIcon} from '@mantine/core'
 import { useCallback,useEffect, useState } from 'react'
 import {RxArrowRight} from 'react-icons/rx'
-import {BiBrain} from 'react-icons/bi'
-import {HiOutlineLightningBolt} from 'react-icons/hi'
-
+import {AiOutlineCheck} from 'react-icons/ai'
+import {VscWand} from 'react-icons/vsc'
 import {RiCloseCircleFill} from 'react-icons/ri'
 import useStore from '../../context/store'
 import axios from 'axios'
@@ -28,49 +27,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     const setMappings = useStore(state => state.setMappings)
 
     /// Functions related to the generation of GPT-3 prompts and handling the response.
-
-    const getSchemaFromPath = (path, schema) => {
-        var schemaLocationArray = path.split('.')
-       
-        if(schemaLocationArray.length == 1) {
-            return {...schema[schemaLocationArray[0]], path: path, key: schemaLocationArray[0]}
-        } else {
-            var parent = schema
-            var parentContext = []
-
-            
-            for (var i = 0; i < schemaLocationArray.length; i++) {
-                var child = parent[schemaLocationArray[i]]
-
-                if(child?.properties && i !== schemaLocationArray.length - 1){
-                    parent = child.properties
-                        if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
-                            parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1], path: path})
-                        }
-                    }                        
-
-                else if(child?.items && i !== schemaLocationArray.length - 1){
-                    if(child.items.properties) {
-                        parent = child.items.properties
-                        parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
-                    } else {
-                        if(parentContext.length > 0){
-                            return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
-                        }
-                        return {...child.items, path: path, key: schemaLocationArray[i]}
-                    }
-                }
-                else {     
-                    var childKey = schemaLocationArray[i]
-                    if(parentContext.length > 0){
-                        return {...child, path: path, key: schemaLocationArray[i], parentContext}
-                    }
-                    return {...child, key: childKey, path: path}
-                }
-    
-            }
-        }
-    }
 
     async function getMappingSuggestions (prompt, inputSchema, outputSchema) {
         setAreSuggestionsLoading(true)
@@ -183,16 +139,76 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         }
     }
 
-    const processNestedProperties = (properties, parent) => {
+    const getSchemaFromPath = (path) => {
+        var schema =  sourceNode?.id == 'trigger' && nodeActions['trigger']?.requestBody2?.schema ? nodeActions['trigger']?.requestBody2?.schema : nodeActions[sourceNode?.id]?.responses && Object.keys(nodeActions[sourceNode?.id]?.responses[0]?.schema).length > 0 ? 
+            nodeActions[sourceNode?.id]?.responses[0]?.schema :  null
+
+        var schemaLocationArray = path.split('.')
+       
+        if(schemaLocationArray.length == 1) {
+            return {...schema[schemaLocationArray[0]], path: path, key: schemaLocationArray[0]}
+        } else {
+            var parent = schema
+            var parentContext = []
+
+            
+            for (var i = 0; i < schemaLocationArray.length; i++) {
+                var child = parent[schemaLocationArray[i]]
+
+                if(child?.properties && i !== schemaLocationArray.length - 1){
+                    parent = child.properties
+                        if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
+                            parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1], path: path})
+                        }
+                    }                        
+
+                else if(child?.items && i !== schemaLocationArray.length - 1){
+                    if(child.items.properties) {
+                        parent = child.items.properties
+                        parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
+                    } else {
+                        if(parentContext.length > 0){
+                            return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
+                        }
+                        return {...child.items, path: path, key: schemaLocationArray[i]}
+                    }
+                }
+                else {     
+                    var childKey = schemaLocationArray[i]
+                    if(parentContext.length > 0){
+                        return {...child, path: path, key: schemaLocationArray[i], parentContext}
+                    }
+                    return {...child, key: childKey, path: path}
+                }
+    
+            }
+        }
+    }
+        
+
+
+    const processNestedProperties = (properties, parent, requiredSchemaArray) => {
         const nestedPropertyKeys = Object.keys(properties)
         const nestedPropertyValues = Object.values(properties)
+        
         const nestedPropertyObjects = nestedPropertyKeys.map((key, index) => {
-            return {
-                key: key,
-                path: parent + "." + key,
-                ...nestedPropertyValues[index]
+            if(requiredSchemaArray){
+                return {
+                    key: key,
+                    path: parent + "." + key,
+                    ...nestedPropertyValues[index],
+                    required: requiredSchemaArray.includes(key)
+                }
+            } else {
+                return {
+                    key: key,
+                    path: parent + "." + key,
+                    ...nestedPropertyValues[index],
+                }
             }
+         
         })
+
         const requiredNestedPropertyArray = []
         const optionalNestedPropertyArray = []
 
@@ -200,15 +216,15 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             if(property.required) {
                 requiredNestedPropertyArray.push(property)
                 if(property.properties){
-                    var {required} = processNestedProperties(property.properties, parent+ "." + property.key)
-                    var {optional} = processNestedProperties(property.properties, parent+ "." + property.key)
+                    var {required} = processNestedProperties(property.properties, property.path)
+                    var {optional} = processNestedProperties(property.properties, property.path)
                     requiredNestedPropertyArray.push(...required)
                     optionalNestedPropertyArray.push(...optional)
                 }
                 if(property.items){
                     if(property.items.properties){
-                        var {required} = processNestedProperties(property.items.properties, property.key)
-                        var {optional} = processNestedProperties(property.items.properties, property.key)
+                        var {required} = processNestedProperties(property.items.properties, property.path)
+                        var {optional} = processNestedProperties(property.items.properties, property.path)
                         requiredNestedPropertyArray.push(...required)
                         optionalNestedPropertyArray.push(...optional)
                     } else {
@@ -218,13 +234,13 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             } else {
                 if(property.properties){
                     processNestedProperties(property.properties)
-                    var {required} = processNestedProperties(property.properties, parent+ "." + property.key)
-                    var {optional} = processNestedProperties(property.properties, parent+ "." + property.key)
+                    var {required} = processNestedProperties(property.properties, property.path)
+                    var {optional} = processNestedProperties(property.properties, property.path)
                     optionalNestedPropertyArray.push(...required, ...optional)
                 } if(property.items){
                     if(property.items.properties){
-                        var {required} = processNestedProperties(property.items.properties, property.key)
-                        var {optional} = processNestedProperties(property.items.properties, property.key)
+                        var {required} = processNestedProperties(property.items.properties, property.path)
+                        var {optional} = processNestedProperties(property.items.properties, property.path)
                         optionalNestedPropertyArray.push(...required, ...optional)
                     } else {
                         optionalNestedPropertyArray.push(property)
@@ -240,13 +256,18 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 ...property,
                 parentContext: getParentContext(property.path, action.requestBody2.schema)
             }
+        }).filter((property) => {
+            return property.type !== 'array' && property.type !== 'object'
         })
+
 
         const optionalNestedPropertyArrayWithParentContext = optionalNestedPropertyArray.map((property) => {
             return {
                 ...property,
                 parentContext: getParentContext(property.path, action.requestBody2.schema)
             }
+        }).filter((property) => {
+            return property.type !== 'array' && property.type !== 'object'
         })
         
         return {required: requiredNestedPropertyArrayWithParentContext, optional: optionalNestedPropertyArrayWithParentContext}
@@ -259,25 +280,39 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         if(action?.requestBody2?.schema){
             const propertyKeys = Object.keys(action.requestBody2.schema)
             const propertyValues = Object.values(action.requestBody2.schema)
+            const requiredSchema = action?.requestBody2?.requiredSchema ? action?.requestBody2?.requiredSchema : []
+
             const propertyObjects = propertyKeys.map((key, index) => {
-                return {
-                    key: key,
-                    path: key,
-                    ...propertyValues[index]
+                if(propertyValues[index].type == 'object'){  
+                    return {
+                        key: key,
+                        path: key,
+                        requiredKeys: propertyValues[index].required ? propertyValues[index].required : [],
+                        required: requiredSchema.includes(key),
+                        ...propertyValues[index]
+                    }
+                } else {
+                    return {
+                        key: key,
+                        path: key,
+                        required: requiredSchema.includes(key),
+                        ...propertyValues[index]
+                    }
                 }
+
             })
 
             propertyObjects.forEach((property) => {
                 if(property.required) {
                         if(property.properties){
-                            var {required} = processNestedProperties(property.properties, property.key)
-                            var {optional} = processNestedProperties(property.properties, property.key)
+                            var {required} = processNestedProperties(property.properties, property.key, property.requiredKeys)
+                            var {optional} = processNestedProperties(property.properties, property.key, property.requiredKeys)
                             requiredPropertyArray.push(...required)
                             optionalPropertyArray.push(...optional)
                         } else if(property.items){
                             if(property.items.properties){
-                                var {required} = processNestedProperties(property.items.properties, property.key)
-                                var {optional} = processNestedProperties(property.items.properties, property.key)
+                                var {required} = processNestedProperties(property.items.properties, property.key, property.items.required)
+                                var {optional} = processNestedProperties(property.items.properties, property.key, property.items.required)
                                 requiredPropertyArray.push(...required)
                                 optionalPropertyArray.push(...optional)
                             } else {
@@ -288,13 +323,13 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                         }
                 } else {
                     if(property.properties){
-                        var {required} = processNestedProperties(property.properties, property.key)
-                        var {optional} = processNestedProperties(property.properties, property.key)
+                        var {required} = processNestedProperties(property.properties, property.key, property.requiredSchema)
+                        var {optional} = processNestedProperties(property.properties, property.key, property.requiredSchema)
                         optionalPropertyArray.push(...required, ...optional)
                     } else if(property.items){
                         if(property.items.properties){
-                            var {required} = processNestedProperties(property.items.properties, property.key)
-                            var {optional} = processNestedProperties(property.items.properties, property.key)
+                            var {required} = processNestedProperties(property.items.properties, property.key, property.items.required)
+                            var {optional} = processNestedProperties(property.items.properties, property.key, property.items.required)
                             optionalPropertyArray.push(...required, ...optional)
                         } else {
                             optionalPropertyArray.push(property)
@@ -305,14 +340,29 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 }
             })
             if(requiredPropertyObjects && requiredPropertyObjects.length > 0){
-                setRequiredPropertyObjects(requiredPropertyObjects, ...requiredPropertyArray)
+                var filteredPropertyObjects = requiredPropertyArray.filter((property) => {
+                    return property.type !== 'array' && property.type !== 'object'
+                })
+                
+                setRequiredPropertyObjects(requiredPropertyObjects, ...filteredPropertyObjects)
             } else {
-                setRequiredPropertyObjects(requiredPropertyArray)
+                var filteredPropertyObjects = requiredPropertyArray.filter((property) => {
+                    return property.type !== 'array' && property.type !== 'object'
+                })
+                setRequiredPropertyObjects(filteredPropertyObjects)
             }
             if(optionalPropertyObjects && optionalPropertyObjects.length > 0){
-                setOptionalPropertyObjects(optionalPropertyObjects, ...optionalPropertyArray)
+                var filteredPropertyObjects = optionalPropertyArray.filter((property) => {
+                    return property.type !== 'array' && property.type !== 'object'
+                })
+                
+                setOptionalPropertyObjects(optionalPropertyObjects, ...filteredPropertyObjects)
             } else {
-                setOptionalPropertyObjects(optionalPropertyArray)
+                var filteredPropertyObjects = optionalPropertyArray.filter((property) => {
+                    return property.type !== 'array' && property.type !== 'object'
+                })
+                
+                setOptionalPropertyObjects(filteredPropertyObjects)
             }
 
             setOptionalCount(optionalCount + optionalPropertyArray.length)
@@ -487,7 +537,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             if(!outputPaths){
                 var pathArray = []
                 if (action?.requestBody2?.schema) {
-                    console.log('Output: action request schema')
                     var paths = processPaths(action.requestBody2.schema)
                     if(pathArray.length > 0){
                         pathArray = [...pathArray, ...paths]
@@ -496,7 +545,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                     }
                 }
                 if (action?.parameterSchema?.path) {
-                    console.log('Output: action parameter schema')
                     var paths = Object.keys(action.parameterSchema.path)
                     var prefixedPaths = paths.map((path) => {
                         return `path.${path}`
@@ -509,7 +557,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                     }
                 }
                 if (action?.parameterSchema?.header) {
-                    console.log('Output: action parameter schema')
                     var paths = Object.keys(action.parameterSchema.header)
                     var prefixedPaths = paths.map((path) => {
                         return `header.${path}`
@@ -524,15 +571,12 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             } 
 
             if (sourceNode?.id == 'trigger' && nodeActions['trigger']?.requestBody2?.schema && !inputPaths) {
-                console.log('Input: trigger schema')
                 var paths = processPaths(nodeActions['trigger'].requestBody2.schema)
                 setInputPaths(paths)
-            } else if (Object.keys(nodeActions[sourceNode?.id]?.responses[0]?.schema).length > 0 && !inputPaths) {
-                console.log('Input: action response schema')
+            } else if (nodeActions[sourceNode?.id]?.responses && Object.keys(nodeActions[sourceNode?.id]?.responses[0]?.schema).length > 0 && !inputPaths) {
                 var paths = processPaths(nodeActions[sourceNode?.id]?.responses[0]?.schema)
                 setInputPaths(paths)
             } else if (!inputPaths) {
-                console.log('Input: no input schema')
                 setInputPaths([])
             }
 
@@ -811,13 +855,36 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                 </Button>
                                 {selectedMapping?.targetProperty?.path == property.path && (
                                     <div style={{width: '100%', paddingBottom: 5, display:'flex', flexDirection:'center', justifyContent: 'center', alignItems:'center'}}>
-                                        <Button onClick={(e)=>{toggleMappingModal(e)}} style={{width: 480, height: 50, borderRadius: 8, backgroundColor: 'black'}}>
-                                            <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'white'}}>{
-                                                mappings[targetNode?.id] && mappings[targetNode?.id][property.path] ? "Edit Mapping"
-                                                : selectedMapping?.sourceProperty?.path ? 'Map Properties' 
-                                                : 'Configure Property'
-                                            }</Text>
-                                       </Button>      
+
+                                        {
+                                        mappingSuggestions && mappingSuggestions[property.path] ?
+                                        ( 
+                                            <Button onClick={(e)=>{
+                                                var sourceProperty = getSchemaFromPath(mappingSuggestions[property.path])
+                                                var targetProperty = property
+                                                setSelectedMapping({sourceProperty, targetProperty})
+                                                toggleMappingModal(e)
+                                                delete mappingSuggestions[property.path]
+                                                
+                                                }} style={{width: '100%', height: 50, borderRadius: 8, backgroundColor: '#FFC069'}}>
+                                                    <AiOutlineCheck size={20} color={'black'} />
+                                                    <div style={{width: 10}}/>
+                                                    <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'black'}}>Confirm Suggestion</Text>
+                                                </Button>
+                                        ) : (
+                                            <Button onClick={(e)=>{toggleMappingModal(e)}} style={{width: '100%', height: 50, borderRadius: 8, backgroundColor: 'black'}}>
+                                                
+                                                <Text style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, color: 'white'}}>{
+                                                    mappings[targetNode?.id] && mappings[targetNode?.id][property.path] ? "Edit Mapping"
+                                                    : selectedMapping?.sourceProperty?.path ? 'Map Properties' 
+                                                    : 'Configure Property'
+                                                }</Text>
+                                            </Button>   
+                                            )
+                                        
+                                        }
+
+   
                                     </div>   
                                  ) }
                             </Container>
@@ -825,6 +892,25 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 )})) 
 
     }   
+    const fetchMappingSuggestions = () => {
+
+        var promptPrefix = " Provided dot delimited paths to "+ requiredCount +" output data schema properties provide a single dot delimited path from the input schema array that maps best to each output dot delimited property path. Only respond with a parseable JSON dictionary object with this definition {  {{OUTPUT SCHEMA PROPERTY PATH}}: {{INPUT SCHEMA PROPERTY PATH}} }} }.  Neither the output or input property will be an array or an object. The result should only have one key value pair for each of the "+requiredCount+" output property paths."
+
+        var requiredOutputPaths = []
+        requiredPropertyObjects.forEach((property) => {
+            requiredOutputPaths.push(property.path)
+        })
+
+        var inputAction = nodeActions[sourceNode?.id]?.name
+        var outputAction = nodeActions[targetNode?.id]?.name
+        
+        var inputSchema = " {{INPUT REQUEST NAME:" + inputAction +"}}"+ "{{INPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(inputPaths) + " {{INPUT SCHEMA ARRAY OPTIONS END}} "
+        var outputSchema = " {{OUTPUT REQUEST NAME:" + outputAction +"}}"+" {{OUTPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(requiredOutputPaths) + " {{OUTPUT SCHEMA ARRAY OPTIONS END}}"
+        var prompt = promptPrefix + outputSchema + inputSchema
+
+        getMappingSuggestions(prompt, inputSchema, outputSchema)
+
+    }
 
 
     return (
@@ -835,40 +921,52 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
 
             <Divider/>
             <Text style={{paddingTop: 20, paddingBottom: 20, fontFamily: 'Visuelt', fontSize: '15px', fontWeight: 300, color: 'grey'}}>Below are all of the required and optional properties for {action?.name}. The API documentation indicates that all of the required properties must have a value mapped or set - not doing so will likely result in failure.</Text>   
-            <Button 
-                loading={ areSuggestionsLoading}
-                onClick={()=>{
-                    var promptPrefix = " Provided dot delimited paths to output data schema properties provide a single dot delimited path from the input schema array that maps best to each output property. Only respond with a parseable JSON dictionary object with this definition {  {{OUTPUT SCHEMA PROPERTY PATH}}: {{INPUT SCHEMA PROPERTY PATH}} }} }.  Neither the output or input property will be an array or an object. The name of the input and output actions are provided for further context."
-                    var requiredOutputPaths = outputPaths.filter((path) => {
-                        return requiredPropertyObjects.map((property) => {
-                            return property.path === path
-                        }).includes(true)
-                    })
-                    var inputAction = nodeActions[sourceNode?.id]?.name
-                    var outputAction = nodeActions[targetNode?.id]?.name
-                    var inputSchema = " {{INPUT REQUEST NAME:" + inputAction +"}}"+ "{{INPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(inputPaths) + " {{INPUT SCHEMA ARRAY OPTIONS END}} "
-                    var outputSchema = " {{OUTPUT REQUEST NAME:" + outputAction +"}}"+" {{OUTPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(requiredOutputPaths) + " {{OUTPUT SCHEMA ARRAY OPTIONS END}}"
-                    var prompt = promptPrefix + outputSchema + inputSchema
+            {
+                nodeActions[sourceNode?.id]?.responses && Object.keys(nodeActions[sourceNode?.id]?.responses[0]?.schema).length > 0 || sourceNode?.id == 'trigger' && nodeActions['trigger']?.requestBody2?.schema ? (
+                        <Button 
+                        loading={ areSuggestionsLoading}
+                        onClick={()=>{
+                           fetchMappingSuggestions()
+                        }}
+                        leftIcon={<VscWand />} variant="outline" 
+                        sx={{
+                            backgroundColor: '#FFDFB4',
+                            color: 'black',
+                            fontFamily: 'Visuelt',
+                            fontWeight: 300,
+                            fontSize: '16px',
+                            height: 50,
+                            borderRadius: 8,
+                            border: '1px solid #FFC069',
+                            ':hover': {
+                                backgroundColor: '#FFF0DB',
+                                color: 'black',
+                                fontFamily: 'Visuelt',
+                                fontWeight: 300,
+                                fontSize: '16px',
+                            }
 
-                    getMappingSuggestions(prompt, inputSchema, outputSchema)
+                        }}>
+                        {
+                            areSuggestionsLoading ? (
+                                <Text style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 300}}>
+                                    Thinking...
+                                </Text>
+                            ) : (
+                                <Text style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 400}}>
+                                    Try Automatic Mapping
+                                </Text>
+                            )
+                        }
                     
-                    }}
-            leftIcon={<HiOutlineLightningBolt />} variant="light" color={'orange'}>
-               {
-                     areSuggestionsLoading ? (
-                        <Text style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 300}}>
-                            Loading Potential Mappings
-                        </Text>
-                     ) : (
-                        <Text style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 400}}>
-                            Mapping Assist
-                        </Text>
-                     )
-               }
-               
-            </Button>
+                    </Button>
+                    
+                ) : (
+                    null
+                )
+            }
+          
             <div style={{height:20}}/>
-
             <Accordion variant="separated" defaultValue="required">
                 <Accordion.Item value="required">
                 <Accordion.Control>

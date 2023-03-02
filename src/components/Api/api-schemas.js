@@ -102,12 +102,25 @@ const ApiSchemas = ({schemas}) => {
                     <RiDoubleQuotesL/>                                
                 </div>
             )
-            case 'number' || 'integer' || 'float':
+            case 'number':
                 return (
                     <div style={{display: 'flex',height: 40, width: 40, borderRadius: 4, backgroundColor: '#eaeaff', alignItems:'center', justifyContent:'center'}}>
                         <AiOutlineNumber/>                              
                     </div>
                 )
+            case 'integer':
+                return (
+                    <div style={{display: 'flex',height: 40, width: 40, borderRadius: 4, backgroundColor: '#eaeaff', alignItems:'center', justifyContent:'center'}}>
+                        <AiOutlineNumber/>
+                    </div>
+                )
+            case 'float': 
+                return (
+                    <div style={{display: 'flex',height: 40, width: 40, borderRadius: 4, backgroundColor: '#eaeaff', alignItems:'center', justifyContent:'center'}}>
+                        <AiOutlineNumber/>
+                    </div>
+                )
+            
             case 'boolean':
                 return (          
                     <div style={{display: 'flex',height: 40, width: 40, borderRadius: 4, backgroundColor: '#eaeaff', alignItems:'center', justifyContent:'center'}}>

@@ -109,7 +109,7 @@ const returnIcon = (type: string) => {
     switch (type) {
         case 'string':
             return (<RiDoubleQuotesL/>)
-        case 'number':
+        case 'number' || 'integer' || 'float':
             return (<AiOutlineNumber/>)
         case 'boolean':
             return (<RxComponentBoolean/>)

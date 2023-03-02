@@ -117,16 +117,26 @@ function generateTreeData (schema, parent) {
 }
 
 
+
 const returnIcon = (type) => {
     switch (type) {
         case 'string':
             return (
                 <RiDoubleQuotesL/>                                
         )
-        case 'number' || 'integer' || 'float':
+        case 'number':
             return (
                     <AiOutlineNumber/>                              
             )
+        case 'integer':
+            return (
+                    <AiOutlineNumber/>
+            )
+        case 'float':
+            return (
+                    <AiOutlineNumber/>
+            )
+    
         case 'boolean':
             return (          
                     <RxComponentBoolean/>                           
@@ -145,7 +155,6 @@ const returnIcon = (type) => {
             )
     }
 }
-
 
 const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, schemaType, node}) => {
 

@@ -15,6 +15,7 @@ function generateTreeData (schema, parent) {
     const schemaValues = Object.values(schema)
 
     var treeItems = {}
+
     if (parent=="root") {
         var root = {
             index: 'root',
@@ -110,7 +111,7 @@ function generateTreeData (schema, parent) {
         }
         treeItems[path] = childNode
     })
-
+    console.log(treeItems)
     return treeItems
 }
 
@@ -120,10 +121,19 @@ const returnIcon = (type) => {
             return (
                 <RiDoubleQuotesL/>                                
         )
-        case 'number' || 'integer' || 'float':
+        case 'number':
             return (
                     <AiOutlineNumber/>                              
             )
+        case 'integer':
+            return (
+                    <AiOutlineNumber/>
+            )
+        case 'float':
+            return (
+                    <AiOutlineNumber/>
+            )
+    
         case 'boolean':
             return (          
                     <RxComponentBoolean/>                           

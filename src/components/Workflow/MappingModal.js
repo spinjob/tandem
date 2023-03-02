@@ -465,6 +465,9 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode, partnership, toggleM
                     <Button
                     onClick={()=>{
                         saveMapping()
+                        toggleMappingModal()
+                        setSelectedMapping({sourceProperty: null, targetProperty: null})
+                        
                     }}
                     sx={{
                         backgroundColor: '#000000',

@@ -164,18 +164,44 @@ const Navigation = ({setIsOpened, isOpened}) => {
   ));
 
   const collapsedLinks = data.map((item) => (
-    <a
-      className={cx(classes.collapsedLink, { [classes.linkActive]: item.label === active })}
-      href={item.link}
-      key={item.label}
-      onClick={(event) => {
-        event.preventDefault();
-        router.push(item.link);
-        setActive(item.label);
+    <Tooltip
+      key = {item.label}
+      withinPortal={true}
+      label={
+        <Text
+          sx={{
+            fontFamily: 'Visuelt',
+            fontSize: 16,
+            color: '#FFFFFF'
+          }}
+        >{item.label}</Text>
+      }
+      color={'black'}
+      position="right"
+      offset={8}
+      sx={{
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        display:'flex',
+        border: '1px solid #F8F6F3',
+        borderRadius: 12,
       }}
-    > 
-        {renderIcon(item.label)}
-    </a>
+      >
+      <a
+            className={cx(classes.collapsedLink, { [classes.linkActive]: item.label === active })}
+            href={item.link}
+            key={item.label}
+            onClick={(event) => {
+              event.preventDefault();
+              router.push(item.link);
+              setActive(item.label);
+            }}
+          > 
+              {renderIcon(item.label)}
+          </a>
+    </Tooltip>
+    
 
   ));
 
@@ -214,7 +240,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
         </div>
     )
     : user && !isOpened ? (
-      <div style={{position:'fixed', zIndex: 9999999999}}>
+      <div style={{position:'fixed'}}>
       <Navbar style={{backgroundColor: '#F8F6F4'}} height={'100vh'} width={{ sm: 120 }}>
           <Navbar.Section grow  style={{display:'flex', flexDirection:'column',alignItems: 'center'}} >
             <Group className={classes.collapsedHeader}  style={{display:'flex', flexDirection:'row',alignItems: 'center'}}>

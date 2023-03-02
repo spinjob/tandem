@@ -32,8 +32,7 @@ import ReactFlow, {
     ReactFlowProvider,
   } from 'reactflow';
 
-  import { Background } from '@reactflow/background';
-
+import { Background } from '@reactflow/background';
 import { TimeInput } from '@mantine/dates';  
 import {AiOutlinePlusSquare, AiFillCheckCircle} from 'react-icons/ai'
 import {FiChevronDown} from 'react-icons/fi'
@@ -46,6 +45,7 @@ import 'reactflow/dist/style.css';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
 import { toPng } from 'html-to-image';
+import AppContext from '../../../../context/AppContext';
 
 import ButtonEdge from '../../../../components/Workflow/ButtonEdge';
 import SchemaMappingDrawer from '../../../../components/Workflow/SchemaMappingDrawer';
@@ -927,7 +927,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
     }, [nodes, edges, globalNodeState, globalEdgeState, setGlobalNodeState, setGlobalEdgeState])
 
     return (
-        <div style={{ height: '100%', backgroundColor:'#FBFAF9'}}>
+        <div style={{ height: '100%', width:'100%', backgroundColor:'#FBFAF9'}}>
             <div style={{position:'absolute', padding: 40, zIndex: 1, height: 40, width: 220}}>
             <NewNodeButtonMenu />
             </div>
@@ -1239,7 +1239,7 @@ const WorkflowStudio = () => {
     }, [pid, workflowId, workflow, partnership, apis, setApis, setPartnership, workflowActions, setWorkflowActions, workflowWebhooks, setWorkflowWebhooks])
 
     return workflow && partnership && apis && workflowActions && workflowWebhooks ? (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%'}}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', marginLeft: -15}}>
             <Modal
                 centered
                 opened={mappingModalOpen}
@@ -1249,7 +1249,6 @@ const WorkflowStudio = () => {
                 radius={'lg'}
                 size={1000}
                 title={<Text style={{padding:20, fontFamily:'Visuelt', fontSize: '30px', fontWeight: 600}}>Mapping Configuration</Text>}
-               
             >
                <MappingModal toggleMappingModal={toggleMappingModal} partnership={partnership[0]} sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} edge={selectedEdge} nodes={nodeActions} />
             </Modal>
@@ -1260,14 +1259,14 @@ const WorkflowStudio = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 padding: 30,
-                width: '93vw',
+                width: '100vw',
                 height: 90,
                 boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)',
                 zIndex: 1,
             }}>
                 <WorkflowHeader workflow={workflow[0]} style={{ boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', width: '93vw', height: '93vh'}}>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh'}}>
                 <ReactFlowProvider>
                     <Flow toggleDrawer={toggleDrawer} workflow={workflow[0]} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
                 </ReactFlowProvider>
