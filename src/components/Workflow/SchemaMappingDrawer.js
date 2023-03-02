@@ -184,8 +184,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             }
         }
     }
-        
-
 
     const processNestedProperties = (properties, parent, requiredSchemaArray) => {
         const nestedPropertyKeys = Object.keys(properties)

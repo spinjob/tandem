@@ -9,7 +9,7 @@ import {BiBook} from 'react-icons/bi'
 import {HiOutlineKey} from 'react-icons/hi'
 import AdaptionDesigner from './AdaptionDesigner'
 
-const MappingModal = ({edge, nodes, sourceNode, targetNode, partnership, toggleMappingModal}) => { 
+const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, partnership, toggleMappingModal}) => { 
 
     const selectedMapping = useStore(state => state.selectedMapping)
     const setSelectedMapping = useStore(state => state.setSelectedMapping)
@@ -168,6 +168,7 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode, partnership, toggleM
     )}
 
     const renderPropertyCard = (property) => {
+       
         return (
             <Card shadow="xs" p="lg" radius={15} withBorder>          
                 {
@@ -313,7 +314,7 @@ const MappingModal = ({edge, nodes, sourceNode, targetNode, partnership, toggleM
                             <div style={{display: 'block', width: '50%'}}>
                                 <Text style={{fontFamily:'Visuelt', fontSize: '18px'}}>Input</Text>
                                 <div style={{height: 8}}/>
-                                {renderPropertyCard(selectedMapping?.sourceProperty)}
+                                {renderPropertyCard(getSchemaFromPath(selectedMapping.sourceProperty.path))}
                             </div>
                         ) : (
                             <div style={{display: 'block', width: '50%'}}>

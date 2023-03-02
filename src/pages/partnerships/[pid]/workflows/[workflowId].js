@@ -1157,6 +1157,55 @@ const WorkflowStudio = () => {
         setSelectedEdge(edge)
         setSelectedAdaption(edge)
     }
+    console.log(selectedEdge)
+    
+    function getSchemaFromPath(path) {
+        var schema =  selectedEdge?.source == 'trigger' && nodeActions['trigger']?.requestBody2?.schema ? nodeActions['trigger']?.requestBody2?.schema : nodeActions[selectedEdge?.source]?.responses && Object.keys(nodeActions[selectedEdge?.source]?.responses[0]?.schema).length > 0 ? 
+            nodeActions[selectedEdge?.source]?.responses[0]?.schema :  null
+
+        var schemaLocationArray = path.split('.')
+       
+        if(schemaLocationArray.length == 1) {
+            return {...schema[schemaLocationArray[0]], path: path, key: schemaLocationArray[0]}
+        } else {
+            var parent = schema
+            var parentContext = []
+
+            
+            for (var i = 0; i < schemaLocationArray.length; i++) {
+                var child = parent[schemaLocationArray[i]]
+
+                if(child?.properties && i !== schemaLocationArray.length - 1){
+                    parent = child.properties
+                        if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
+                            parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1], path: path})
+                        }
+                    }                        
+
+                else if(child?.items && i !== schemaLocationArray.length - 1){
+                    if(child.items.properties) {
+                        parent = child.items.properties
+                        parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
+                    } else {
+                        if(parentContext.length > 0){
+                            return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
+                        }
+                        console.log({...child.items, path: path, key: schemaLocationArray[i]})
+                        return {...child.items, path: path, key: schemaLocationArray[i]}
+                    }
+                }
+                else {     
+                    var childKey = schemaLocationArray[i]
+                    if(parentContext.length > 0){
+                        return {...child, path: path, key: schemaLocationArray[i], parentContext}
+                    }
+                    console.log({...child, key: childKey, path: path})
+                    return {...child, key: childKey, path: path}
+                }
+    
+            }
+        }
+    }
    
     useEffect(() => {
         if (pid && workflowId && !workflow) {
@@ -1250,7 +1299,7 @@ const WorkflowStudio = () => {
                 size={1000}
                 title={<Text style={{padding:20, fontFamily:'Visuelt', fontSize: '30px', fontWeight: 600}}>Mapping Configuration</Text>}
             >
-               <MappingModal toggleMappingModal={toggleMappingModal} partnership={partnership[0]} sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} edge={selectedEdge} nodes={nodeActions} />
+               <MappingModal getSchemaFromPath={getSchemaFromPath} toggleMappingModal={toggleMappingModal} partnership={partnership[0]} sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} edge={selectedEdge} nodes={nodeActions} />
             </Modal>
             <Drawer lockScroll={false} size={610} style={{overflowY: 'scroll', zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
             <SchemaMappingDrawer nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
