@@ -312,7 +312,7 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
 
 
     useEffect(() => {
-        if(mappings && selectedEdge && selectedMapping && !didLoadInitialFormula) {
+        if(mappings[targetNodeId] && selectedEdge && selectedMapping && !didLoadInitialFormula) {
             var selectedTargetPropertyKey = selectedMapping?.targetProperty?.key
             var targetActionKey = nodeActions[selectedEdge?.target]
             var targetNodeId = selectedEdge?.target
