@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
-import { useCallback, useState, useMemo, useEffect, useRef} from 'react';
+import { useCallback, useState, useContext, useEffect, useRef} from 'react';
+import {useUser} from '@auth0/nextjs-auth0/client'
 import {
     createStyles,
     Menu,
@@ -963,7 +964,8 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
 }
 
 const WorkflowHeader = ({workflow}) => {
-    const { classes } = useStyles();
+    const { classes } = useStyles()
+    const router = useRouter();
     const [isNameFieldActive, setIsNameFieldActive] = useState(false);
     const [nameFieldWidth, setNameFieldWidth] = useState(0);
     const [workflowName, setWorkflowName] = useState(workflow?.name ? workflow.name : 'My Untitled Workflow');
@@ -973,7 +975,8 @@ const WorkflowHeader = ({workflow}) => {
     const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
     const [saveInProgress, setSaveInProgress] = useState(false);
-    const router = useRouter();
+    
+    const { pid, workflowId } = router.query;
 
     const processWorkflowSave = () => {
         setSaveInProgress(true)
@@ -1011,7 +1014,7 @@ const WorkflowHeader = ({workflow}) => {
             <Header height={30} sx={{ zIndex: 2, backgroundColor: "transparent", borderBottom: 0 }} >
               <Container className={classes.inner} fluid>
                 <Group>
-                <ActionIcon onClick={() => router.back()}>
+                <ActionIcon onClick={() => router.push('/partnerships/'+pid)}>
                     <HiOutlineArrowLeft size={30} color={'black'} />
                 </ActionIcon>
 
@@ -1104,6 +1107,7 @@ const WorkflowHeader = ({workflow}) => {
 
 const WorkflowStudio = () => {
     const router = useRouter();
+    const {user, error, isLoading} = useUser();
     const { pid, workflowId } = router.query;
     const [workflow, setWorkflow] = useState(null);
     const [apis, setApis] = useState(null);

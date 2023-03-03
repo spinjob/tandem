@@ -1,15 +1,21 @@
 import { Navbar, createStyles, Group, Code, Tooltip, Image,Text, Avatar, Button} from "@mantine/core";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useContext, useEffect } from "react";
 import {useRouter} from 'next/navigation'
 import { useUser } from "@auth0/nextjs-auth0/client";
 import {MdConnectWithoutContact} from 'react-icons/md'
 import {CgListTree} from 'react-icons/cg'
 import {BiBuildings} from 'react-icons/bi'
 import {TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapse} from 'react-icons/tb'
+import AppContext from "../context/AppContext"
+import axios from "axios";
 
 const Navigation = ({setIsOpened, isOpened}) => {
     const { user, error, isLoading } = useUser();
     const router = useRouter()
+    const {organization} = useContext(AppContext).state
+    const {setOrganization} = useContext(AppContext)
+    const {dbUser} = useContext(AppContext).state
+    const {setDbUser} = useContext(AppContext)
 
     const useStyles = createStyles((theme, _params, getRef) => {
         const icon = getRef('icon');
@@ -83,6 +89,18 @@ const Navigation = ({setIsOpened, isOpened}) => {
               },
             },
           },
+
+          linkInactive: {
+            '&, &:hover': {
+              backgroundColor: '#ffffff',
+              borderRadius: 12,
+              fontWeight: 500,
+              color: theme.colorScheme === 'dark' ? theme.white : theme.black,
+              [`& .${icon}`]: {
+                color: theme.colorScheme === 'dark' ? theme.white : theme.black,
+              },
+            },
+          },
                 
           collapsedLink: {
             display: 'flex',
@@ -108,7 +126,11 @@ const Navigation = ({setIsOpened, isOpened}) => {
       });
 
     const { classes, cx } = useStyles();
-    const [active, setActive] = useState('Partnerships');
+    const [active, setActive] = useState( 
+     !organization ? 'My APIs' : 
+      'Partnerships'
+      
+    );
 
     const handleToggle = useCallback(() => {
         setIsOpened(!isOpened);
@@ -147,24 +169,74 @@ const Navigation = ({setIsOpened, isOpened}) => {
         }
     }
 
-  const links = data.map((item) => (
-    <a
-      className={cx(classes.link, { [classes.linkActive]: item.label === active })}
-      href={item.link}
-      key={item.label}
-      onClick={(event) => {
-        event.preventDefault();
-        router.push(item.link);
-        setActive(item.label);
-      }}
-    >
-        {renderIcon(item.label)}
-      <span style={{fontSize: 18}}>{item.label}</span>
-    </a>
-  ));
+  const links = data.map((item) => 
+   !organization && !dbUser?.organization ? 
+      (
+        <a
+          className={cx(classes.link, { [classes.linkActive]: item.label === active })}
+          key={item.label}
+          onClick={(event) => {
+          }}
+        >
+            {renderIcon(item.label)}
+          <span style={{fontSize: 18}}>{item.label}</span>
+        </a>
+      ) : (
+        <a
+          className={cx(classes.link, { [classes.linkActive]: item.label === active })}
+          href={item.link}
+          key={item.label}
+          onClick={(event) => {
+            event.preventDefault();
+            router.push(item.link);
+            setActive(item.label);
+          }}
+        >
+            {renderIcon(item.label)}
+          <span style={{fontSize: 18}}>{item.label}</span>
+        </a>
+      )
+  );
 
   const collapsedLinks = data.map((item) => (
-    <Tooltip
+    !organization ? (
+      <Tooltip
+      key = {item.label}
+      withinPortal={true}
+      label={
+        <Text
+          sx={{
+            fontFamily: 'Visuelt',
+            fontSize: 16,
+            color: '#FFFFFF'
+          }}
+        >{item.label}</Text>
+      }
+      color={'black'}
+      position="right"
+      offset={8}
+      sx={{
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        display:'flex',
+        border: '1px solid #F8F6F3',
+        borderRadius: 12,
+      }}
+      >
+      <a
+            className={cx(classes.collapsedLink, { [classes.linkActive]: item.label === active })}
+            key={item.label}
+            onClick={(event) => {
+
+            }}
+          > 
+              {renderIcon(item.label)}
+          </a>
+    </Tooltip>
+  
+    ) : (
+      <Tooltip
       key = {item.label}
       withinPortal={true}
       label={
@@ -201,11 +273,30 @@ const Navigation = ({setIsOpened, isOpened}) => {
               {renderIcon(item.label)}
           </a>
     </Tooltip>
-    
-
+  
+    )
+   
   ));
 
-    
+    const fetchDbUser = useCallback(() => {
+      axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email})
+      .then((res) => {
+          setDbUser(res.data)
+          if(res.data.organization){
+            console.log("Organization Found for User")
+            setOrganization(res.data.organization)
+          }
+      })
+      .catch((err) => {
+          // console.log(err)
+      })
+    }, [user, setDbUser, setOrganization])
+
+    useEffect(() => {
+      if (!organization && user && !dbUser) {
+        fetchDbUser()
+      }
+    }, [organization, user, dbUser, fetchDbUser])
     return !user ? (
     <div>
 

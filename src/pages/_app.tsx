@@ -12,7 +12,7 @@ export default function App(props: AppProps) {
   const { Component, pageProps } = props;
   const [organization, setOrganization] = useState(null)
   const [dbUser, setDbUser] = useState(null)
-  const [isNavOpen,setIsNavOpen] = useState(false)
+  const [isNavOpen,setIsNavOpen] = useState(true)
   const [appMargin, setAppMargin] = useState(300)
   const [hideNavigation, setHideNavigation] = useState(false)
   const router = useRouter()
@@ -31,9 +31,7 @@ export default function App(props: AppProps) {
       setAppMargin(100)
     } else if (isNavOpen === true && hideNavigation === false){
       setAppMargin(300)
-    } else {
-      setAppMargin(0)
-    }
+    } 
   }, [isNavOpen])
 
   useEffect(() => {
@@ -43,9 +41,11 @@ export default function App(props: AppProps) {
     } else if (router.pathname == '/partnerships/[pid]/workflows/[workflowId]' && hideNavigation === true){
       setHideNavigation(false)
       setAppMargin(100)
-    } else {
+    } else if (router.pathname !== '/partnerships/[pid]/workflows/[workflowId]' ){
       setHideNavigation(false)
-      setAppMargin(100)
+      if (appMargin === 0){
+        setAppMargin(300)
+      }
     }
   }, [router.pathname])
 

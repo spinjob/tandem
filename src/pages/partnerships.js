@@ -17,7 +17,8 @@ const Partnerships = () => {
     const {dbUser} = useContext(AppContext).state
     const [modalOpened, setModalOpened] = useState(false)
     const [apis, setApis] = useState(null)
-
+    console.log(user)
+    
     const data = partnerships?.map((partnership) => {
         return {
             id: partnership.uuid,
@@ -63,6 +64,7 @@ const Partnerships = () => {
 
     useEffect(() => {
         if (organization && !apis) {
+            
             fetchApis()
         }
     }, [organization, fetchApis, apis])

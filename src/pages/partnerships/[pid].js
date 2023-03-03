@@ -1,9 +1,11 @@
 import { useRouter } from 'next/router'
 import { Breadcrumbs, Anchor, Loader, Text, Tabs, Center} from '@mantine/core';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useContext, useCallback } from 'react';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import axios from 'axios'
 import PartnershipWorkflows from './[pid]/workflows'
 import PartnershipApis from './[pid]/apis'
+import AppContext from '../../context/AppContext';
 import PartnershipConfigurations from './[pid]/configurations'
 
 const Partnership = () => {
@@ -11,7 +13,7 @@ const Partnership = () => {
   const { pid } = router.query
   const [partnership, setPartnership] = useState(null)
   const [apis, setApis] = useState(null)
-
+  
   const fetchPartnershipDetails = useCallback(() => {
     axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/details')
         .then((res) => {

@@ -20,6 +20,26 @@ const MyApis = () => {
    const {setDbUser} = useContext(AppContext)
    const router  = useRouter();
 
+
+  useEffect(() => {
+    if(user?.email && !dbUser){
+        console.log('refetching user')
+        axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email})
+        .then((res) => {
+            setDbUser(res.data)
+            if(res.data.organization){
+              console.log("Organization Found for User")
+              setOrganization(res.data.organization)
+            }
+        })
+        .catch((err) => {
+            // console.log(err)
+        })
+    } else {
+
+    }
+}, [user, dbUser, setOrganization, setDbUser])
+
    const fetchApis = useCallback(() => {
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + organization)
             .then((res) => {
