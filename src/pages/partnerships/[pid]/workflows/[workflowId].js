@@ -13,14 +13,16 @@ import {
     Select,
     Text,
     TextInput,
-    TextArea,
+    Textarea,
     ActionIcon,
     Image,
     SegmentedControl,
     UnstyledButton,
     ScrollArea,
     Drawer,
-    Modal
+    Modal,
+    Tooltip,
+    Box
   } from '@mantine/core';
 
 import ReactFlow, {
@@ -33,12 +35,13 @@ import ReactFlow, {
     ReactFlowProvider,
   } from 'reactflow';
 
-import { Background } from '@reactflow/background';
 import { TimeInput } from '@mantine/dates';  
-import {AiOutlinePlusSquare, AiFillCheckCircle} from 'react-icons/ai'
+import {AiOutlinePlusSquare, AiFillCheckCircle, AiFillMinusCircle, AiFillPlusCircle} from 'react-icons/ai'
 import {FiChevronDown} from 'react-icons/fi'
 import {HiOutlineArrowLeft, HiOutlineTrash, HiOutlineDocumentDownload, HiOutlineDotsHorizontal} from 'react-icons/hi'
+import {HiOutlineCommandLine} from 'react-icons/hi2'
 import {TiFlowSwitch} from 'react-icons/ti'
+import {BsViewList} from 'react-icons/bs'
 import {TbWebhook} from 'react-icons/tb'
 import {IoHelpBuoyOutline} from 'react-icons/io5'
 import {GrSchedulePlay, GrTrigger} from 'react-icons/gr'
@@ -136,8 +139,41 @@ function ActionNode ({id, data}) {
     const nodeActions = useStore((state) => state.nodeActions)
     const nodeViews = useStore((state) => state.nodeViews)
     const selectedEdge = useStore((state) => state.selectedEdge)
+    const [sharedEdgeTargetNodes, setSharedEdgeTargetNodes] = useState([])
 
-    
+    const globalEdgeState = useStore((state) => state.edges)
+
+    const HandleStyleCheck = {
+        top: {
+          right: -10,
+        //   top: sharedEdgeTargetNodes.length > 0 ? 72 : 100,
+          top: '30%',
+          minWidth: 20,
+          height: 20,
+          border: "1px solid #E7E7E7",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: 'row',
+          display: "flex",
+          zIndex: 2,
+          boxShadow: "rgba(0, 0, 0, 0.04) 0px 3px 5px"
+        },
+        bottom: {
+          right: -10,
+        //   top: sharedEdgeTargetNodes.length > 0 ? 168 : 140,
+          top: '70%',
+          minWidth: 20,
+          height: 20,
+          alignItems: "center",
+          border: "1px solid #E7E7E7",
+          justifyContent: "center",
+          flexDirection: 'row',
+          display: "flex",
+          zIndex: 2,
+          boxShadow: "rgba(0, 0, 0, 0.04) 0px 3px 5px"
+        }
+      };
+
     const filteredActions = data.actions.filter((action) => {
         return action.parent_interface_uuid == selectedApi
     })
@@ -167,6 +203,29 @@ function ActionNode ({id, data}) {
         )
     })
 
+    useEffect(() => {
+
+        var failureEdges = globalEdgeState.filter((edge) => {
+            return edge.source === id && edge.data?.handleId === 'actionFailure'
+        }).map((edge) => {
+            return edge.target
+        })
+        
+        var successEdges = globalEdgeState.filter((edge) => {
+            return edge.source === id && edge.data?.handleId === 'actionSuccess'
+        }).map((edge) => {
+            return edge.target
+        })
+
+        failureEdges.map((failureEdge) => {
+            if(successEdges.includes(failureEdge)){
+                setSharedEdgeTargetNodes([...sharedEdgeTargetNodes, failureEdge])
+            }
+        })
+    
+
+    }, [ globalEdgeState, id])
+
 
     return(
         <div style={{zIndex:1, paddingBottom: 20, backgroundColor:'white', display:'flex', flexDirection:'column', width: 320, borderRadius:8, border: !nodeViews[data.id] || !nodeViews[data.id]?.view || nodeViews[data.id]?.view !== "mapping" ? '.5px solid #E7E7E7' : '2px solid black', boxShadow:"rgba(0, 0, 0, 0.04) 0px 3px 5px" }}>
@@ -183,12 +242,90 @@ function ActionNode ({id, data}) {
                     )
                 }
             </div>
-            <Handle id={"actionInput"} type="target" position={Position.Left}/>
+            <Handle id="actionInput" type="target" position={Position.Left} isConnectable={true}/>
+            <Tooltip  
+                withArrow={true}
+                arrowPosition="center"
+                arrowSize={10}
+                color={'black'}
+                label={
+                    <Text sx={{
+                        fontFamily: 'apercu-regular-pro',
+                        fontSize: '12px',
+                        fontWeight: 100,
+                        color: 'white',
+                        marginBottom: 15,
+                        backgroundColor: 'black',
+                        padding: 10,
+                        borderRadius: 5,
+                    }}>
+                        Drag to add a Success Action
+                    </Text>
+                }
+                position="top" 
+                sx={{
+                    width: 20,
+                    height: 20,
+                    right: -10,
+                    top: 100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+
+                }}>
+                <Handle
+                    id="actionSuccess"
+                    type="source"
+                    position={Position.Right}
+                    isConnectable={true}
+                    style={{...HandleStyleCheck.top}}
+                    data-id={'actionSucces'}
+                > 
+                    <AiFillPlusCircle size={20} style={{pointerEvents: "none", color: 'white'}}/> 
+                </Handle>
+
+            </Tooltip>
+            <Tooltip 
+                withArrow = {true}
+                arrowPosition="center"
+                arrowSize={10}
+                color={'black'}
+                label={
+                    <Text sx={{
+                        fontFamily: 'apercu-regular-pro',
+                        fontSize: '12px',
+                        fontWeight: 100,
+                        color: 'white',
+                        marginTop: 15,
+                        backgroundColor: 'black',
+                        padding: 8,
+                        borderRadius: 5,
+                    }}>
+                        Drag to add a Failure Action
+                    </Text>
+                }
+                position="bottom" 
+                sx={{
+                    width: 20,
+                    height: 20,
+                    right: -10,
+                    top: 100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+
+                }}>
             <Handle
+                id="actionFailure"
                 type="source"
                 position={Position.Right}
-                id="a"
-            />
+                style={{...HandleStyleCheck.bottom}}
+                isConnectable={true}
+            > 
+                <AiFillMinusCircle size={20} style={{pointerEvents: "none", color: 'white'}}/> 
+                
+            </Handle>
+            </Tooltip>
              { !nodeViews[data.id] || !nodeViews[data.id]?.view || nodeViews[data.id]?.view !== "mapping" ? (
                                  <>
                                  <div style={{padding:15}}>
@@ -742,6 +879,7 @@ function TriggerNode ({data}) {
     )
 }
 
+
 const NewNodeButtonMenu = () => {
     return( 
         <Menu transition="pop-top-right" position='right-start' width={220} withinPortal>
@@ -752,13 +890,9 @@ const NewNodeButtonMenu = () => {
             </Menu.Target>
             <Menu.Dropdown>
             <Menu.Item
-                rightSection={
-                <Text size="xs" transform="uppercase" weight={700} color="dimmed">
-                    Ctrl + P
-                </Text>
-                }
+
             >
-                Project
+                Add Workflow Variable
             </Menu.Item>
             <Menu.Item
                 rightSection={
@@ -826,11 +960,13 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
         source: 'trigger',
         target: 'action-1',
         type: 'buttonEdge',
-        deletable: false
+        deletable: false,
+        interactionWidth: 200,
       },];
 
     //For existing workflows, will need to load the nodes and edges from the workflow object
     if(workflow?.nodes?.length > 0){
+        
         initialNodes = workflow.nodes
 
     }
@@ -839,7 +975,8 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
         initialEdges = workflow.edges.map((edge) => {
             return {
                 ...edge,
-                type: 'buttonEdge'
+                type: 'buttonEdge',
+                sourceHandle: edge?.data?.handleId
             }
         })
 
@@ -847,6 +984,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
 
     const reactFlowWrapper = useRef(null);
     const connectingNodeId = useRef(null);
+    const connectingHandleId = useRef(null);
  
     const {project} = useReactFlow();
     const [captureElementClick, setCaptureElementClick] = useState(false);
@@ -862,12 +1000,15 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
     const onConnect = useCallback(
-        (params) => setEdges((eds) => addEdge({ ...params, type: 'buttonEdge'}, eds)),
+        (params) => setEdges((eds) => addEdge({ ...params, sourceHandle: connectingHandleId.current, type:'buttonEdge', data: {
+            handleId: connectingHandleId.current
+        }}, eds)),
         [setEdges]
       );
 
-    const onConnectStart = useCallback((_, { nodeId }) => {
+    const onConnectStart = useCallback((_, { nodeId, handleId }) => {
         connectingNodeId.current = nodeId;
+        connectingHandleId.current = handleId;
         }, []);
 
      const onChange = (event) => {
@@ -894,34 +1035,39 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                 const { top, left } = reactFlowWrapper.current.getBoundingClientRect();
                 const newActionStepIndex = Number(connectingNodeId.current.split('action-')[1].split('-')[0]) + 1
 
-                const id = "action-" + newActionStepIndex + '-'+ uuidv4();
+                const targetNodeId = "action-" + newActionStepIndex + '-'+ uuidv4();
                 const newNode = {
-                    id,
+                    id: targetNodeId,
                     //We are removing half of the node width to center the new node
                     position: project({x: event.clientX - left - 100, y: event.clientY - top}),
                     type: 'action',
                     data: {
-                        label: `Node ${id}`,
-                        id: id,
+                        label: `Node ${targetNodeId}`,
+                        id: targetNodeId,
                         apis: apis,
                         actions: actions,
-                        onChange: onChange
+                        onChange: onChange,
+                        sourceHandle: connectingHandleId.current
                     }
                 }
+                const newEdgeId = connectingNodeId.current + "_to_" + targetNodeId+"_handle_"+connectingHandleId.current+ "_uuid_" + uuidv4();
+                
                 setNodes((nds) => nds.concat(newNode));
-                setEdges((eds) => eds.concat({id, source: connectingNodeId.current, target: id, type: 'buttonEdge'}));
+                setEdges((eds) => eds.concat({id: newEdgeId, source: connectingNodeId.current, target: targetNodeId, type: 'buttonEdge', sourceHandle: connectingHandleId.current, data: {
+                    handleId: connectingHandleId.current
+                }}));
                 setGlobalEdgeState(edges)
                 setGlobalNodeState(nodes)
-            }
+            } 
         }, [project, setNodes, setEdges, apis, actions, onChange, edges, nodes, setGlobalEdgeState, setGlobalNodeState]
     );
 
 
     useEffect(()=> {
-        if(nodes.length !== globalNodeState.length) {
+        if(nodes?.length !== globalNodeState?.length) {
             setGlobalNodeState(nodes)
         } 
-        if(edges.length !== globalEdgeState.length) {
+        if(edges?.length !== globalEdgeState?.length) {
             setGlobalEdgeState(edges)
         }
 
@@ -940,6 +1086,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                     onEdgesChange={onEdgesChange}
                     onConnectStart={onConnectStart}
                     onConnectEnd={onConnectEnd}
+                    onConnect={onConnect}
                     edgeTypes={edgeTypes}
                     fitView
                     nodeTypes={nodeTypes}
@@ -980,7 +1127,8 @@ const WorkflowHeader = ({workflow}) => {
 
     const processWorkflowSave = () => {
         setSaveInProgress(true)
-
+        console.log(globalEdgeState)
+        console.log(globalNodeState)
         axios.put(process.env.NEXT_PUBLIC_API_BASE_URL +'/projects/' + workflow.parent_project_uuid + '/workflows/' + workflow.uuid,{
             name: workflowName,
             nodes: globalNodeState,
@@ -1054,6 +1202,43 @@ const WorkflowHeader = ({workflow}) => {
                     )
                 }
 
+                </Group>
+                <Group>
+                    <SegmentedControl 
+                        color='dark'
+                        size='lg'
+                        sx={{
+                            backgroundColor: 'white',
+                            borderRadius: 5
+                        }}
+                        data={
+                            [
+                                {
+                                    value:'studio', 
+                                    label: (
+                                        <Center>
+                                            <TiFlowSwitch size={25}/>
+                                        </Center>
+                                    ) 
+                              },
+                              {
+                                value:'overview', 
+                                label: (
+                                    <Center>
+                                        <BsViewList size={25}/>
+
+                                    </Center>
+                                ) 
+                          }, 
+                          {
+                            value:'monitor', 
+                            label: (
+                                <Center>
+                                    <HiOutlineCommandLine size={25}/>
+                                </Center>
+                            ) 
+                        }
+                            ]}/>
                 </Group>
                 <Group>
                     <Button
@@ -1151,15 +1336,19 @@ const WorkflowStudio = () => {
         if(adaptionDrawerOpen){
             sourceNodeObject['view'] = 'workflow'
             targetNodeObject['view'] = 'workflow'
+            setSelectedEdge(null)
+            setSelectedAdaption(null)
         } else {
             sourceNodeObject['view'] = 'mapping'
             targetNodeObject['view'] = 'mapping'
+            setSelectedEdge(edge)
+            setSelectedAdaption(edge)
+            
         }
         setSelectedMapping({sourceProperty: {}, targetProperty: {}})
         setAdaptionDrawerOpen(!adaptionDrawerOpen);  
         setNodeViews([sourceNodeObject, targetNodeObject])
-        setSelectedEdge(edge)
-        setSelectedAdaption(edge)
+
     }
     
     function getSchemaFromPath(path) {
@@ -1303,10 +1492,10 @@ const WorkflowStudio = () => {
                 size={1000}
                 title={<Text style={{padding:20, fontFamily:'Visuelt', fontSize: '30px', fontWeight: 600}}>Mapping Configuration</Text>}
             >
-               <MappingModal getSchemaFromPath={getSchemaFromPath} toggleMappingModal={toggleMappingModal} partnership={partnership[0]} sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} edge={selectedEdge} nodes={nodeActions} />
+               <MappingModal getSchemaFromPath={getSchemaFromPath} toggleMappingModal={toggleMappingModal} partnership={partnership[0]} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} edge={selectedEdge} nodes={nodeActions} />
             </Modal>
             <Drawer lockScroll={false} size={610} style={{overflowY: 'scroll', zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
-            <SchemaMappingDrawer nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
+            <SchemaMappingDrawer nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
             </Drawer>
             <div style={{
                 display: 'flex',
@@ -1316,10 +1505,11 @@ const WorkflowStudio = () => {
                 height: 90,
                 boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)',
                 zIndex: 1,
+                position: 'sticky'
             }}>
-                <WorkflowHeader workflow={workflow[0]} style={{ boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader workflow={workflow[0]} style={{ position: 'sticky', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh'}}>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '92vh'}}>
                 <ReactFlowProvider>
                     <Flow toggleDrawer={toggleDrawer} workflow={workflow[0]} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
                 </ReactFlowProvider>

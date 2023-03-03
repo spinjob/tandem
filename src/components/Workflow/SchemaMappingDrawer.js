@@ -578,7 +578,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 setInputPaths([])
             }
 
-     }, [setOutputPaths, setInputPaths, action, nodeActions, sourceNode, targetNode])
+     }, [setOutputPaths, setInputPaths, action, nodeActions, sourceNode, targetNode, inputPaths, outputPaths, processPaths])
 
     useEffect (() => {
 
@@ -586,7 +586,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 processProperties()
         }
         
-    }, [requiredPropertyObjects, optionalPropertyObjects])
+    }, [requiredPropertyObjects, optionalPropertyObjects, processProperties])
 
     useEffect (() => {
   
@@ -612,7 +612,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         setRequiredMapped(requiredMappingsSet)
         setOptionalMapped(optionalMappingsSet)
 
-    }, [requiredPropertyObjects, optionalPropertyObjects, mappings])
+    }, [requiredPropertyObjects, optionalPropertyObjects, mappings,targetNode?.id])
 
     const renderPropertyMappingAccordions = (propertyType) => {
 
@@ -911,12 +911,9 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         requiredPropertyObjects.forEach((property) => {
             requiredOutputPaths.push(property.path)
         })
-
-        var inputAction = nodeActions[sourceNode?.id]?.name
-        var outputAction = nodeActions[targetNode?.id]?.name
         
-        var inputSchema = " {{INPUT REQUEST NAME:" + inputAction +"}}"+ "{{INPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(inputPaths) + " {{INPUT SCHEMA ARRAY OPTIONS END}} "
-        var outputSchema = " {{OUTPUT REQUEST NAME:" + outputAction +"}}"+" {{OUTPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(requiredOutputPaths) + " {{OUTPUT SCHEMA ARRAY OPTIONS END}}"
+        var inputSchema = "{{INPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(inputPaths) + " {{INPUT SCHEMA ARRAY OPTIONS END}} "
+        var outputSchema = " {{OUTPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(requiredOutputPaths) + " {{OUTPUT SCHEMA ARRAY OPTIONS END}}"
         var prompt = promptPrefix + outputSchema + inputSchema
 
         getMappingSuggestions(prompt, inputSchema, outputSchema)

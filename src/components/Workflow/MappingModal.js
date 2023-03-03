@@ -65,7 +65,7 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
     }
 
     const renderPartershipConfigurationMenu = () => {
-        var selectionOptionsArray = [{'label': 'New Workflow Configuration', 'value': 'new'}]
+        var selectionOptionsArray = [{'label': 'New Workflow Variable', 'value': 'new'}]
         if(partnership?.configuration){
             var configurationKeys = Object.keys(partnership.configuration)
             configurationKeys.forEach((key) => {
@@ -79,8 +79,8 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
         return(
             <div>
                     <TextInput 
-                        label={<Text style={{fontFamily:'Visuelt', fontWeight: 500, fontSize:'12px'}}>Configuration Key</Text>}
-                        placeholder="Provide a key to identify this configuration."
+                        label={<Text style={{fontFamily:'Visuelt', fontWeight: 500, fontSize:'12px'}}>Variable Key</Text>}
+                        placeholder="Provide a key to identify this variable."
                         onChange={(e) => {
                             setNewConfigKey(e.target.value)
                         }}
@@ -122,8 +122,8 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
                         }}
                     />
                     <Textarea
-                        label={<Text style={{fontFamily:'Visuelt', fontWeight: 500, fontSize:'12px'}}>Configuration Value</Text>}
-                        placeholder="Provide the value to configure"
+                        label={<Text style={{fontFamily:'Visuelt', fontWeight: 500, fontSize:'12px'}}>Variable Value</Text>}
+                        placeholder="Provide the value to set this variable to."
                         onChange={(e) => {
                             setNewConfigValue(e.target.value)
                         }}
@@ -150,7 +150,7 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
                             setConfigurationMappingView('view')
                             var sourceProperty = {
                                 key: newConfigKey,
-                                path: '$configuration.'+newConfigKey,
+                                path: '$variable.'+newConfigKey,
                                 type: newConfigType,
                                 value: newConfigValue,
                             }

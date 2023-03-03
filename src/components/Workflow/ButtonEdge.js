@@ -6,13 +6,15 @@ const foreignObjectSize = 50;
 import useStore from '../../context/store'
 
 export default function ButtonEdge({ id, target, source, selected, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, markerEnd, data}) {
-  
+
   const [edgePath, labelX, labelY] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition});
   const [disabled, setDisabled] = React.useState(false)
   const nodeActions = useStore(state => state.nodeActions)
   const targetAction = nodeActions[target]
+  const globalNodeState = useStore(state => state.nodeState)
   const [requiredPropertyCount, setRequiredPropertyCount] = useState(null)
-  
+  const [edgeSourceHandle, setEdgeSourceHandle] = useState(data?.handleId)
+  const selectedEdge = useStore(state => state.selectedEdge)
   const processNestedProperties = (properties, parent) => {
     const nestedPropertyKeys = Object.keys(properties)
     const nestedPropertyValues = Object.values(properties)
@@ -108,23 +110,58 @@ useEffect(() => {
 
   return !targetAction ? (
     <>
-    <path
-      id={id}
-      style={style}
-      className="react-flow__edge-path"
-      d={edgePath}
-      markerEnd={markerEnd}
-    />
-    </>
-  ) : (
-    <>
       <path
         id={id}
-        style={style}
+        style={
+          {stroke:'#E6E5E5',
+          '&:hover': {
+            stroke: '#B4F481'
+          }}
+        }
         className="react-flow__edge-path"
         d={edgePath}
         markerEnd={markerEnd}
       />
+      </>
+  ) : (
+    <>
+      {
+        selectedEdge?.id == id && edgeSourceHandle == 'actionSuccess' ? (
+            <path
+              id={id}
+              style={{
+                stroke:'#B4F481'
+              }}
+              className="react-flow__edge-path"
+              d={edgePath}
+              markerEnd={markerEnd}
+            /> 
+        ) : 
+        selectedEdge?.id == id && edgeSourceHandle == 'actionFailure' ? (
+          <path
+              id={id}
+              style={
+                {stroke:'#FFA39E'}
+              }
+              className="react-flow__edge-path"
+              d={edgePath}
+              markerEnd={markerEnd}
+            /> 
+        ) : (
+          <path
+            id={id}
+            style={
+              {stroke:'#E6E5E5',
+              '&:hover': {
+                stroke: '#B4F481'
+              }}
+            }
+            className="react-flow__edge-path"
+            d={edgePath}
+            markerEnd={markerEnd}
+          /> 
+        )
+      }
       <foreignObject
         width={foreignObjectSize}
         height={foreignObjectSize}
@@ -150,7 +187,7 @@ useEffect(() => {
         ) : null
       } */}
 
-      {selected ? (
+      {selectedEdge?.id == id ? (
           <ActionIcon size="xl" variant="outline" radius="xl" style={{borderColor: '#E9ECEF',backgroundColor: 'black'}}>
           <AiOutlineNodeIndex style={{
             color: 'white',
