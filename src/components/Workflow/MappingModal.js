@@ -312,13 +312,11 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
 
 
     useEffect(() => {
-        if(mappings[targetNodeId] && selectedEdge && selectedMapping && !didLoadInitialFormula) {
-            var selectedTargetPropertyKey = selectedMapping?.targetProperty?.key
-            var targetActionKey = nodeActions[selectedEdge?.target]
-            var targetNodeId = selectedEdge?.target
-            var fullMapping = mappings[targetNodeId][selectedTargetPropertyKey]
+        if(mappings[selectedEdge?.target] && selectedMapping && !didLoadInitialFormula) {
+            var fullMapping = mappings[selectedEdge?.target][selectedMapping?.targetProperty?.key]
             if(fullMapping?.input?.formulas) {
                 handlers.setState(fullMapping.input.formulas)
+                setFunctionDesignerOpened(true)
             }
             setDidLoadInitialFormula(true)
         }
@@ -439,7 +437,7 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
                                 <div style={{display:'flex', flexDirection:'row', alignItems: 'center'}}>
                                     <Switch onChange={(event)=>{
                                         setFunctionDesignerOpened(event.target.checked)
-                                    }} color="dark">
+                                    }} color="dark" checked={functionDesignerOpened}>
                                     </Switch>
                                     {
                                         functionDesignerOpened ? (
