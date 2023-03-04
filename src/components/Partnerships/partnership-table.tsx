@@ -149,7 +149,7 @@ function PartnershipsTable({ data }: TableSortProps) {
       <Table
         verticalSpacing="xs"
         highlightOnHover={true}
-        sx={{ minWidth: '80vw' }}
+       
       >
         <thead>
           <tr>

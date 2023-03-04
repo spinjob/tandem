@@ -35,6 +35,8 @@ import ReactFlow, {
     ReactFlowProvider,
   } from 'reactflow';
 
+import {Player } from '@lottiefiles/react-lottie-player';
+
 import { TimeInput } from '@mantine/dates';  
 import {AiOutlinePlusSquare, AiFillCheckCircle, AiFillMinusCircle, AiFillPlusCircle} from 'react-icons/ai'
 import {FiChevronDown} from 'react-icons/fi'
@@ -1517,8 +1519,16 @@ const WorkflowStudio = () => {
         </div>
        
     ) : (
-        <Center>
-            <Loader />
+        <Center sx={{
+            width: '100vw',
+            height: '100vh',
+        }}>
+            <Player
+            src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/4c929fb7-4cf7-4381-985d-41d8a741fc3c/Tandem-UI_Loader.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20230304%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20230304T024510Z&X-Amz-Expires=86400&X-Amz-Signature=3e483c53c1fb80b6d2b5ec883ccfcaed841983584f7700a3f45d86fe2cbf17dc&X-Amz-SignedHeaders=host&response-content-disposition=filename%3D%22Tandem-UI_Loader.json%22&x-id=GetObject" 
+            style={{width: 250, height: 250}}
+            loop
+            autoplay
+            />
         </Center>   
     )
     }
