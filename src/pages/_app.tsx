@@ -13,14 +13,14 @@ export default function App(props: AppProps) {
   const [organization, setOrganization] = useState(null)
   const [dbUser, setDbUser] = useState(null)
   const [isNavOpen,setIsNavOpen] = useState(true)
-  const [appMargin, setAppMargin] = useState(300)
+  const [appMargin, setAppMargin] = useState(225)
   const [hideNavigation, setHideNavigation] = useState(false)
   const router = useRouter()
 
   const setIsOpened = (opened: boolean) => {
     setIsNavOpen(opened)
     if(opened){
-      setAppMargin(300)
+      setAppMargin(225)
     }else{
       setAppMargin(100)
     }
@@ -30,7 +30,7 @@ export default function App(props: AppProps) {
     if (isNavOpen === false && hideNavigation === false) {
       setAppMargin(100)
     } else if (isNavOpen === true && hideNavigation === false){
-      setAppMargin(300)
+      setAppMargin(225)
     } 
   }, [isNavOpen])
 
@@ -44,7 +44,7 @@ export default function App(props: AppProps) {
     } else if (router.pathname !== '/partnerships/[pid]/workflows/[workflowId]' ){
       setHideNavigation(false)
       if (appMargin === 0){
-        setAppMargin(300)
+        setAppMargin(225)
       }
     }
   }, [router.pathname])

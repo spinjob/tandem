@@ -217,14 +217,17 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
 
 
   return  (
-    <div style={{width: '60vw', maxWidth:1250}}>
-        <div style={{paddingBottom: 20,paddingLeft: 10, paddingTop: 30}}>
+    <div style={{width: '100%', maxWidth:1250}}>
+        <div style={{paddingBottom: 10,paddingLeft: 10, paddingTop: 30, display:'flex'}}>
                 <Button onClick={() => {setStatusFilter("None")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: 'black', color: 'white'}}> All </Button>
+                <div style={{width: 10}}/>
                 <Button onClick={() => {setStatusFilter("Active")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#b4f481', color: 'black', fontWeight: 4}}>Active</Button>
+                <div style={{width: 10}}/>
                 <Button onClick={() => {setStatusFilter("Upublished")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#FFBD9A', color: 'black', fontWeight: 4}}> Unpublished </Button>
+                <div style={{width: 10}}/>
                 <Button onClick={() => {setStatusFilter("Draft")}} style={{fontFamily: 'apercu-regular-pro',  borderRadius: 30, height: 18, backgroundColor: '#e7e7e7', color: 'black', fontWeight: 4}}> Draft </Button>
         </div>
-        <div style={{display: 'flex', flexDirection:'row', width: '60vw',maxWidth:1250, height: 35, justifyContent: 'right'}}>
+        <div style={{display: 'flex', flexDirection:'row', width: '100%',maxWidth:1250, height: 35, justifyContent: 'right'}}>
             {/* <TextInput
             size="sm"
             value={search}

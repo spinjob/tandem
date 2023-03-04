@@ -8,6 +8,14 @@ import {BiBuildings} from 'react-icons/bi'
 import {TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapse} from 'react-icons/tb'
 import AppContext from "../context/AppContext"
 import axios from "axios";
+import primaryLockupBlack from '../../public/logos/SVG/Primary Lockup_Black.svg'
+import blackLogoIcon from '../../public/logos/SVG/Icon/Icon_Black.svg'
+import partnershipsIcon from '../../public/icons/Programing, Data.8.svg'
+import organizationIcon from '../../public/icons/high-rise-building.svg'
+import apiIcon from '../../public/icons/programming-code.6.svg'
+import logoutIcon from '../../public/icons/exit-door-log-out.3.svg'
+import minimizeNavIcon from '../../public/icons/window-finder-minimize-resize.svg'
+import maximizeNavIcon from '../../public/icons/window-finder-maximize-resize.svg'
 
 const Navigation = ({setIsOpened, isOpened}) => {
     const { user, error, isLoading } = useUser();
@@ -25,7 +33,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
             marginBottom: theme.spacing.md * 1.5,
             display: 'flex',
             alignItems: 'center',
-            justifyContent:'center',
+            justifyContent:'left',
             flexDirection: 'row'
           },
           collapsedHeader: {
@@ -57,13 +65,14 @@ const Navigation = ({setIsOpened, isOpened}) => {
             alignItems: 'center',
             textDecoration: 'none',
             fontFamily: 'Visuelt',
+            fontSize: 14,
             color: theme.colorScheme === 'dark' ? theme.colors.dark[1] : theme.colors.gray[7],
             padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
             borderRadius: theme.radius.sm,
             borderRadius: 12,
             width: '80%',
             '&:hover': {
-              backgroundColor: '#ffffff',
+              backgroundColor: '#EAEAFF',
               color: theme.colorScheme === 'dark' ? theme.white : theme.black,
       
               [`& .${icon}`]: {
@@ -76,6 +85,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
             ref: icon,
             color: theme.colorScheme === 'dark' ? theme.colors.dark[2] : theme.colors.gray[6],
             marginRight: theme.spacing.sm,
+        
           },
       
           linkActive: {
@@ -114,7 +124,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
             width: 50,
             height: 50,
             '&:hover': {
-              backgroundColor: '#ffffff',
+              backgroundColor: '#EAEAFF',
               color: theme.colorScheme === 'dark' ? theme.white : theme.black,
       
               [`& .${icon}`]: {
@@ -126,11 +136,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
       });
 
     const { classes, cx } = useStyles();
-    const [active, setActive] = useState( 
-     !organization ? 'My APIs' : 
-      'Partnerships'
-      
-    );
+    const [active, setActive] = useState('Partnerships');
 
     const handleToggle = useCallback(() => {
         setIsOpened(!isOpened);
@@ -147,11 +153,11 @@ const Navigation = ({setIsOpened, isOpened}) => {
       if(!isOpened) {
           switch (label) {
             case 'Partnerships':
-                return <MdConnectWithoutContact style={{fontSize: 24}} />;
+                return <Image alt="partnerships" src={partnershipsIcon} />;
             case 'My APIs':
-                return <CgListTree  />;
+                return <Image alt="apis" src={apiIcon}/>;
             case 'My Organization':
-                return <BiBuildings/>;
+                return <Image alt="organization" src={organizationIcon}/>;
             default:
                 return null;
          }
@@ -159,11 +165,27 @@ const Navigation = ({setIsOpened, isOpened}) => {
       } 
         switch (label) {
             case 'Partnerships':
-                return <MdConnectWithoutContact className={classes.linkIcon} />;
+                return <>
+                      <div style={{height: 26, width: 26}}>
+                          <Image alt="partnerships" src={partnershipsIcon} className={classes.linkIcon} />
+                       </div>
+                       <div style={{width: 8}}/>
+                      </>
+                 ;
             case 'My APIs':
-                return <CgListTree className={classes.linkIcon} />;
+                return  <>
+                        <div style={{height: 26, width: 26}}>
+                            <Image alt="apis" src={apiIcon} className={classes.linkIcon} />
+                        </div>
+                        <div style={{width: 8}}/>
+                        </>
             case 'My Organization':
-                return <BiBuildings className={classes.linkIcon} />;
+                return <>
+                        <div style={{height: 26, width: 26}}>
+                            <Image alt="organization" src={organizationIcon} className={classes.linkIcon} />
+                        </div>
+                        <div style={{width: 8}}/>
+                      </>;
             default:
                 return null;
         }
@@ -179,7 +201,11 @@ const Navigation = ({setIsOpened, isOpened}) => {
           }}
         >
             {renderIcon(item.label)}
-          <span style={{fontSize: 18}}>{item.label}</span>
+
+          <span >
+          <Text sx={{fontSize: 14}}>
+            {item.label}
+          </Text></span>
         </a>
       ) : (
         <a
@@ -303,11 +329,16 @@ const Navigation = ({setIsOpened, isOpened}) => {
     </div>)
     : user && isOpened ? (
         <div style={{position:'fixed', width:300, zIndex: 9999999999}}>
-            <Navbar style={{backgroundColor: '#F8F6F4'}} height={'100vh'} width={{ sm: 300 }}>
+            <Navbar style={{backgroundColor: '#F8F6F4'}} height={'100vh'} width={{ sm: 245 }}>
                 <Navbar.Section grow>
-                    <Group className={classes.header} position="center">
-                       <Image style={{paddingTop:20, paddingRight: 40, width:240}} alt='logo' src='https://i.ibb.co/QM4cyP9/Screen-Shot-2023-02-13-at-10-01-35-PM.png' />
+                    <Group className={classes.header} position='left'>
+                      <Image style={{
+                        paddingLeft: 32,
+                        paddingTop: 10, 
+                        width: 180
+                        }} alt='logo' src={primaryLockupBlack} />
                     </Group>
+                    <div style={{height: 35}}/>
                     <Group position="center">
                         {links}
                     </Group> 
@@ -315,15 +346,24 @@ const Navigation = ({setIsOpened, isOpened}) => {
                 <Navbar.Section className={classes.footer}>
                 <a href="#" className={classes.link} onClick={handleToggle}>
                   <div style={{alignItems: 'center', display:'flex', flexDirection: 'row'}}>
-                    <TbLayoutSidebarLeftCollapse/>
+                    <Image alt="collapseNavigation" src = {minimizeNavIcon} width={26} height={26}/>
                     <div style={{width: 10}}/>
-                    <Text>Collapse</Text>  
+                    <Text style={{fontFamily: 'Visuelt', fontWeight: 100, fontSize: 16}}>Collapse</Text>  
                     </div>
                 </a>
+                <div style={{height: 10}}/>
+
                 <a className={classes.link} onClick={()=> router.push('/api/auth/logout')}>
-                    <div style={{alignItems: 'center', display:'flex', flexDirection: 'row', width: 200, height: 50,borderRadius: '5px', overflow: 'hidden'}}>                        
+                    <div style={{alignItems: 'center', display:'flex', flexDirection: 'row', borderRadius: '5px', overflow: 'hidden'}}>                        
+                    <Image alt="logout" src = {logoutIcon} width={26} height={26}/>
+                    <Text style={{paddingLeft: 10, fontFamily: 'Visuelt', fontWeight: 100, fontSize: 16}}>Logout</Text>
+                    </div>
+                </a>
+                <div style={{height: 10}}/>
+                <a className={classes.link}>
+                    <div style={{alignItems: 'center', display:'flex', flexDirection: 'row', width: 200, height: 30,borderRadius: '5px', overflow: 'hidden'}}>                        
                     <Avatar size={26} radius={26} src={user?.picture}/>
-                    <Text style={{paddingLeft: 10}}>{user?.name}</Text>
+                    <Text style={{paddingLeft: 10, fontFamily: 'Visuelt', fontWeight: 100, fontSize: 16}}>{user?.name}</Text>
                     </div>
                 </a>
                 </Navbar.Section>
@@ -335,19 +375,100 @@ const Navigation = ({setIsOpened, isOpened}) => {
       <Navbar style={{backgroundColor: '#F8F6F4'}} height={'100vh'} width={{ sm: 120 }}>
           <Navbar.Section grow  style={{display:'flex', flexDirection:'column',alignItems: 'center'}} >
             <Group className={classes.collapsedHeader}  style={{display:'flex', flexDirection:'row',alignItems: 'center'}}>
-                  <Image style={{paddingRight: 15, paddingLeft: 15, paddingTop: 20, width: 100}} alt='logo' src='https://i.ibb.co/HBdWHQX/Screen-Shot-2023-02-16-at-2-46-33-PM.png' />
+              <Image alt="logoIcon" src={blackLogoIcon} width={26} height={26} sx={{paddingTop: 10}} />
             </Group>
+            <div style={{height: 35}}/>
             <Group position="center" style={{display:'flex', flexDirection:'column',alignItems: 'center'}}>
                 {collapsedLinks}
             </Group> 
           </Navbar.Section>
           <Navbar.Section className={classes.footer}>
-                <a className={classes.collapsedLink} onClick={handleToggle}>
-                    <TbLayoutSidebarRightCollapse/>            
-                </a>
+                <Tooltip
+                  key = "expand"
+                  withinPortal={true}
+                  label={
+                    <Text
+                      sx={{
+                        fontFamily: 'Visuelt',
+                        fontSize: 16,
+                        color: '#FFFFFF'
+                      }}
+                    >Expand Nav</Text>
+                  }
+                  color={'black'}
+                  position="right"
+                  offset={20}
+                  sx={{
+                    height: 50,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    display:'flex',
+                    border: '1px solid #F8F6F3',
+                    borderRadius: 12,
+                  }}
+                  >
+                    <a className={classes.collapsedLink} onClick={handleToggle}>
+                      <Image alt="expandNav" src = {maximizeNavIcon} width={26} height={26}/>       
+                    </a>
+                </Tooltip>  
+                <div style={{height: 10}}/>
+                <Tooltip
+                      key = "logout"
+                      withinPortal={true}
+                      label={
+                        <Text
+                          sx={{
+                            fontFamily: 'Visuelt',
+                            fontSize: 16,
+                            color: '#FFFFFF'
+                          }}
+                        >Logout</Text>
+                      }
+                      color={'black'}
+                      position="right"
+                      offset={20}
+                      sx={{
+                        height: 50,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        display:'flex',
+                        border: '1px solid #F8F6F3',
+                        borderRadius: 12,
+                      }}
+                      >
                 <a className={classes.collapsedLink} onClick={()=> router.push('/api/auth/logout')}>
+                    <Image alt="logout" src = {logoutIcon} width={26} height={26}/>  
+                </a>
+                </Tooltip>
+                <div style={{height: 10}}/>
+                <Tooltip
+                  key = "profile"
+                  withinPortal={true}
+                  label={
+                    <Text
+                      sx={{
+                        fontFamily: 'Visuelt',
+                        fontSize: 16,
+                        color: '#FFFFFF'
+                      }}
+                    >My Profile</Text>
+                  }
+                  color={'black'}
+                  position="right"
+                  offset={20}
+                  sx={{
+                    height: 50,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    display:'flex',
+                    border: '1px solid #F8F6F3',
+                    borderRadius: 12,
+                  }}
+                  >
+                <a className={classes.collapsedLink}>
                     <Avatar size={26} radius={26} src={user?.picture}/>
                 </a>
+                </Tooltip>
           </Navbar.Section>
       </Navbar>
   </div>

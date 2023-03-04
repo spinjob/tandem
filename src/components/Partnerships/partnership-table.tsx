@@ -35,6 +35,25 @@ const useStyles = createStyles((theme) => ({
     height: 21,
     borderRadius: 21,
   },
+  header: {
+    position: 'sticky',
+    top: 0,
+    backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
+    transition: 'box-shadow 150ms ease',
+    zIndex: 1,
+
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0
+    },
+  },
+
+  scrolled: {
+    boxShadow: theme.shadows.sm,
+  },
 }));
 
 interface RowData {
@@ -101,11 +120,13 @@ function sortData(
 }
 
 function PartnershipsTable({ data }: TableSortProps) {
+  const { classes, cx } = useStyles();
   const [search, setSearch] = useState('');
   const [sortedData, setSortedData] = useState(data);
   const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
   const router  = useRouter();
+  const [scrolled, setScrolled] = useState(false);
 
   const setSorting = (field: keyof RowData) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -130,28 +151,28 @@ function PartnershipsTable({ data }: TableSortProps) {
       <td data-id={row.id}>{row.name}</td>
       <td data-id={row.id}>{row.workflows}</td>
       <td data-id={row.id}>
-        <Group spacing="sm">
-          <Avatar size={26} src={row.avatar} radius={26} />
-        </Group>
+        <Avatar.Group sx={{zIndex: 0}}>
+          <Avatar radius='xl' size={'sm'} sx={{border:'1px solid black'}} />
+          <Avatar radius='xl' size={'sm'} sx={{border:'1px solid black'}} />
+          <Avatar radius='xl' size={'sm'} sx={{border:'1px solid black'}} />
+          <Avatar radius='xl' size={'sm'} sx={{border:'1px solid black'}} />
+          <Avatar radius='xl' size={'sm'} sx={{border:'1px solid black'}} />
+        </Avatar.Group>
       </td> 
       <td data-id={row.id}>{row.updated}</td>
     </tr>
   ));
 
   return (
-    <ScrollArea>
-      {/* <TextInput
-        placeholder="Search by any field"
-        mb="md"
-        value={search}
-        onChange={handleSearchChange}
-      /> */}
+    <ScrollArea
+      sx={{ height: 320, maxHeight: 500}}
+      onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
+    >
       <Table
         verticalSpacing="xs"
         highlightOnHover={true}
-       
       >
-        <thead>
+        <thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
           <tr>
             <Th
               sorted={sortBy === 'name'}

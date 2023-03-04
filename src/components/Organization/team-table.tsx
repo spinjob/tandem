@@ -165,21 +165,21 @@ function TeamTable({ data }: TableSortProps) {
               reversed={reverseSortDirection}
               onSort={() => setSorting('key')}
             >
-              <Text style={{fontFamily:'Visuelt', fontSize:'15px'}}>Config Key</Text>
+              <Text style={{fontFamily:'Visuelt', fontSize:'15px'}}>Member</Text>
             </Th>
             <Th
               sorted={sortBy === 'type'}
               reversed={reverseSortDirection}
               onSort={() => setSorting('type')}
             >
-               <Text>Data Type</Text>
+               <Text>Partnerships</Text>
             </Th>
             <Th
               sorted={sortBy === 'value'}
               reversed={reverseSortDirection}
               onSort={() => setSorting('value')}
             >
-               <Text>Value</Text>
+               <Text>Team Permissions</Text>
             </Th>
           </tr>
         </thead>

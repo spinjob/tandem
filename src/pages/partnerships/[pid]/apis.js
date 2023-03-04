@@ -1,12 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
-import {Modal, Button,Text, Loader, ScrollArea, Grid, Container, Badge} from '@mantine/core'
+import {Modal, Button,Text, Loader, ScrollArea, Grid, Container, Image, Badge} from '@mantine/core'
 import {GrAddCircle} from 'react-icons/gr'
 import {VscTypeHierarchy} from 'react-icons/vsc'
+import apiIcon from '../../../../public/icons/Programing, Data.2.svg'
 import ImportApiDropzone from '../../../components/import-api.tsx'
 import { useUser } from '@auth0/nextjs-auth0/client';
 import {useContext} from 'react'
 import AppContext from '@/context/AppContext';
 import axios from 'axios';
+import { useRouter } from 'next/router';
 
 const PartnershipApis = ({pid, partnershipApis}) => {
 
@@ -15,12 +17,15 @@ const PartnershipApis = ({pid, partnershipApis}) => {
    const { user, error, isLoading } = useUser();
    const {organization} = useContext(AppContext).state
    const {dbUser, setDbUser} = useContext(AppContext).state
+   const router = useRouter();
 
    const renderApis = () => {
         return partnershipApis.map((api) => {
             return (
                 <Grid.Col key={"gridColumn"+api.uuid} xs={4}>
-                        <Button key={'button_'+api.uuid} sx={{
+                        <Button key={'button_'+api.uuid} onClick={() => {
+                            router.push('/apis/' + api.uuid)
+                        }} sx={{
                             '&:hover': {
                                 boxShadow: '0 0 0 1px #eaeaff'
                             }
@@ -30,8 +35,8 @@ const PartnershipApis = ({pid, partnershipApis}) => {
                                     <div style={{display: 'flex',height: 28, width: 28, borderRadius: 4, backgroundColor: '#eaeaff', alignItems:'center', justifyContent:'center'}}>
                                         <Text style={{color:"black"}}>{api.name.charAt(0)}</Text>                                 
                                     </div>
-                                    <div style={{width: 190}}/>
-                                    <VscTypeHierarchy style={{height: 25, width: 25, color: '#f2f0ee'}}/>
+                                    <div style={{width: 180}}/>
+                                    <Image src={apiIcon} alt="api icon" width={30} height={26} style={{opacity:.2}}/>
                                     </div>
                                 <div style={{display:'block', flexDirection:'column', alignItems: 'left'}}>
                                     <Text style={{fontFamily:'Visuelt', fontWeight: 600, color:'#000000', fontSize: 28}}>{api.name}</Text>
@@ -47,40 +52,9 @@ const PartnershipApis = ({pid, partnershipApis}) => {
 
     return partnershipApis ? (
         <div>
-            <Modal
-                centered
-                opened={modalOpened}
-                onClose={() => setModalOpened(false)}
-                size="lg"
-                title={
-                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontSize: '30px', paddingLeft: 10,paddingTop: 10}}>Upload API Spec</Text>                      
-                }
-            >
-                <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', paddingBottom: 10}}>
-                    <Text style={{ fontFamily: 'Visuelt', fontSize: '15px', paddingLeft: 10, color: '#3E3E3E'}}>Supported Open API Versions:</Text> 
-                    <Badge color="gray" style={{marginLeft: 10}}>v2.X</Badge>
-                    <Badge color="gray" style={{marginLeft: 10}}>v3.X</Badge>
-                </div>
-                <ImportApiDropzone organizationId={organization} userId={user?.sub}/>
-            </Modal>
             <div style={{height: '100vh',width: '75%',paddingTop: 30, display:'flex', flexDirection:'column'}}>
                     <Container style={{width: '100vw'}}>
-                        <Grid grow={false}>
-                        <Grid.Col xs={4}>
-                            <Button 
-                            onClick={() => setModalOpened(true)}
-                            sx={{
-                                '&:hover': {
-                                    boxShadow: '0 0 0 1px #eaeaff'
-                                }
-                            }}
-                            style={{height: 180, width: 280, backgroundColor: '#f8f6f3', borderRadius: 20}}>
-                                <div style={{display:'flex', flexDirection:'column', alignItems: 'center'}}>
-                                <GrAddCircle style={{height: 35, width: 35, color: '#c4c4c4'}} />
-                                <Text style={{paddingTop: 10,fontFamily:'Visuelt', fontWeight: 100, fontSize: '20px', color:'#000000'}}>Upload API Spec</Text>
-                                </div>
-                            </Button>
-                        </Grid.Col>    
+                        <Grid grow={false}>  
                             {renderApis()}
                         </Grid>
                     </Container>   

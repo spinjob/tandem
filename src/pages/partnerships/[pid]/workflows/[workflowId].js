@@ -47,6 +47,7 @@ import {BsViewList} from 'react-icons/bs'
 import {TbWebhook} from 'react-icons/tb'
 import {IoHelpBuoyOutline} from 'react-icons/io5'
 import {GrSchedulePlay, GrTrigger} from 'react-icons/gr'
+import studioIcon from '../../../../../public/icons/Programing, Data.5.svg'
 import 'reactflow/dist/style.css';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
@@ -1207,7 +1208,7 @@ const WorkflowHeader = ({workflow}) => {
                 </Group>
                 <Group>
                     <SegmentedControl 
-                        color='dark'
+                        
                         size='lg'
                         sx={{
                             backgroundColor: 'white',
@@ -1219,7 +1220,7 @@ const WorkflowHeader = ({workflow}) => {
                                     value:'studio', 
                                     label: (
                                         <Center>
-                                            <TiFlowSwitch size={25}/>
+                                            <Image alt="workflowStudio" src={studioIcon} width={25} height={25}/>
                                         </Center>
                                     ) 
                               },
@@ -1228,7 +1229,6 @@ const WorkflowHeader = ({workflow}) => {
                                 label: (
                                     <Center>
                                         <BsViewList size={25}/>
-
                                     </Center>
                                 ) 
                           }, 

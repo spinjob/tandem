@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { useRouter } from 'next/router'
 import {useState, useEffect,useContext, useCallback} from 'react'
-import { Breadcrumbs, Anchor, Loader, Text, Tabs, Center} from '@mantine/core';
+import { Breadcrumbs, Anchor, Loader, Text, Tabs, TextInput, Center} from '@mantine/core';
 import {useUser} from '@auth0/nextjs-auth0/client'
 import AppContext from '../context/AppContext'
 import TeamTable from '../components/Organization/team-table'
@@ -69,11 +69,26 @@ const MyOrganization = () => {
             </div>
             <Tabs color="gray" defaultValue="team">
                 <Tabs.List>
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500}} value="team">Team Members</Tabs.Tab>
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500}} value="settings">Settings</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, width: 130}} value="team">Team Members</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500, width: 120}} value="settings">Settings</Tabs.Tab>
                 </Tabs.List>
                 <Tabs.Panel value="team">
-                    <TeamTable data={testData} />
+                    <div style={{height:20}}/>
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        padding: 10,
+                    }}>
+                        <TextInput
+                            placeholder="e.g. sofia@example.com"
+                            label="Add People"
+                            style={{width: 300}}
+                        >
+                            
+                        </TextInput>
+                        <TeamTable data={testData} />
+                    </div>
+                   
                 </Tabs.Panel>
             </Tabs>
 

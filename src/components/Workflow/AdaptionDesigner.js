@@ -295,7 +295,6 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
     }
 
     function updateFormula(uuid, inputs) {
-        console.log(uuid, inputs)
         handlers.applyWhere(
             (item)=> item.uuid == uuid,
             (item)=> {
@@ -307,7 +306,7 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
                
             }
         )
-        console.log(formulas)
+
     }
 
     function renderSampleOutput (exampleValue, position) {

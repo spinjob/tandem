@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { Breadcrumbs, Anchor, Loader, Text, Tabs, Center} from '@mantine/core';
+import { Breadcrumbs, ActionIcon, Avatar, Group, Container,Anchor, Loader, Text, Tabs, Center} from '@mantine/core';
 import { useState, useEffect, useContext, useCallback } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import axios from 'axios'
@@ -7,12 +7,25 @@ import PartnershipWorkflows from './[pid]/workflows'
 import PartnershipApis from './[pid]/apis'
 import AppContext from '../../context/AppContext';
 import PartnershipConfigurations from './[pid]/configurations'
+import {BsThreeDots} from 'react-icons/bs'
+
 
 const Partnership = () => {
   const router = useRouter()
   const { pid } = router.query
   const [partnership, setPartnership] = useState(null)
   const [apis, setApis] = useState(null)
+
+  const testUserData = [
+    {
+      "name": "Spencer Johnson",
+      "image": null
+    },
+    {
+      "name": "Ron Purdy",
+      "image": null
+    },
+  ]
   
   const fetchPartnershipDetails = useCallback(() => {
     axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/details')
@@ -73,10 +86,34 @@ useEffect(() => {
       display: 'flex',
       flexDirection: 'column',
       padding: 30,
-      width: '100%'
+      width: '100%',
+
     }}>
-      <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>{partnership.name}</Text>
-      <Breadcrumbs separator="→">{items}</Breadcrumbs>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+
+        width: '100%'
+      }}> 
+          <div style={{display:'block'}}>
+            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>{partnership.name}</Text>
+            <Breadcrumbs separator="→">{items}</Breadcrumbs>
+          </div>
+          <div>
+            <div style={{display:'flex', flexDirection:'row', alignItems: 'center'}}>
+                <Avatar.Group>
+                  {testUserData.map((user, index) => (
+                    <Avatar key={index} src={user.image} alt={user.name} radius='xl' size={'md'} sx={{border:'1px solid black'}} />
+                  ))}
+                </Avatar.Group>
+                <ActionIcon>
+                  <BsThreeDots size={20} style={{color:'black'}}/>
+                </ActionIcon>
+              </div>
+          </div>
+          
+      </div>
       <div style={{height:50}}/>
       <Tabs color="gray" defaultValue="workflows">
         <Tabs.List>

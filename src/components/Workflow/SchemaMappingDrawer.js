@@ -1,4 +1,4 @@
-import {Text, Divider, Button, Container, UnstyledButton, Tooltip, Accordion, Loader, ScrollArea, ActionIcon} from '@mantine/core'
+import {Text, Divider, Button, Container, Image, UnstyledButton, Tooltip, Accordion, Loader, ScrollArea, ActionIcon} from '@mantine/core'
 import { useCallback,useEffect, useState } from 'react'
 import {RxArrowRight} from 'react-icons/rx'
 import {AiOutlineCheck} from 'react-icons/ai'
@@ -6,6 +6,7 @@ import {VscWand} from 'react-icons/vsc'
 import {RiCloseCircleFill} from 'react-icons/ri'
 import useStore from '../../context/store'
 import axios from 'axios'
+import mappingIcon from '../../../public/icons/Programing, Data.1.svg'
 
 const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode}) => {
 
@@ -923,10 +924,11 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
 
     return (
         <div style={{padding: 12}}>
-            <div style={{display: 'flex', alignItems: 'baseline', justifyContent:'space-between'}}>
-                <Text style={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 600}}>Schema Mapping </Text>
+            <div style={{display: 'flex', alignItems: 'center', marginTop:-22}}>
+                <Image alt="mapping" src={mappingIcon} style={{height: 30, width: 30, marginRight: 10, filter: 'invert(0%) sepia(1%) saturate(7461%) hue-rotate(43deg) brightness(113%) contrast(100%)'}}/>
+                <Text style={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500}}>Schema Mapping </Text>
             </div>
-
+            <div style={{height: 20}}/>
             <Divider/>
             <Text style={{paddingTop: 20, paddingBottom: 20, fontFamily: 'Visuelt', fontSize: '15px', fontWeight: 300, color: 'grey'}}>Below are all of the required and optional properties for {action?.name}. The API documentation indicates that all of the required properties must have a value mapped or set - not doing so will likely result in failure.</Text>   
             {

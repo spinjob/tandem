@@ -1,23 +1,26 @@
 import { useState, useCallback, useEffect } from 'react';
 import {useUser} from '@auth0/nextjs-auth0/client'
-import {Card, Button,Text, Loader, Modal, Container} from '@mantine/core'
+import {Card, Button,Text, Anchor, Image, Loader, Modal, BackgroundImage, Container} from '@mantine/core'
 import PartnershipsTable from '../components/Partnerships/partnership-table'
 import NewPartnership from '../components/Partnerships/newPartnership'
 import axios from 'axios';
 import {useContext} from 'react'
 import AppContext from '../context/AppContext';
+import partnershipsTableBackground from '../../public/Partnerships-Table-Background.svg'
+import helpCardBackground from '../../public/Help-Card-Background.svg'
 
 const Partnerships = () => {
 
     const { user, error, isLoading } = useUser();
     const [partnerships, setPartnerships] = useState(null)
+    const [partnershipWorkflows, setPartnershipWorkflows] = useState(null)
     const {setOrganization} = useContext(AppContext)
     const {organization} = useContext(AppContext).state
     const {setDbUser} = useContext(AppContext)
     const {dbUser} = useContext(AppContext).state
     const [modalOpened, setModalOpened] = useState(false)
     const [apis, setApis] = useState(null)
-
+    
     const data = partnerships?.map((partnership) => {
         return {
             id: partnership.uuid,
@@ -27,6 +30,7 @@ const Partnerships = () => {
         }
     })
 
+    console.log(partnerships)
     const fetchApis = useCallback(() => {
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + organization)
             .then((res) => {
@@ -80,6 +84,7 @@ const Partnerships = () => {
         }
     }, [organization, user, dbUser, fetchDbUser])
 
+
     return user && organization && partnerships ? ( 
         <div style={{display: 'flex', flexDirection:'column', width: '100vw', padding:30, paddingLeft: 40}}>
             <Modal
@@ -93,55 +98,77 @@ const Partnerships = () => {
             >
                <NewPartnership organization={organization} apis={apis}/>
             </Modal>
-                <Text style={{paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>Welcome, {user?.given_name}</Text>
+                <Text style={{paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 600, fontSize: '38px'}}>Welcome, {user?.given_name}</Text>
                 <div style={{display:'flex'}}>
-                    <Card style={{height: 180, width: 253, paddingTop: 38, paddingLeft: 50, backgroundColor: '#ffecea'}}radius={'xl'}>
+                    <Card style={{height: 165, width: 253, paddingTop: 38, paddingLeft: 50, backgroundColor: '#ffecea'}}radius={'xl'}>
                         <Card.Section>
-                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '18px'}}>Uncleared Errors</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 500, fontSize: '18px'}}>Uncleared Errors</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 700, fontSize: '80px'}}>0</Text>
                         </Card.Section>
                     </Card>
-                    <div style={{width: 30}}/>
-                    <Card style={{height: 180, width: 253, paddingTop: 38, paddingLeft: 50, backgroundColor: '#d9fac0'}}radius={'xl'}>
+                    <div style={{width: 20}}/>
+                    <Card style={{height: 165, width: 253, paddingTop: 38, paddingLeft: 50, backgroundColor: '#d9fac0'}}radius={'xl'}>
                         <Card.Section>
-                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '20px'}}>Active Workflows</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 500, fontSize: '18px'}}>Active Workflows</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 700, fontSize: '80px'}}>0</Text>
                         </Card.Section>
                     </Card>
-                    <div style={{width: 30}}/>
-                    <Card style={{height: 180, width: 253, paddingTop: 38, paddingLeft: 50, backgroundColor: '#eaeaff'}}radius={'xl'}>
+                    <div style={{width: 20}}/>
+                    <Card style={{height: 165, width: 253, paddingTop: 38, paddingLeft: 50, backgroundColor: '#eaeaff'}}radius={'xl'}>
                         <Card.Section>
-                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '20px'}}>Hours Saved</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 500, fontSize: '18px'}}>Hours Saved</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 700, fontSize: '80px'}}>0</Text>
                         </Card.Section>
                     </Card>
-                </div>
-                <div style={{display:'flex', justifyContent: 'right', padding: 30, paddingBottom:0}}>
+                    <div style={{width: 20}}/>
+                    <BackgroundImage style={{
+                        height: 165,
+                        width: 308, 
+                       
+                    }} src={helpCardBackground}>
+                        <Card sx={{backgroundColor: 'transparent'}}>
+                            <Card.Section sx={{backgroundColor: 'transparent', paddingTop: 14, paddingLeft: 23}}>
+                                <Text sx={{fontFamily:'Visuelt', fontWeight: 500, fontSize: '18px'}}>Help & Support</Text>
+                            </Card.Section>
+                            <Card.Section sx={{backgroundColor: 'transparent', paddingTop: 14, paddingLeft: 23}}>
+                                <Anchor underline={true} sx={{fontFamily:'Visuelt', fontWeight: 100, fontSize: '14px', color: 'black'}}>Importing API Specs</Anchor>
+                                <div style={{height: 5}}/>
+                                <Anchor  underline={true} sx={{fontFamily:'Visuelt', fontWeight: 100, fontSize: '14px', color: 'black'}}>Creating New Workflows</Anchor>
+                                <div style={{height: 5}}/>
+                                <Anchor  underline={true} sx={{fontFamily:'Visuelt', fontWeight: 100, fontSize: '14px', color: 'black'}}>Managing Partnerships</Anchor>
+                            </Card.Section>
+                           
+                        </Card>
                         
+                    </BackgroundImage>
                 </div>
-                <div style={{
-                        borderRadius: 30,
+                <div style={{height: 30}}/>
+                <div>
+                    <BackgroundImage style={{
+                      
                         width: "1128px",
-                        height:"349px",
-                        left: "273px",
-                        top: "399px",
-                        boxSizing:'border-box',
-                        border: '1px solid #E7E7E7',
-                        padding: 20
-      
-                }}>
-                    <div style={{display:'flex', justifyContent: 'space-between', paddingBottom: 20}}>
-                    <Text style={{fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px'}}>Partnerships</Text>
-                    <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
-                            <Text>New Partnership</Text>
-                        </Button>
-                    </div>
-                    <div style={{display:'flex', flexDirection:'row'}}>
-                        <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: 'black', color: 'white'}}> All </Button>
-                        <div style={{width: 10}}/>
-                        <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: '#b4f481', color: 'black'}}>Active</Button>
-                        <div style={{width: 10}}/>
-                        <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: '#e7e7e7', color: 'black'}}> Draft </Button>
-                    </div>
-                        <PartnershipsTable data={data} />
-                    </div>
+                        height:"467px",
+                        padding: 30
+                    }}
+                     src={partnershipsTableBackground}
+                     >
+                        <Text style={{fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px', paddingBottom: 20, marginTop: -10}}>Partnerships</Text>
+                        <div style={{height: 10}}/>
+                        <div style={{display:'flex', justifyContent: 'space-between', paddingBottom: 20}}>
+                            <div style={{display:'flex', flexDirection:'row'}}>
+                                <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: 'black', color: 'white'}}> All </Button>
+                                <div style={{width: 10}}/>
+                                <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: '#b4f481', color: 'black'}}>Active</Button>
+                                <div style={{width: 10}}/>
+                                <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: '#e7e7e7', color: 'black'}}> Draft </Button>
+                            </div>
+                            <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
+                                    <Text>New Partnership</Text>
+                            </Button>
+                        </div>
+                        <PartnershipsTable data={data}/>
+                     </BackgroundImage>
+                </div>
             </div>  
         ) : (
             <div style={{display:'flex',flexDirection:'column',width: '100vw',height:'100vh', justifyContent:'center', alignItems:'center'}}>
