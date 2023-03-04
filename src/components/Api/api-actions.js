@@ -85,8 +85,7 @@ const ApiActions = ({actions}) => {
     }
 
     const selectProperty = (propertyPath, schemaType) => {
-        console.log(propertyPath)
-        console.log(schemaType)
+
         setSelectedSchemaProperty(processSchemaPath(propertyPath[0], schemaType))
         return
     }
@@ -165,7 +164,7 @@ const ApiActions = ({actions}) => {
                     ) : null 
                     } 
                     {
-                      action.responses ? (
+                      Object.keys(action?.responses[0]?.schema).length > 0 ? (
                         <Tabs.Tab style={{fontFamily: 'apercu-regular-pro', fontSize: '18px', fontWeight: 200}} value="responseBody">Response Body</Tabs.Tab>
                     ) : null 
                     } 
@@ -178,7 +177,6 @@ const ApiActions = ({actions}) => {
     const processParameterSchema = (schema) => {
         var parameterSchemaKeys = Object.keys(schema)
         var parameterSchemaValues = Object.values(schema)
-        var parameterSchema = {}
 
         for (var i = 0; i < parameterSchemaKeys.length; i++) {
             var parameterSchemaObject = {
@@ -223,12 +221,7 @@ const ApiActions = ({actions}) => {
                                 </Card.Section>
                                 
                                 <Card.Section style={{padding: 30}}>
-                                    <Tabs defaultValue={
-                                        selectedAction.requestBody2?.schema ? 'requestBody' :
-                                        selectedAction.parameterSchema?.header ? 'header' :
-                                        selectedAction.parameterSchema?.path ? 'path' :
-                                        selectedAction.responses ? 'responseBody' : null
-                                    }>
+                                    <Tabs defaultValue={'header'}>
                                         {renderActionTabs(selectedAction)}
                                         <Tabs.Panel style={{paddingTop: 30}} label="header" value="header">
                                              {
