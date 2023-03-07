@@ -35,8 +35,7 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
     const [configurationMenuValue, setConfigurationMenuValue] = useState(partnership?.configuration ? "select" : "new")
     const [formulas, handlers] = useListState([])
     const [didLoadInitialFormula, setDidLoadInitialFormula] = useState(false)
-
-    console.log(mappings)
+    console.log(formulas)
     const saveMapping = () => {
         const newMapping = {
             id: uuidv4(),

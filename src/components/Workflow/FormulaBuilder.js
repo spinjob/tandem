@@ -7,6 +7,7 @@ import {TbGripVertical} from 'react-icons/tb'
 import {RiCloseLine} from 'react-icons/ri'
 import {HiOutlineLightningBolt} from 'react-icons/hi'
 import {AppendCard, PrependCard, ReplaceCard, ConcatenateCard, SubstringCard, TrimCard, UppercaseCard, LowercaseCard, CapitalizeCard} from './RecipeCards/StringRecipes'
+import IfThenRecipeCard from './RecipeCards/ConditionalRecipes'
 import useStore from '../../context/store'
 
 const useStyles = createStyles((theme) => ({
@@ -130,7 +131,9 @@ export function FormulaBuilder({ data, updateFormula, removeFormula, reorderForm
                                   <UppercaseCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty} />
                               : item?.formula == 'capitalize' ?
                                   <CapitalizeCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty}/>
-                              : null
+                              : item?.formula == 'ifthen' ?
+                                 <IfThenRecipeCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty} targetProperty={selectedMapping?.targetProperty}/>
+                              : null  
                           }
                         </div>
                         </div>

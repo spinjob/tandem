@@ -7,7 +7,6 @@ import {HiOutlineLightningBolt} from 'react-icons/hi'
 import {RiCloseLine} from 'react-icons/ri'
 import { useState } from "react"
 import {v4 as uuidv4} from 'uuid'
-import {AppendCard, PrependCard, ReplaceCard, ConcatenateCard, SubstringCard, TrimCard, UppercaseCard, LowercaseCard, CapitalizeCard} from './RecipeCards/StringRecipes'
 import {FormulaBuilder} from './FormulaBuilder'
 
 const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, source, target}) => {
@@ -116,6 +115,13 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
                     return(
                         <div key={item.formula} style={{paddingLeft: 5, paddingRight: 5}}>
                             <ActionIcon
+                                onClick={()=>{
+                                    var formulaObject = {
+                                        ...item,
+                                        uuid: uuidv4()
+                                    }
+                                    handlers.setState([...formulas, formulaObject])
+                                }}
                                 sx={{
                                     ':hover': {
                                         backgroundColor: '#FFC97F'
@@ -294,6 +300,27 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
         return value.replace(toReplace, replaceWith)
     }
 
+    const ifThen = (value, input) => {
+        var inputValues = input['ifThen'][0]
+        var conditionSatisfied = false 
+        if(inputValues.if.property.path == inputValues.if.value && !conditionSatisfied){
+            conditionSatisfied = true
+            return inputValues.then.value
+        } else if (!conditionSatisfied && inputValues.if.or.length > 0) {  
+            for (let i = 0; i < inputValues.if.or.length; i++) {
+                if(!conditionSatisfied){
+                    if(inputValues.if.or[i].property.path == inputValues.if.or[i].value) {
+                        conditionSatisfied = true
+                        return inputValues.then.value
+                    }
+                } else {
+                    return inputValues.then.value
+                }
+            }
+        }
+        return value
+    }
+
     function updateFormula(uuid, inputs) {
         handlers.applyWhere(
             (item)=> item.uuid == uuid,
@@ -310,6 +337,7 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
     }
 
     function renderSampleOutput (exampleValue, position) {
+        console.log('renderSampleOutput', exampleValue)
         var output = exampleValue
         var formulaOutputs = []
         for (let i = 0; i < formulas.length; i++) {
@@ -322,6 +350,9 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
                 formulaOutputs.push(output)
             } else if(formula.formula == 'replace' && Object.keys(formula.inputs).length > 0) {
                 output = replace(output, formula.inputs)
+                formulaOutputs.push(output)
+            } else if (formula.formula == 'ifthen' && Object.keys(formula.inputs).length > 0) {
+                output = ifThen(output,formula.inputs)
                 formulaOutputs.push(output)
             }
         }
