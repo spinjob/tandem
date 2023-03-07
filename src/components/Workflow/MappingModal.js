@@ -35,7 +35,7 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
     const [configurationMenuValue, setConfigurationMenuValue] = useState(partnership?.configuration ? "select" : "new")
     const [formulas, handlers] = useListState([])
     const [didLoadInitialFormula, setDidLoadInitialFormula] = useState(false)
-    console.log(formulas)
+
     const saveMapping = () => {
         const newMapping = {
             id: uuidv4(),
@@ -307,12 +307,14 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
         } else {
             setCanSaveConfiguration(false)
         }
+        
     }, [newConfigKey, newConfigValue, newConfigType, configurationMappingView])
 
 
     useEffect(() => {
         if(mappings[selectedEdge?.target] && selectedMapping && !didLoadInitialFormula) {
-            var fullMapping = mappings[selectedEdge?.target][selectedMapping?.targetProperty?.key]
+            var fullMapping = mappings[selectedEdge?.target][selectedMapping?.targetProperty?.path]
+    
             if(fullMapping?.input?.formulas) {
                 handlers.setState(fullMapping.input.formulas)
                 setFunctionDesignerOpened(true)
@@ -509,6 +511,7 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
                         saveMapping()
                         toggleMappingModal()
                         setSelectedMapping({sourceProperty: null, targetProperty: null})
+                        console.log(mappings)
                         
                     }}
                     sx={{

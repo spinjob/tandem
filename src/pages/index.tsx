@@ -60,7 +60,7 @@ return !user && isLoggingIn ? (
       alignItems: 'center'
       }}>
       <Player
-      src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/4c929fb7-4cf7-4381-985d-41d8a741fc3c/Tandem-UI_Loader.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20230304%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20230304T024510Z&X-Amz-Expires=86400&X-Amz-Signature=3e483c53c1fb80b6d2b5ec883ccfcaed841983584f7700a3f45d86fe2cbf17dc&X-Amz-SignedHeaders=host&response-content-disposition=filename%3D%22Tandem-UI_Loader.json%22&x-id=GetObject" 
+      src="https://api.jsonbin.io/v3/b/64069796ebd26539d08a5849" 
       style={{width: 200, height: 200}}
       loop
       autoplay
@@ -97,7 +97,7 @@ return !user && isLoggingIn ? (
           alignItems: 'center'
           }}>
           <Player
-          src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/4c929fb7-4cf7-4381-985d-41d8a741fc3c/Tandem-UI_Loader.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20230304%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20230304T024510Z&X-Amz-Expires=86400&X-Amz-Signature=3e483c53c1fb80b6d2b5ec883ccfcaed841983584f7700a3f45d86fe2cbf17dc&X-Amz-SignedHeaders=host&response-content-disposition=filename%3D%22Tandem-UI_Loader.json%22&x-id=GetObject" 
+          src="https://api.jsonbin.io/v3/b/64069796ebd26539d08a5849" 
           style={{width: 200, height: 200}}
           loop
           autoplay
@@ -145,7 +145,7 @@ return !user && isLoggingIn ? (
         alignItems: 'center'
         }}>
         <Player
-        src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/4c929fb7-4cf7-4381-985d-41d8a741fc3c/Tandem-UI_Loader.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20230304%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20230304T024510Z&X-Amz-Expires=86400&X-Amz-Signature=3e483c53c1fb80b6d2b5ec883ccfcaed841983584f7700a3f45d86fe2cbf17dc&X-Amz-SignedHeaders=host&response-content-disposition=filename%3D%22Tandem-UI_Loader.json%22&x-id=GetObject" 
+        src="https://api.jsonbin.io/v3/b/64069796ebd26539d08a5849" 
         style={{width: 200, height: 200}}
         loop
         autoplay

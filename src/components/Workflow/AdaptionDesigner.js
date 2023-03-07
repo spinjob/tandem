@@ -312,6 +312,8 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
                     if(inputValues.if.or[i].property.path == inputValues.if.or[i].value) {
                         conditionSatisfied = true
                         return inputValues.then.value
+                    } else {
+                
                     }
                 } else {
                     return inputValues.then.value
@@ -337,7 +339,7 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
     }
 
     function renderSampleOutput (exampleValue, position) {
-        console.log('renderSampleOutput', exampleValue)
+
         var output = exampleValue
         var formulaOutputs = []
         for (let i = 0; i < formulas.length; i++) {
@@ -351,10 +353,11 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
             } else if(formula.formula == 'replace' && Object.keys(formula.inputs).length > 0) {
                 output = replace(output, formula.inputs)
                 formulaOutputs.push(output)
-            } else if (formula.formula == 'ifthen' && Object.keys(formula.inputs).length > 0) {
-                output = ifThen(output,formula.inputs)
-                formulaOutputs.push(output)
-            }
+            } 
+            // else if (formula.formula == 'ifthen' && Object.keys(formula.inputs).length > 0) {
+            //     output = ifThen(output,formula.inputs)
+            //     formulaOutputs.push(output)
+            // }
         }
         return formulaOutputs
     }

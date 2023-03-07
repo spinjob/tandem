@@ -7,28 +7,14 @@ const IfThenRecipeCard = ({updateFormula, recipe, sourceProperty, targetProperty
 
     const [topLevelCondition, setTopLevelCondition] = useState('')
     const [topLevelConditionValue, setTopLevelConditionValue] = useState('')
-    const [conditions, setConditions] = useState(
-        recipe?.inputs?.ifThen ? recipe?.inputs?.ifThen :
-        [{
-            "uuid": uuidv4(),
-            "if": {
-                "property": sourceProperty,
-                "condition": "equals",
-                "value": "",
-                "or": []
-            },
-            "then": {
-                "property": targetProperty,
-                "condition" : "equals",
-                "value": "",
-            }
-        }]
-
-    )
+    const [conditions, setConditions] = useState(null)
 
     useEffect (() => {
-        if (conditions) {
+        if (conditions && conditions[0] && conditions[0] !== recipe?.inputs?.ifThen[0]) {
             updateFormula(recipe.uuid, {"ifThen": conditions})
+           
+        }
+        if(conditions && conditions[0]){
             if (topLevelCondition == '') {
                 setTopLevelCondition(conditions[0].if.condition)
             }
@@ -37,6 +23,28 @@ const IfThenRecipeCard = ({updateFormula, recipe, sourceProperty, targetProperty
             }
         }
     }, [conditions, topLevelCondition, topLevelConditionValue, recipe, updateFormula])
+
+    useEffect (() => {
+        if(!conditions && recipe?.inputs?.ifThen){
+            setConditions(recipe?.inputs?.ifThen)
+        } else if(!conditions && !recipe?.inputs?.ifThen){
+            setConditions([{
+                uuid: uuidv4(),
+                if: {
+                    property: sourceProperty,
+                    condition: 'equals',
+                    value: '',
+                    or: []
+                },
+                then: {
+                    property: targetProperty,
+                    condition: 'equals',
+                    value: ''
+                }
+            }])
+        }
+
+    }, [conditions, recipe, sourceProperty, targetProperty])
 
     return (
         <>
