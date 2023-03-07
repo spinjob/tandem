@@ -177,6 +177,7 @@ const ApiActions = ({actions}) => {
     const processParameterSchema = (schema) => {
         var parameterSchemaKeys = Object.keys(schema)
         var parameterSchemaValues = Object.values(schema)
+        var parameterSchema = {}
 
         for (var i = 0; i < parameterSchemaKeys.length; i++) {
             var parameterSchemaObject = {
