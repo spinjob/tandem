@@ -10,7 +10,7 @@ import {BiBook} from 'react-icons/bi'
 import {HiOutlineKey} from 'react-icons/hi'
 import AdaptionDesigner from './AdaptionDesigner'
 
-const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, partnership, toggleMappingModal}) => { 
+const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, partnership, toggleMappingModal}) => { 
 
     const selectedMapping = useStore(state => state.selectedMapping)
     const selectedEdge  = useStore(state => state.selectedEdge)
@@ -35,7 +35,7 @@ const MappingModal = ({getSchemaFromPath, edge, nodes, sourceNode, targetNode, p
     const [configurationMenuValue, setConfigurationMenuValue] = useState(partnership?.configuration ? "select" : "new")
     const [formulas, handlers] = useListState([])
     const [didLoadInitialFormula, setDidLoadInitialFormula] = useState(false)
-
+    const inputPaths = useStore(state => state.inputPaths)
     const saveMapping = () => {
         const newMapping = {
             id: uuidv4(),

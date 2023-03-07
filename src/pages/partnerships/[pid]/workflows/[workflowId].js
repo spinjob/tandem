@@ -1303,7 +1303,6 @@ const WorkflowStudio = () => {
     const [workflowWebhooks, setWorkflowWebhooks] = useState(null);
     const [adaptionDrawerOpen, setAdaptionDrawerOpen] = useState(false);
     const [selectedAdaption, setSelectedAdaption] = useState(null);
-
     //From Global State
     const nodeActions = useStore((state) => state.nodeActions);
     const nodes = useStore((state) => state.nodes);
@@ -1321,6 +1320,7 @@ const WorkflowStudio = () => {
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
     
     const toggleMappingModal = () => {
+        
         setMappingModalOpen(!mappingModalOpen)
     }
 

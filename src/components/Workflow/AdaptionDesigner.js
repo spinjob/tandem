@@ -286,7 +286,6 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
 
     //Utility Functions
     const append = (value, input) => {
-        console.log(value, input)
         return value + input.append
     }
 
@@ -295,9 +294,37 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
     }
 
     const replace = (value, input) => {
-        var toReplace = input.toReplace
-        var replaceWith = input.replaceWith
+        var toReplace = input.replace.toReplace
+        var replaceWith = input.replace.replaceWith
         return value.replace(toReplace, replaceWith)
+    }
+
+    const substring = (value, input) => {
+        if(input.substring.startingIndex == 'input.length'){
+            return value.substring(value.length - input.substring.endingIndex)
+        } else {
+            var start = input.substring.startingIndex
+            var end = input.substring.endingIndex
+            console.log(value.substring(start, end))
+            return value.substring(start, end)
+        }
+       
+    }
+
+    const toLowerCase = (value, input) => {
+        return value.toLowerCase()
+    }
+
+    const toUpperCase = (value, input) => {
+        return value.toUpperCase()
+    }
+
+    const capitalizeString = (value, input) => {
+        return value.charAt(0).toUpperCase() + value.slice(1)
+    }
+
+    const trim = (value, input) => {
+        return value.trim()
     }
 
     const ifThen = (value, input) => {
@@ -331,6 +358,7 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
                     ...item,
                     inputs: inputs
                 }
+                console.log(updatedItem)
                 return updatedItem
                
             }
@@ -353,7 +381,23 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
             } else if(formula.formula == 'replace' && Object.keys(formula.inputs).length > 0) {
                 output = replace(output, formula.inputs)
                 formulaOutputs.push(output)
-            } 
+            } else if(formula.formula == 'substring' && Object.keys(formula.inputs).length > 0) {
+                output = substring(output, formula.inputs)
+                formulaOutputs.push(output)
+            } else if (formula.formula == 'trim'){
+                output = trim(output)
+                formulaOutputs.push(output)
+            } else if (formula.formula == 'lowercase'){
+                output = toLowerCase(output)
+                formulaOutputs.push(output)
+            } else if (formula.formula == 'uppercase'){
+                output = toUpperCase(output)
+                formulaOutputs.push(output)
+            } else if (formula.formula == 'capitalize'){
+                output = capitalizeString(output)
+                formulaOutputs.push(output)
+            }
+            
             // else if (formula.formula == 'ifthen' && Object.keys(formula.inputs).length > 0) {
             //     output = ifThen(output,formula.inputs)
             //     formulaOutputs.push(output)

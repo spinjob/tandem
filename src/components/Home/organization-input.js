@@ -2,6 +2,28 @@ import { useState } from 'react';
 import { Modal, Button, TextInput, createStyles } from '@mantine/core';
 
 const useStyles = createStyles((theme, { floating }) => ({
+  root: {
+    position: 'relative',
+  },
+
+  label: {
+    position: 'absolute',
+    zIndex: 2,
+    left: theme.spacing.sm,
+    pointerEvents: 'none',
+    color: floating
+      ? theme.colorScheme === 'dark'
+        ? theme.white
+        : theme.black
+      : theme.colorScheme === 'dark'
+      ? theme.colors.dark[3]
+      : theme.colors.gray[5],
+    transition: 'transform 150ms ease, color 150ms ease, font-size 150ms ease',
+    transform: floating ? `translate(-${theme.spacing.sm}px, -33px)` : 'none',
+    fontFamily:'Visuelt',
+    fontSize: floating ? theme.fontSizes.xs : theme.fontSizes.sm,
+    fontWeight: floating ? 500 : 400,
+  },
 
   required: {
     transition: 'opacity 150ms ease',
@@ -26,6 +48,7 @@ function FloatingLabelInput() {
       label="Company Code"
       required
       classNames={classes}
+      p
       value={value}
       onChange={(event) => setValue(event.currentTarget.value)}
       onFocus={() => setFocused(true)}

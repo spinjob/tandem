@@ -56,11 +56,15 @@ export type RFState = {
   nodeViews: object;
   selectedMapping: SelectedMapping;
   selectedEdge: object;
+  inputPaths: Array<string>;
+  outputPaths: Array<string>;
   mappings: {[key: string]: object};
   actionProperties: {[key: string]: object};
   setActionProperties: (actionProperties: {[key: string]: object}) => void;
   setWorkflow: (workflow: WorkflowData) => void;
   addMapping: (newMapping: NewMapping) => void;
+  setInputPaths: (inputPaths: Array<string>) => void;
+  setOutputPaths: (outputPaths: Array<string>) => void;
   setNodes: (nodes: Array<object>) => void;
   setEdges: (edges: Array<object>) => void;
   setSelectedEdge: (selectedEdge: object) => void;
@@ -82,6 +86,20 @@ const useStore = create<RFState>((set, get) => (
     selectedEdge: {},
     mappings: {},
     actionProperties: {},
+    inputPaths: [],
+    outputPaths: [],
+    setInputPaths: (inputPaths: Array<string>) => {
+      console.log("inputPaths", inputPaths)
+      set({
+        inputPaths: inputPaths
+      })
+    },
+    setOutputPaths: (outputPaths: Array<string>) => {
+      console.log("inputPaths", outputPaths)
+      set({
+        outputPaths: outputPaths
+      })
+    },
     setWorkflow: (workflow: WorkflowData) => {
       set({
         workflow: {

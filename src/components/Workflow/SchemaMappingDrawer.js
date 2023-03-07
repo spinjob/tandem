@@ -16,8 +16,10 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     const [optionalMapped, setOptionalMapped] = useState(0)
     const [requiredPropertyObjects, setRequiredPropertyObjects] = useState(null)
     const [optionalPropertyObjects, setOptionalPropertyObjects] = useState(null)
-    const [outputPaths, setOutputPaths] = useState(null)
-    const [inputPaths, setInputPaths] = useState(null)
+    const outputPaths = useStore(state => state.outputPaths)
+    const inputPaths = useStore(state => state.inputPaths)
+    const setOutputPaths = useStore(state => state.setOutputPaths)
+    const setInputPaths = useStore(state => state.setInputPaths)
     const selectedMapping = useStore(state => state.selectedMapping)
     const setSelectedMapping = useStore(state => state.setSelectedMapping)
     const selectedEdge = useStore(state => state.selectedEdge)
@@ -533,9 +535,9 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     }
 
     useEffect (() => {
-            if(!outputPaths){
+            if(outputPaths.length == 0){
                 var pathArray = []
-                if (action?.requestBody2?.schema) {
+                if (action?.requestBody2?.schema && outputPaths.length == 0) {
                     var paths = processPaths(action.requestBody2.schema)
                     if(pathArray.length > 0){
                         pathArray = [...pathArray, ...paths]
@@ -543,7 +545,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                         pathArray.push(...paths)
                     }
                 }
-                if (action?.parameterSchema?.path) {
+                if (action?.parameterSchema?.path && outputPaths.length == 0) {
                     var paths = Object.keys(action.parameterSchema.path)
                     var prefixedPaths = paths.map((path) => {
                         return `path.${path}`
@@ -555,7 +557,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                         pathArray.push(...prefixedPaths)
                     }
                 }
-                if (action?.parameterSchema?.header) {
+                if (action?.parameterSchema?.header && outputPaths.length == 0) {
                     var paths = Object.keys(action.parameterSchema.header)
                     var prefixedPaths = paths.map((path) => {
                         return `header.${path}`
@@ -566,19 +568,18 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                         pathArray.push(...prefixedPaths)
                     }
                 }
+                console.log(pathArray)
                 setOutputPaths(pathArray)
             } 
 
-            if (sourceNode?.id == 'trigger' && nodeActions['trigger']?.requestBody2?.schema && !inputPaths) {
+            if (sourceNode?.id == 'trigger' && nodeActions['trigger']?.requestBody2?.schema && inputPaths.length == 0) {
                 var paths = processPaths(nodeActions['trigger'].requestBody2.schema)
                 setInputPaths(paths)
-            } else if (nodeActions[sourceNode?.id]?.responses && Object.keys(nodeActions[sourceNode?.id]?.responses[0]?.schema).length > 0 && !inputPaths) {
+                console.log("Webhook Trigger")
+            } else if (nodeActions[sourceNode?.id]?.responses && Object.keys(nodeActions[sourceNode?.id]?.responses[0]?.schema).length > 0 && inputPaths.length == 0) {
                 var paths = processPaths(nodeActions[sourceNode?.id]?.responses[0]?.schema)
                 setInputPaths(paths)
-            } else if (!inputPaths) {
-                setInputPaths([])
-            }
-
+            } 
      }, [setOutputPaths, setInputPaths, action, nodeActions, sourceNode, targetNode, inputPaths, outputPaths, processPaths])
 
     useEffect (() => {

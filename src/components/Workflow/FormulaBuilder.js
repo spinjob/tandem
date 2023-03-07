@@ -124,13 +124,13 @@ export function FormulaBuilder({ data, updateFormula, removeFormula, reorderForm
                               : item?.formula == 'substring' ?
                                   <SubstringCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty}/>
                               : item?.formula == 'trim' ?
-                                  <TrimCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty}/>
+                                 <></>
                               : item?.formula == 'lowercase' ?
-                                  <LowercaseCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty}/>
+                                <></>
                               : item?.formula == 'uppercase' ?
-                                  <UppercaseCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty} />
+                                <></>
                               : item?.formula == 'capitalize' ?
-                                  <CapitalizeCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty}/>
+                                <></>
                               : item?.formula == 'ifthen' ?
                                  <IfThenRecipeCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty} targetProperty={selectedMapping?.targetProperty}/>
                               : null  
