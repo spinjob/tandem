@@ -36,6 +36,7 @@ const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, 
     const [formulas, handlers] = useListState([])
     const [didLoadInitialFormula, setDidLoadInitialFormula] = useState(false)
     const inputPaths = useStore(state => state.inputPaths)
+    
     const saveMapping = () => {
         const newMapping = {
             id: uuidv4(),
@@ -73,6 +74,7 @@ const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, 
         }
         return selectionOptionsArray
     }
+    console.log(selectedMapping)
 
     const renderConfigurationCreationCard = () => {
         return(
@@ -150,9 +152,11 @@ const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, 
                             var sourceProperty = {
                                 key: newConfigKey,
                                 path: '$variable.'+newConfigKey,
+                                description: newConfigValue,
                                 type: newConfigType,
                                 value: newConfigValue,
                             }
+                            console.log(sourceProperty)
                             setSelectedMapping({...selectedMapping, sourceProperty: sourceProperty})
                         }}
                         radius={'md'}
@@ -332,7 +336,14 @@ const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, 
                             <div style={{display: 'block', width: '50%'}}>
                                 <Text style={{fontFamily:'Visuelt', fontSize: '18px'}}>Input</Text>
                                 <div style={{height: 8}}/>
-                                {renderPropertyCard(getSchemaFromPath(selectedMapping.sourceProperty.path))}
+                                {
+                                    selectedMapping?.sourceProperty?.path?.split('.')[0] == '$variable' ? (
+                                        renderPropertyCard(selectedMapping.sourceProperty)
+                                    ) : (
+                                        renderPropertyCard(getSchemaFromPath(selectedMapping.sourceProperty.path))
+                                    )
+
+                                }
                             </div>
                         ) : (
                             <div style={{display: 'block', width: '50%'}}>

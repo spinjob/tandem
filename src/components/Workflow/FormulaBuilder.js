@@ -7,6 +7,7 @@ import {TbGripVertical} from 'react-icons/tb'
 import {RiCloseLine} from 'react-icons/ri'
 import {HiOutlineLightningBolt} from 'react-icons/hi'
 import {AppendCard, PrependCard, ReplaceCard, ConcatenateCard, SubstringCard, TrimCard, UppercaseCard, LowercaseCard, CapitalizeCard} from './RecipeCards/StringRecipes'
+import { AdditionCard, DivisionCard, MultiplicationCard, SubtractionCard } from './RecipeCards/NumericalRecipes';
 import IfThenRecipeCard from './RecipeCards/ConditionalRecipes'
 import useStore from '../../context/store'
 
@@ -133,6 +134,14 @@ export function FormulaBuilder({ data, updateFormula, removeFormula, reorderForm
                                 <></>
                               : item?.formula == 'ifthen' ?
                                  <IfThenRecipeCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty} targetProperty={selectedMapping?.targetProperty}/>
+                              : item?.formula == 'addition' ? 
+                                  <AdditionCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty}/>
+                              : item?.formula == 'subtraction' ? 
+                                  <SubtractionCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty}/>
+                              : item?.formula == 'multiplication' ? 
+                                  <MultiplicationCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty}/>
+                              : item?.formula == 'division' ? 
+                                  <DivisionCard recipe={item} updateFormula={updateFormula} sourceProperty={selectedMapping?.sourceProperty}/>
                               : null  
                           }
                         </div>

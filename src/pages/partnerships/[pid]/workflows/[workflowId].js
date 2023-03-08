@@ -58,6 +58,7 @@ import ButtonEdge from '../../../../components/Workflow/ButtonEdge';
 import SchemaMappingDrawer from '../../../../components/Workflow/SchemaMappingDrawer';
 import ActionMappingView from '../../../../components/Workflow/ActionMappingView';
 import MappingModal from '../../../../components/Workflow/MappingModal';
+import WorkflowScope from '../../../../components/Workflow/WorkflowScope';
 
 const nodeTypes = {trigger: TriggerNode, action: ActionNode}
 const edgeTypes = {buttonEdge: ButtonEdge}
@@ -399,27 +400,34 @@ function TriggerNode ({data}) {
     const [selectedCadence, setSelectedCadence] = useState(globalWorkflowState?.trigger?.cadence ? {label: globalWorkflowState?.trigger?.cadence, value: globalWorkflowState?.trigger?.cadence, type:'scheduled' } : {label:'Daily', value:'Daily', type:'scheduled'})
     const [selectedRunTime, setSelectedRunTime] = useState(globalWorkflowState?.trigger?.time ? globalWorkflowState?.trigger?.time : null)
     const [selectedTimezone, setSelectedTimezone] = useState(globalWorkflowState?.trigger?.timezone ? {label: globalWorkflowState?.trigger?.timezone, value: globalWorkflowState?.trigger?.timezone, type: 'scheduled'} : {label: 'UTC', value: 'UTC', type: 'scheduled'})
-    const [selectedDays, setSelectedDays] = useState(globalWorkflowState?.trigger?.days ? globalWorkflowState?.trigger?.days : [])
+    const [selectedDays, setSelectedDays] = useState(globalWorkflowState?.trigger?.days ? [...new Set(globalWorkflowState?.trigger?.days)] : [])
     const [cadenceOpened, setCadenceOpened] = useState(false);
     const [timezoneOpened, setTimezoneOpened] = useState(false);
 
     const cadenceOptions = [{label: 'Daily', value: 'Daily', type: 'scheduled'},{label: 'Weekly', value: 'Weekly', type: 'scheduled'}]
     const dayOptions = [{label: 'Su', value: 'sunday', type: 'scheduled'},{label: 'Mo', value: 'monday', type: 'scheduled'}, {label: 'Tu', value: 'tuesday', type: 'scheduled'}, {label: 'We', value: 'wednesday',type: 'scheduled'}, {label: 'Th', value: 'thursday', type: 'scheduled'}, {label: 'Fr', value: 'friday', type: 'scheduled'}, {label: 'Sa', value: 'saturday', type: 'scheduled'}]
-    const timezoneOptions = [{label: 'UTC', value: 'utc', type: 'scheduled'}, {label: 'EST', value: 'est', type: 'scheduled'}, {label: 'CST', value: 'cst', type: 'scheduled'}, {label: 'MST', value: 'mst', type: 'scheduled'}, {label: 'PST', value: 'pst', type: 'scheduled'}]
+    const timezoneOptions = [{label: 'UTC', value: 'UTC', type: 'scheduled'}, {label: 'EST', value: 'EST', type: 'scheduled'}, {label: 'CST', value: 'CST', type: 'scheduled'}, {label: 'MST', value: 'MST', type: 'scheduled'}, {label: 'PST', value: 'PST', type: 'scheduled'}]
 
     const addDay = (event) => {
         if (selectedDays)
         {
             if (selectedDays.includes(event.currentTarget.value)) {
-                setSelectedDays(selectedDays.filter((day) => {return day != event.currentTarget.value}))
+                const uniqueNewDays = [...new Set(selectedDays.filter((day) => {
+                    return day != event.currentTarget.value
+                }))]
+                setSelectedDays(uniqueNewDays)
+                return uniqueNewDays
             } else {
-                setSelectedDays([...selectedDays, event.currentTarget.value])
+                const uniqueNewDays = [...new Set([...selectedDays, event.currentTarget.value])]
+                setSelectedDays(uniqueNewDays)
+                return uniqueNewDays
                 
             }
         } else {
             setSelectedDays([event.currentTarget.value])
+            return [event.currentTarget.value]
         }
-       
+      
     }
     //Webhook Trigger State
     const [selectedWebhook, setSelectedWebhook] = useState(
@@ -604,6 +612,7 @@ function TriggerNode ({data}) {
                                                     <div style={{display:'block'}}>
                                                     <TimeInput
                                                         onChange={(e) => {
+                                                            console.log(e)
                                                             setSelectedRunTime(e)
                                                             if(globalWorkflowState.trigger && globalWorkflowState.trigger.type == "scheduled"){
                                                                 setGlobalWorkflowState({
@@ -622,12 +631,12 @@ function TriggerNode ({data}) {
                                                                 })
                                                             }
                                                         }} 
-                                                        defaultValue={new Date()}
+                                                        value={new Date(selectedRunTime)}
                                                         format="12"
-                                                        amLabel="am"
-                                                        pmLabel="pm"
+                                                        amLabel="AM"
+                                                        pmLabel="PM"
                                                         withAsterisk
-                                                        clearable
+                                                        clearable={false}
                                                     />
                                                     <div style={{height: 15}}/>
                                                     <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Timezone</Text>
@@ -655,7 +664,7 @@ function TriggerNode ({data}) {
                                                             </UnstyledButton>
                                                             </Menu.Target>
                                                             <Menu.Dropdown style={{backgroundColor: 'white'}}>{
-                                                                <ScrollArea type="hover" style={{height: 80, width: '100%'}}>
+                                                                <ScrollArea type="hover" style={{height: 120, width: '100%'}}>
                                                                     {timezoneOptions.map((timezone) => {
         
                                                                             return (    
@@ -710,26 +719,25 @@ function TriggerNode ({data}) {
                                                                         } 
                                                                         onClick={(e)=>{
                                                                             
-                                                                            addDay(e)
-
                                                                             if(globalWorkflowState.trigger && globalWorkflowState.trigger.type == "scheduled"){
                                                                                 if(globalWorkflowState.trigger.days){
                                                                                     setGlobalWorkflowState({
                                                                                         trigger: {
                                                                                             ...globalWorkflowState.trigger,
-                                                                                            days: [...globalWorkflowState.trigger.days, day.value]
+                                                                                            days: addDay(e)
                                                                                         }
                                                                                     })
                                                                                 } else {
                                                                                     setGlobalWorkflowState({
                                                                                         trigger: {
                                                                                             ...globalWorkflowState.trigger,
-                                                                                            days: [day.value]
+                                                                                            days: addDay(e)
                                                                                         }
                                                                                     })
                                                                                 }
                                         
                                                                             } else {
+                                                                                addDay(e)
                                                                                 setGlobalWorkflowState({
                                                                                     trigger: {
                                                                                         id: data.id,
@@ -764,12 +772,13 @@ function TriggerNode ({data}) {
                                                     <div style={{display:'block'}}>
                                                         <TimeInput
                                                             onChange={(e) => {
+                                                                console.log(e)
                                                                 setSelectedRunTime(e)
                                                                 if(globalWorkflowState.trigger && globalWorkflowState.trigger.type == "scheduled"){
                                                                     setGlobalWorkflowState({
                                                                         trigger: {
                                                                             ...globalWorkflowState.trigger,
-                                                                            time: e.toString()
+                                                                            time: e
                                                                         }
                                                                     })
                                                                 } else {
@@ -777,17 +786,16 @@ function TriggerNode ({data}) {
                                                                         trigger: {
                                                                             id: data.id,
                                                                             type: "scheduled",
-                                                                            time: e.toString()
+                                                                            time: e
                                                                         }
                                                                     })
                                                                 }
                                                             }} 
-                                                            defaultValue={new Date()}
+                                                            value={new Date(selectedRunTime)}
                                                             format="12"
-                                                            amLabel="am"
-                                                            pmLabel="pm"
+                                                            
                                                             withAsterisk
-                                                            clearable
+                                                            clearable={false}
                                                         />
                                                         <div style={{height: 15}}/>
                                                         <Text style={{fontFamily:'Visuelt', fontSize:'13px', width: 270, color: 'black'}}>Select Timezone</Text>
@@ -815,7 +823,7 @@ function TriggerNode ({data}) {
                                                                 </UnstyledButton>
                                                                 </Menu.Target>
                                                                 <Menu.Dropdown style={{backgroundColor: 'white'}}>{
-                                                                    <ScrollArea type="hover" style={{height: 80, width: '100%'}}>
+                                                                    <ScrollArea type="hover" style={{height: 120, width: '100%'}}>
                                                                         {timezoneOptions.map((timezone) => {
         
                                                                                 return (    
@@ -1113,7 +1121,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
     )
 }
 
-const WorkflowHeader = ({workflow}) => {
+const WorkflowHeader = ({workflow, setView}) => {
     const { classes } = useStyles()
     const router = useRouter();
     const [isNameFieldActive, setIsNameFieldActive] = useState(false);
@@ -1208,7 +1216,9 @@ const WorkflowHeader = ({workflow}) => {
                 </Group>
                 <Group>
                     <SegmentedControl 
-                        
+                        onChange={(value) => {
+                            setView(value)
+                        }}
                         size='lg'
                         sx={{
                             backgroundColor: 'white',
@@ -1225,7 +1235,7 @@ const WorkflowHeader = ({workflow}) => {
                                     ) 
                               },
                               {
-                                value:'overview', 
+                                value:'scope', 
                                 label: (
                                     <Center>
                                         <BsViewList size={25}/>
@@ -1318,6 +1328,7 @@ const WorkflowStudio = () => {
     const selectedEdge = useStore((state) => state.selectedEdge);
     const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
+    const [view, setView] = useState('studio');
     
     const toggleMappingModal = () => {
         
@@ -1410,6 +1421,7 @@ const WorkflowStudio = () => {
                     id: res.data[0].uuid,
                     projectId: res.data[0].parent_project_uuid,
                     trigger: res.data[0].trigger,
+                    name: res.data[0].name
                 });
 
                 if(res.data[0].definition?.mappings){
@@ -1508,16 +1520,24 @@ const WorkflowStudio = () => {
                 zIndex: 1,
                 position: 'sticky'
             }}>
-                <WorkflowHeader workflow={workflow[0]} style={{ position: 'sticky', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader setView={setView} workflow={workflow[0]} style={{ position: 'sticky', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '92vh'}}>
-                <ReactFlowProvider>
-                    <Flow toggleDrawer={toggleDrawer} workflow={workflow[0]} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
-                </ReactFlowProvider>
+                {
+                    view == 'scope' && typeof window !== undefined ? (
+                        <WorkflowScope partnership={partnership}/>
+                    ) : view == 'studio' && typeof window !== undefined ? (
+                        <ReactFlowProvider>
+                            <Flow toggleDrawer={toggleDrawer} workflow={workflow[0]} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
+                        </ReactFlowProvider>
+                    ) : (
+                        <div></div>
+                    )
+                }
             </div>
         </div>
        
-    ) : (
+    ) :  (
         <Center sx={{
             width: '100vw',
             height: '100vh',

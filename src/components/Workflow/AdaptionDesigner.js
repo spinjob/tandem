@@ -64,6 +64,31 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
         }
     ]
 
+    const numberFormulas = [
+        {
+            name: 'Addition',
+            formula: 'addition',
+            description: 'Add a value to the source number.',
+            inputs: {}
+        }, {
+            name: 'Subtraction',
+            formula: 'subtraction',
+            description: 'Subtract a value from the source number.',
+            inputs: {}
+        }, {
+            name: 'Multiply',
+            formula: 'multiplication',
+            description: 'Multiply the source number by a value.',
+            inputs: {}
+        
+        },{
+            name: 'Division',
+            formula: 'division',
+            description: 'Divide the source number by a value.',
+            inputs: {}
+        }
+    ]
+
     const renderOverflowDropdownMenu = (items) => {
         return(
             <Menu transition="pop-bottom" position='bottom' width={220} withinPortal>
@@ -165,6 +190,55 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
             return (
                 <div style={{width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'left', alignItems: 'center'}}>
                     {stringFormulas.map((formula, index) => {
+                        if(index > 5){
+                            overflowMenu.push(formula)
+                        } else {
+                            return(
+                                <div key={formula.formula} style={{paddingLeft: 5, paddingRight: 5}}>
+                                    <ActionIcon 
+                                        onClick={()=>{
+                                            var formulaObject = {
+                                                ...formula,
+                                                uuid: uuidv4()
+                                            }
+                                            handlers.setState([...formulas, formulaObject])
+                                        }}
+                                        sx={{
+                                            ':hover': {
+                                                backgroundColor: '#C9CAFF'
+                                            },
+                                            paddingLeft: 10, 
+                                            paddingRight: 10, 
+                                            cursor: 'pointer', 
+                                            width: '100%', 
+                                            display:'flex', 
+                                            flexDirection: 'row', 
+                                            alignItems: 'center', 
+                                            height: 32, 
+                                            backgroundColor:'#EAEAFF'
+                                        }}                                        
+                                        variant={'filled'} 
+                                        radius={'xl'}>
+                                        <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>{formula.name}</Text>
+                                        <div style={{width: 5}}/>
+                                        <BiPlus style={{width: 18, height: 18, color: 'black'}}/>
+                                    </ActionIcon>
+                                    <div style={{width: 10}}/>
+                                </div>
+                                
+                            )
+                        }   
+                    })}
+                    {
+                        overflowMenu.length > 0 ? renderOverflowDropdownMenu(overflowMenu) : null
+                    }
+                   
+                </div>
+            )
+        } else if (sourcePropertyType == 'number' || sourcePropertyType == 'float' || sourcePropertyType == 'integer'){
+            return (
+                <div style={{width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'left', alignItems: 'center'}}>
+                    {numberFormulas.map((formula, index) => {
                         if(index > 5){
                             overflowMenu.push(formula)
                         } else {
@@ -397,7 +471,7 @@ const AdaptionDesigner = ({ formulas, handlers, mappings, selectedMapping, sourc
                 output = capitalizeString(output)
                 formulaOutputs.push(output)
             }
-            
+
             // else if (formula.formula == 'ifthen' && Object.keys(formula.inputs).length > 0) {
             //     output = ifThen(output,formula.inputs)
             //     formulaOutputs.push(output)
