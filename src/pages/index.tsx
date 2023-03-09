@@ -11,6 +11,7 @@ import { useContext} from 'react'
 import AppContext from '../context/AppContext'
 import axios from 'axios';
 import OrganizationInput from '../components/Home/organization-input'
+import LoadingAnimation from '../../public/animations/Loading_Animation.json'
 
 const Index: NextPage = () => {
 
@@ -60,11 +61,11 @@ return !user && isLoggingIn ? (
       alignItems: 'center'
       }}>
       <Player
-      src="https://api.jsonbin.io/v3/b/64069796ebd26539d08a5849" 
-      style={{width: 200, height: 200}}
-      loop
-      autoplay
-      />
+        src={LoadingAnimation}
+        style={{width: 200, height: 200}}
+        loop
+        autoplay
+        />
   </Center>  
 ) : !user && !isLoggingIn ?  (
   <div style={{display:'flex', flexDirection:'row'}}>
@@ -97,7 +98,7 @@ return !user && isLoggingIn ? (
           alignItems: 'center'
           }}>
           <Player
-          src="https://api.jsonbin.io/v3/b/64069796ebd26539d08a5849" 
+          src={LoadingAnimation}
           style={{width: 200, height: 200}}
           loop
           autoplay
@@ -145,7 +146,7 @@ return !user && isLoggingIn ? (
         alignItems: 'center'
         }}>
         <Player
-        src="https://api.jsonbin.io/v3/b/64069796ebd26539d08a5849" 
+        src={LoadingAnimation}
         style={{width: 200, height: 200}}
         loop
         autoplay

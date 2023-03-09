@@ -60,6 +60,8 @@ import ActionMappingView from '../../../../components/Workflow/ActionMappingView
 import MappingModal from '../../../../components/Workflow/MappingModal';
 import WorkflowScope from '../../../../components/Workflow/WorkflowScope';
 
+import LoadingAnimation from '../../../../../public/animations/Loading_Animation.json'
+
 const nodeTypes = {trigger: TriggerNode, action: ActionNode}
 const edgeTypes = {buttonEdge: ButtonEdge}
 
@@ -1543,7 +1545,7 @@ const WorkflowStudio = () => {
             height: '100vh',
         }}>
             <Player
-            src="https://api.jsonbin.io/v3/b/64069796ebd26539d08a5849" 
+            src={LoadingAnimation}
             style={{width: 250, height: 250}}
             loop
             autoplay
