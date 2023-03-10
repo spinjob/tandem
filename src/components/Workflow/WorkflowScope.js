@@ -46,6 +46,9 @@ const WorkflowScope = ({partnership}) => {
     const workflow = useStore(state => state.workflow)
     const nodeActions = useStore(state => state.nodeActions)
     const mappings = useStore(state => state.mappings)
+    const nodes = useStore(state => state.nodes)
+    const edges = useStore(state => state.edges)
+
     const printRef = React.useRef();
 
     const createPDF = async () => {
@@ -61,18 +64,36 @@ const WorkflowScope = ({partnership}) => {
         pdf.save("print.pdf");
     }
 
-    console.log("Partnership")
-    console.log(partnership)
+    // console.log("Partnership")
+    // console.log(partnership)
 
-    console.log("Global Workflow State")
-    console.log(workflow)
+    // console.log("Global Workflow State")
+    // console.log(workflow)
 
-    console.log("Node Actions")
-    console.log(mappings)
+    // console.log("Node Actions")
+    // console.log(nodeActions)
 
-    const renderAdaptionTable = (formulas, targetProperty, inputProperty) => {
+    // console.log("Mappings")
+    // console.log(mappings)
+
+    const renderAdaptionTable = (formulas, targetProperty, inputProperty, inputNodeId, outputNodeId) => {
         
         var rows = []
+        //Specifying all of the mappings action IDs so we can filter out any previously mapped properties from other actions.
+        var mappingInputActionId = inputProperty?.actionId
+        var mappingOutputActionId = targetProperty?.actionId
+        var inputAction = nodeActions[inputNodeId]
+        var outputAction = nodeActions[outputNodeId]
+
+        console.log("Input Action")
+        console.log(inputAction)
+
+        console.log("Output Action")
+        console.log(outputAction)
+
+        console.log("formulas")
+        console.log(formulas)
+
 
         formulas.forEach((formula, index) => {
             if (formula.formula == 'ifthen'){
@@ -151,8 +172,11 @@ const WorkflowScope = ({partnership}) => {
     const renderTriggerContent = () => {
 
         var trigger = workflow?.trigger
-        var headings = ['Trigger Field', 'Formula', 'Target Field']
-        
+        var action1 = nodeActions['action-1']
+        console.log(action1.name)
+        var headings = ['Trigger Field', 'Formula', action1.name + ' Property']
+        var inputActionId = nodeActions['trigger']?.uuid
+        var outputActionId = nodeActions['action-1'].uuid
 
         if(trigger.type == 'webhook'){
             return(
@@ -160,7 +184,7 @@ const WorkflowScope = ({partnership}) => {
                     <div>
                         <Text
                             sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
-                            Webhook Trigger
+                            1. Webhook Trigger
                         </Text>
                         <div style={{height: 20}}/>
                          <Divider size={'xs'} sx={{width: '40%'}}/>
@@ -188,15 +212,36 @@ const WorkflowScope = ({partnership}) => {
                     </div>
                    <div style={{height: 20}}/>
                     <div style={{display: 'flex',flexDirection: 'column',justifyContent: 'flex-start',}}>
-
                         <div>
-                            <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 600, color: '#000000'}}>
-                                WEBHOOK NAME: 
+                            <Text sx={{fontFamily: 'Vulf Sans', fontSize: '24px', fontWeight: 300, color: '#000000'}}>
+                               Webhook Documentation
                             </Text>
-                            <div style={{width: 10}}/>
-                            <Text sx={{fontFamily: 'Visuelt', fontSize: '20px', fontWeight: 100, color: '#000000'}}>
-                                {trigger?.selectedWebhook?.name}
+                            <Text sx={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 100, color: '#000000'}}>
+                                The metadata provided below is sourced directly from the API documentation for the selected webhook.
                             </Text>
+                            <div style={{height: 30}}/>
+                            <div style={{display:'flex', flexDirection: 'row'}} >
+                                <Text sx={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 400, color: '#000000'}}>
+                                    Name:
+                                </Text>
+                                <div style={{width: 10}}/>
+                                <Text sx={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 100, color: '#000000'}}>
+                                    {trigger?.selectedWebhook?.name}
+                                </Text>
+                            </div>
+                            {
+                                trigger?.selectedWebhook?.description ? (
+                                    <div style={{display:'flex', flexDirection: 'row'}} >
+                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 400, color: '#000000'}}>
+                                        Description:
+                                    </Text>
+                                    <div style={{width: 10}}/>
+                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 100, color: '#000000'}}>
+                                        {trigger?.selectedWebhook?.description}
+                                    </Text>
+                                </div>
+                                ) : (null)
+                            }
                         </div>
                         {/* <div style={{height: 40}}/>
                         <Text sx={{fontFamily: 'Visuelt', fontSize: '24px',fontWeight: 600, color: '#000000'}}>
@@ -207,8 +252,8 @@ const WorkflowScope = ({partnership}) => {
                         <div style={{height: 40}}/> */}
 
                         <div style={{height: 40}}/>
-                        <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 600,color: '#000000'}}>
-                            ADAPTIONS
+                        <Text sx={{fontFamily: 'Vulf Sans', fontSize: '24px', fontWeight: 300,color: '#000000'}}>
+                            Webhook to {action1.name} Data Mapping and Adaptions
                         </Text>
                         <div style={{height: 20}}/>
                         <table 
@@ -221,8 +266,7 @@ const WorkflowScope = ({partnership}) => {
                                 fontSize: '14px',
                                 fontWeight: 100,
                                 textAlign: 'left',
-                                
-                                
+
                             }}>
                                 <colgroup>
                                     <col style={{width: '30%'}}/>
@@ -266,33 +310,47 @@ const WorkflowScope = ({partnership}) => {
                                     }}
                                 >
                                     {
-                                        Object.keys(mappings['action-1']).map((targetKey, index) => {
-                                            var mappingValues = Object.values(mappings['action-1'])[index]
-                                            const inputFormulas = mappingValues?.input?.formulas
-                                            var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input)
-                                            console.log(cleanedRows)
-                                            return cleanedRows.map(
-                                                (row) => (
-                                                    <tr
-                                                        key={row}
-                                                        style={{
-                                                            height: '70px',
-                                                            borderBottom: '1px solid #E7E7E7'
-                                                        }}
-                                                    >
-                                                        {row.map((cell) => {
-                                                            return (
-                                                                <td key={cell}>{cell}</td>
-                                                            ) 
-                                                        })}
-                                                    </tr>
+                                       
+                                        mappings['action-1'] ? (
+                                            Object.keys(mappings['action-1']).map((targetKey, index) => {
+                                                var mappingValues = Object.values(mappings['action-1'])[index]
+                                                if (mappingValues?.input?.actionId == inputActionId && mappingValues?.output?.actionId == outputActionId){
+                                                    const inputFormulas = mappingValues?.input?.formulas
+                                                    var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,'trigger', 'action-1')
+                                                    return cleanedRows.map(
+                                                        (row) => (
+                                                            <tr
+                                                                key={row}
+                                                                style={{
+                                                                    height: '70px',
+                                                                    borderBottom: '1px solid #E7E7E7'
+                                                                }}
+                                                            >
+                                                                {row.map((cell) => {
+                                                                    return (
+                                                                        <td key={cell}>{cell}</td>
+                                                                    ) 
+                                                                })}
+                                                            </tr>
+                                                    )
+                                                    )
+                                                }
+                                            })): (
+                                                <tr
+                                                    key={'noTriggerAdaptionRows'}
+                                                    style={{
+                                                        height: '70px',
+                                                        borderBottom: '1px solid #E7E7E7'
+                                                    }}
+                                                >
+                                                    <td colSpan={3}>No Mappings from Webhook</td>
+                                                </tr>   
                                             )
-                                            )
-                                        })
                                     }
                                 </tbody>
                         </table>
                     </div>
+
                 </div>
             )
         } else if (trigger.type == 'scheduled'){
@@ -396,6 +454,85 @@ const WorkflowScope = ({partnership}) => {
 
     }
 
+    const renderTriggeredActionContent = () => {
+        const triggeredAction = nodeActions['action-1']
+
+        return(
+
+            <div>
+            <div>
+                <Text
+                    sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
+                    2. {triggeredAction?.name}
+                </Text>
+                <div style={{height: 20}}/>
+                 <Divider size={'xs'} sx={{width: '40%'}}/>
+                 <div style={{height: 10}}/>
+                <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-start',
+                        paddingLeft: '40x'
+                    }}>
+                    <div style={{height: 10}}/>
+                    <Text
+                        sx={{
+                            fontFamily: 'Visuelt',
+                            fontWeight: 100,
+                            fontSize: '16px',
+                            width: '90%'
+                        }}
+                    >
+                        The workflow will be triggered by the receipt of a webhook.  The following section describes how this webhook is described in the API documentation and the data mapping the Integration Manager has designed with the data it could contain.
+                    </Text>
+                    
+                </div>
+                <div style={{height: 20}}/>
+            </div>
+           <div style={{height: 20}}/>
+            <div style={{display: 'flex',flexDirection: 'column',justifyContent: 'flex-start',}}>
+                <div>
+                    <Text sx={{fontFamily: 'Vulf Sans', fontSize: '24px', fontWeight: 300, color: '#000000'}}>
+                       Webhook Documentation
+                    </Text>
+                    <Text sx={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 100, color: '#000000'}}>
+                        The metadata provided below is sourced directly from the API documentation for the selected webhook.
+                    </Text>
+                    <div style={{height: 30}}/>
+                    <div style={{display:'flex', flexDirection: 'row'}} >
+                        <Text sx={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 400, color: '#000000'}}>
+                            Name:
+                        </Text>
+                        <div style={{width: 10}}/>
+                        <Text sx={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 100, color: '#000000'}}>
+                            
+                        </Text>
+                    </div>
+
+                </div>
+                <div style={{height: 40}}/>
+                <Text sx={{fontFamily: 'Vulf Sans', fontSize: '24px', fontWeight: 300,color: '#000000'}}>
+                    Webhook to Data Mapping and Adaptions
+                </Text>
+                <div style={{height: 20}}/>
+    
+            </div>
+
+        </div>
+        )
+
+    }
+
+    const renderActionContent = () => {
+        var startingNodeId = 'action-1'
+        var startingEdges = edges.filter((edge) => edge.source == startingNodeId)
+        var successEdges = edges.filter((edge) => edge.sourceHandle == 'actionSuccess')
+        var failureEdges = edges.filter((edge) => edge.sourceHandle == 'actionFailure')
+        
+
+    }
+
+
     return typeof window !== 'undefined' ? (
         <>
             <Button  sx={{
@@ -448,6 +585,16 @@ const WorkflowScope = ({partnership}) => {
                 >
                 {renderTriggerContent()}
                 </div>
+                <div style={{height: 20}}/>
+                <div
+                    style={{
+                        paddingLeft: 100,
+                        paddingTop: 50
+                    }}
+                >
+                 {renderTriggeredActionContent()}
+                </div>
+               
             </div>
         </>
      ) : (

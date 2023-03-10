@@ -353,7 +353,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
                 </a>
                 <div style={{height: 10}}/>
 
-                <a className={classes.link} onClick={()=> router.push('/api/auth/logout')}>
+                <a className={classes.link} style={{cursor:'pointer'}} onClick={()=> router.push('/api/auth/logout')}>
                     <div style={{alignItems: 'center', display:'flex', flexDirection: 'row', borderRadius: '5px', overflow: 'hidden'}}>                        
                     <Image alt="logout" src = {logoutIcon} width={26} height={26}/>
                     <Text style={{paddingLeft: 10, fontFamily: 'Visuelt', fontWeight: 100, fontSize: 16}}>Logout</Text>
@@ -407,7 +407,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
                     borderRadius: 12,
                   }}
                   >
-                    <a className={classes.collapsedLink} onClick={handleToggle}>
+                    <a style={{cursor:'pointer'}} className={classes.collapsedLink} onClick={handleToggle}>
                       <Image alt="expandNav" src = {maximizeNavIcon} width={26} height={26}/>       
                     </a>
                 </Tooltip>  
@@ -415,6 +415,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
                 <Tooltip
                       key = "logout"
                       withinPortal={true}
+                     
                       label={
                         <Text
                           sx={{
@@ -436,7 +437,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
                         borderRadius: 12,
                       }}
                       >
-                <a className={classes.collapsedLink} onClick={()=> router.push('/api/auth/logout')}>
+                <a className={classes.collapsedLink} style={{cursor:'pointer'}} onClick={()=> router.push('/api/auth/logout')}>
                     <Image alt="logout" src = {logoutIcon} width={26} height={26}/>  
                 </a>
                 </Tooltip>
@@ -465,7 +466,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
                     borderRadius: 12,
                   }}
                   >
-                <a className={classes.collapsedLink}>
+                <a style={{cursor:'pointer'}} className={classes.collapsedLink}>
                     <Avatar size={26} radius={26} src={user?.picture}/>
                 </a>
                 </Tooltip>

@@ -52,7 +52,7 @@ export type RFState = {
   workflow: WorkflowData;
   nodes: Array<object>;
   edges: Array<object>;
-  nodeActions: object;
+  nodeActions: {[key: string]: object};
   nodeViews: object;
   selectedMapping: SelectedMapping;
   selectedEdge: object;
@@ -72,6 +72,7 @@ export type RFState = {
   setMappings: (mappings: {[key: string]: object}) => void;
   setNodeViews: (nodeViews: Array<NodeData>) => void;
   setNodeAction: (nodeId: string, action: object) => void;
+  deleteNodeAction: (nodeId: string) => void;
   setWorklow: (workflow: WorkflowData) => void;
 };
 
@@ -156,7 +157,6 @@ const useStore = create<RFState>((set, get) => (
           }
         }
       })
-
     },
     setMappings: (mappings: {[key: string]: object}) => {
       set({
@@ -199,6 +199,13 @@ const useStore = create<RFState>((set, get) => (
                 ...get().nodeActions,
                 [nodeId]: action
             }
+        })
+    },
+    deleteNodeAction: (nodeId: string) => {
+        const nodeActions = get().nodeActions;
+        delete nodeActions[nodeId];
+        set({
+            nodeActions: nodeActions
         })
     },
     setWorklow: (workflow: WorkflowData) => {

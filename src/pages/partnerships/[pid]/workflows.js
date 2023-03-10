@@ -10,18 +10,7 @@ const PartnershipWorkflows = ({apis, pid }) => {
     const apiIDArray = apis?.map((api) => {
       return api.uuid
     })
-  
-    const renderStatus = (status) => {
-      switch (status) {
-        case 'active':
-          return "Active"
-        case 'inactive':
-          return "Unpublished"
-        case 'needs_mapping':
-          return "Draft"
-        default: "Unknown"
-      }
-    }
+
 
     const renderActiveSwitch = (status) => {
       switch (status) {
@@ -39,7 +28,7 @@ const PartnershipWorkflows = ({apis, pid }) => {
       return {
         id: workflow.uuid,
         name: workflow.name,
-        status: renderStatus(workflow.status),
+        status: workflow.status,
         active: renderActiveSwitch(workflow.status),
         updated: workflow.updated_at
       }

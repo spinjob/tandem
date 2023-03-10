@@ -12,7 +12,10 @@ import {
   Badge,
   Avatar,
   Loader,
-  Switch
+  Switch,
+  Menu,
+  Image,
+  ActionIcon
 } from '@mantine/core';
 import { keys } from '@mantine/utils';
 import { type } from 'os';
@@ -20,6 +23,10 @@ import { useRouter } from 'next/router';
 import {BiSearch} from 'react-icons/bi'
 import {RxCaretSort} from 'react-icons/rx'
 import axios from 'axios';
+import archiveIcon from '../../../public/icons/archive-documents-box-big.svg'
+import workflowIcon from '../../../public/icons/Programing, Data.5.svg'
+import draftIcon from '../../../public/icons/programming-code-edit.svg'
+import elipsisIcon from '../../../public/icons/dots-menu.svg'
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -64,21 +71,29 @@ interface ThProps {
   children: React.ReactNode;
   reversed: boolean;
   sorted: boolean;
+  width: any;
+  sortable: boolean;
   onSort(): void;
 }
 
-function Th({ children, reversed, sorted, onSort }: ThProps) {
+function Th({ children, width, reversed, sorted,  sortable, onSort }: ThProps) {
   const { classes } = useStyles();
   return (
-    <th className={classes.th}>
-      <UnstyledButton onClick={onSort} className={classes.control}>
-        <Group position="apart">
-          <Text style={{fontFamily: 'Visuelt'}} weight={500} size="sm">
-            {children}
-          </Text>
-          <RxCaretSort style={{color:'grey'}}/>
-        </Group>
-      </UnstyledButton>
+    <th className={classes.th} style={{width: width}} >
+      {
+        sortable ? (
+          <UnstyledButton onClick={onSort} className={classes.control}>
+          <Group position="apart">
+            <Text style={{fontFamily: 'Visuelt'}} weight={500} size="sm">
+              {children}
+            </Text>
+            <RxCaretSort style={{color:'grey'}}/>
+          </Group>
+        </UnstyledButton>
+        ): (null)
+
+      }
+     
     </th>
   );
 }
@@ -112,8 +127,6 @@ function sortData(
   );
 }
 
-
-
 function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSortProps) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState("None");
@@ -122,7 +135,7 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
   const router  = useRouter();
 
-  const [sortedData, setSortedData] = useState(data);
+  const [sortedData, setSortedData] = useState(data.filter((row) => row.status != "Archived"));
   
   const newWorkflowHandler = () => {
     var newWorkflow = {
@@ -138,11 +151,9 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
       interfaces: apis
     }
 
-    console.log("Creating New Workflow")
     axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId + '/workflows', newWorkflow).then((res) => {
       console.log(res)
       //Add WorkflowUUID to Partnership Workflows Array
-        console.log("Adding Workflow to Partnership")
         newWorkflow['uuid'] = res.data.uuid
 
         axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId, {
@@ -170,48 +181,135 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
     setSortedData(sortData(data, { sortBy: field, reversed, search, statusFilter }));
   };
 
-  const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
+  const handleRowClick = (event: React.MouseEvent<HTMLTableCellElement>) => {
+    console.log(event)
     const { id } = event.currentTarget.dataset;
     router.push(`/partnerships/${partnershipId}/workflows/${id}`)
   };
 
+  const archiveWorkflow = (uuid: string) => {
+    axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId + '/workflows/' + uuid, {
+      status: "Archived"
+    }).then((res) => {
+      console.log(res)
+    }).catch((err) => {
+      console.log(err)
+    })
+  }
+
   const rows = statusFilter != "None" ? sortedData.filter((row) => row.status === statusFilter).map((row) => (
-    <tr data-id={row.id} onClick={handleRowClick} key={row.id}>
-      <td data-id={row.id}>{
-        <Switch color="dark" checked={
-            row.active === 'true' ? true : false
-        }
-         />
+    <tr style={{cursor:'pointer'}} data-id={row.id} key={row.id}>
+      <td data-id={row.id} style={{display:'flex', flexDirection:'row', alignItems:'center', justifyContent:'center'}}>{
+          row.active ? (
+            <Switch color="dark" checked={true} />
+          ) : row.status != 'Draft' ? (
+            <div style={{borderRadius: 8, backgroundColor:'#EBE9E6',  height: 30, width: 30, padding: 5}}>
+              <Image src={workflowIcon} />
+            </div>
+          ) : (
+            <div style={{borderRadius: 8, opacity: '50%', backgroundColor:'#EBE9E6',  height: 30, width: 30, padding: 5}}>
+              <Image src={draftIcon} />
+            </div>
+          )
       }</td>
-      <td data-id={row.id}>{row.name}</td>
-      <td data-id={row.id}>
-        <Badge color={
-            row.status === 'Draft' ? 'gray' : row.status === 'Active' ? 'lime' : 'red'
-        } style={{fontFamily:'Visuelt', fontWeight: 100}}>
-            {row.status}
-        </Badge>
+      <td onClick={(e) =>{handleRowClick(e)}} data-id={row.id}>{row.name}</td>
+      <td onClick={(e) =>{handleRowClick(e)}} data-id={row.id}>
+      <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          borderRadius: 20,
+          width: 90,
+          backgroundColor: row.status === 'Draft' ? '#E0E0E0' : row.status === 'Active' ? '#B4F481' : '#FFA39E',
+        }}>
+          {row.status}
+        </div>
       </td>
-      <td data-id={row.id}>{row.updated}</td>
+      <td onClick={(e) =>{handleRowClick(e)}} data-id={row.id}>{row.updated}</td>
+      <td data-id={row.id}>
+        <Menu trigger="hover">
+            <Menu.Target>
+                <ActionIcon>
+                  <Image src={elipsisIcon} style={{zIndex: 1,width: 20, height: 20}}/>
+                </ActionIcon>        
+            </Menu.Target>
+            <Menu.Dropdown  >
+                <Menu.Item onClick={()=>{ 
+                    console.log('Delete Workflow: '+row.id)
+                    archiveWorkflow(row.id)
+                  }}>
+                  <div style={{display:'flex', flexDirection: 'row'}}>
+                    <div style={{width: 20, height: 20}}>
+                      <Image src={archiveIcon} />
+                      </div>
+                      <div style={{width: 10}}/>
+                      <Text sx={{fontFamily: 'Visuelt', fontWeight: 100}}>
+                         Archive Workflow
+                      </Text>
+                  </div>
+                   
+                </Menu.Item>                    
+            </Menu.Dropdown>
+        </Menu>
+      </td>
     </tr>
   )) : sortedData.map((row) => (
-    <tr data-id={row.id} 
-    onClick={handleRowClick} 
-    key={row.id}>
-      <td data-id={row.id}>{
-        <Switch color="dark" checked={
-            row.active === 'true' ? true : false
-        }
-         />
+    <tr style={{cursor:'pointer'}} data-id={row.id} key={row.id}>
+        <td data-id={row.id} style={{display:'flex', flexDirection:'row',alignItems:'center', justifyContent:'center'}}>{
+          row.active ? (
+            <Switch color="dark" checked={true} />
+          ) : row.status != 'Draft' ? (
+            <div style={{borderRadius: 8, backgroundColor:'#EBE9E6',  height: 30, width: 30, padding: 5}}>
+              <Image src={workflowIcon} />
+            </div>
+          ) : (
+            <div style={{borderRadius: 8, opacity: '50%', backgroundColor:'#EBE9E6',  height: 30, width: 30, padding: 5}}>
+              <Image src={draftIcon} />
+            </div>
+          )
       }</td>
-      <td data-id={row.id}>{row.name}</td>
-      <td data-id={row.id}>
-        <Badge color={
-            row.status === 'Draft' ? 'gray' : row.status === 'Active' ? 'lime' : 'red'
-        } style={{fontFamily:'apercu-light-pro', color: 'black'}}>
-            {row.status}
-        </Badge>
+      <td onClick={(e) =>{handleRowClick(e)}}  data-id={row.id}>{row.name}</td>
+      <td onClick={(e) =>{handleRowClick(e)}} data-id={row.id}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          borderRadius: 20,
+          width: 90,
+          backgroundColor: row.status === 'Draft' ? '#E0E0E0' : row.status === 'Active' ? '#B4F481' : '#FFBD9A',
+        }}>
+          {row.status}
+        </div>
       </td>
-      <td data-id={row.id}>{row.updated}</td>
+      <td onClick={(e) =>{handleRowClick(e)}} data-id={row.id}>{row.updated}</td>
+      <td data-id={row.id}>
+        <Menu trigger="hover">
+            <Menu.Target>
+                <ActionIcon>
+                  <Image src={elipsisIcon} style={{zIndex: 1,width: 20, height: 20}}/>
+                </ActionIcon>        
+            </Menu.Target>
+            <Menu.Dropdown  >
+                <Menu.Item onClick={()=>{ 
+                    console.log('Delete Workflow: '+row.id)
+                    archiveWorkflow(row.id)
+                  }}>
+                  <div style={{display:'flex', flexDirection: 'row'}}>
+                    <div style={{width: 20, height: 20}}>
+                      <Image src={archiveIcon} />
+                      </div>
+                      <div style={{width: 10}}/>
+                      <Text sx={{fontFamily: 'Visuelt', fontWeight: 100}}>
+                         Archive Workflow
+                      </Text>
+                  </div>
+                   
+                </Menu.Item>                    
+            </Menu.Dropdown>
+        </Menu>
+      </td>
     </tr>
   ))
 
@@ -223,7 +321,7 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
                 <div style={{width: 10}}/>
                 <Button onClick={() => {setStatusFilter("Active")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#b4f481', color: 'black', fontWeight: 4}}>Active</Button>
                 <div style={{width: 10}}/>
-                <Button onClick={() => {setStatusFilter("Upublished")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#FFBD9A', color: 'black', fontWeight: 4}}> Unpublished </Button>
+                <Button onClick={() => {setStatusFilter("Unpublished")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#FFBD9A', color: 'black', fontWeight: 4}}> Unpublished </Button>
                 <div style={{width: 10}}/>
                 <Button onClick={() => {setStatusFilter("Draft")}} style={{fontFamily: 'apercu-regular-pro',  borderRadius: 30, height: 18, backgroundColor: '#e7e7e7', color: 'black', fontWeight: 4}}> Draft </Button>
         </div>
@@ -252,6 +350,8 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
               sorted={sortBy === 'active'}
               reversed={reverseSortDirection}
               onSort={() => 'active'}
+              width={105}
+              sortable={true}
             >
               Active
             </Th>
@@ -259,6 +359,8 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
               sorted={sortBy === 'name'}
               reversed={reverseSortDirection}
               onSort={() => setSorting('name', false)}
+              width={'50%'}
+              sortable={true}
             >
               Name
             </Th>
@@ -266,6 +368,8 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
               sorted={sortBy === 'status'}
               reversed={reverseSortDirection}
               onSort={() => setSorting('status', false)}
+              width={200}
+              sortable={true}
             >
               Status
             </Th>
@@ -273,8 +377,19 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
               sorted={sortBy === 'updated'}
               reversed={reverseSortDirection}
               onSort={() => setSorting('updated', false)}
+              width={200}
+              sortable={true}
             >
               Updated
+            </Th>
+            <Th
+              sorted={sortBy === 'updated'}
+              reversed={reverseSortDirection}
+              onSort={() => setSorting('updated', false)}
+              width={100}
+              sortable={false}
+            >
+              
             </Th>
           </tr>
         </thead>
@@ -283,7 +398,7 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
             rows
           ) : (
             <tr>
-              <td colSpan={4}>
+              <td colSpan={5}>
                 <Text weight={500} align="center">
                   No Workflows. Create one!
                 </Text>

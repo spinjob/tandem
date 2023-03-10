@@ -20,17 +20,18 @@ const Partnerships = () => {
     const {dbUser} = useContext(AppContext).state
     const [modalOpened, setModalOpened] = useState(false)
     const [apis, setApis] = useState(null)
+    const [statusFilter, setStatusFilter] = useState('None')
     
     const data = partnerships?.map((partnership) => {
         return {
             id: partnership.uuid,
             name: partnership.name,
             workflows: partnership.workflows?.length,
-            updated: partnership.updated_at
+            updated: partnership.updated_at,
+            status: partnership.status
         }
     })
 
-    console.log(partnerships)
     const fetchApis = useCallback(() => {
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + organization)
             .then((res) => {
@@ -83,6 +84,26 @@ const Partnerships = () => {
             fetchDbUser()
         }
     }, [organization, user, dbUser, fetchDbUser])
+
+    const renderStatusFilters = () => {
+        const statusArray = []
+        partnerships?.forEach((partnership) => {
+            if(!statusArray.includes(partnership.status)){
+                statusArray.push(partnership.status)
+            }
+        })
+        return statusArray.map((status) => {
+            return status != 'Active' && status ? (
+                    <div style={{paddingRight: 8}}>
+                        <Button onClick={() => setStatusFilter(status)}  style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor:'#e7e7e7', color: 'black'}} >
+                            {status} ({partnerships.filter((partnership) => partnership.status === status).length})
+                        </Button>
+                    </div>
+                ) : (
+                    null 
+                )
+        })
+    }
 
 
     return user && organization && partnerships ? ( 
@@ -156,17 +177,21 @@ const Partnerships = () => {
                         <div style={{height: 10}}/>
                         <div style={{display:'flex', justifyContent: 'space-between', paddingBottom: 20}}>
                             <div style={{display:'flex', flexDirection:'row'}}>
-                                <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: 'black', color: 'white'}}> All </Button>
-                                <div style={{width: 10}}/>
-                                <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: '#b4f481', color: 'black'}}>Active</Button>
-                                <div style={{width: 10}}/>
-                                <Button style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: '#e7e7e7', color: 'black'}}> Draft </Button>
+                                <div style={{paddingRight: 8}}>
+                                    <Button onClick={()=>{setStatusFilter('None')}} style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: 'black', color: 'white'}}> All ({data.length}) </Button>
+                                </div>
+                                <div style={{paddingRight: 8}}>
+                                    <Button onClick={()=>{setStatusFilter('Active')}} style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor: '#B4F481', color: 'black'}}> Active ({data.filter((item) => {
+                                    return item.status === 'Active'
+                                }).length}) </Button>
+                                </div>
+                                {renderStatusFilters()}
                             </div>
                             <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
                                     <Text>New Partnership</Text>
                             </Button>
                         </div>
-                        <PartnershipsTable data={data}/>
+                        <PartnershipsTable statusFilter={statusFilter} data={data}/>
                      </BackgroundImage>
                 </div>
             </div>  

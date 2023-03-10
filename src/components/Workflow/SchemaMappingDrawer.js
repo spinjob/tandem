@@ -568,7 +568,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                         pathArray.push(...prefixedPaths)
                     }
                 }
-                console.log(pathArray)
                 setOutputPaths(pathArray)
             } 
 
@@ -597,18 +596,22 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
 
         if(mappings[targetNode?.id] && requiredPropertyObjects && optionalPropertyObjects){
             var propertyKeys = Object.keys(mappings[targetNode?.id])
+            var propertyValues = Object.values(mappings[targetNode?.id])
 
-            propertyKeys.forEach((key) => {
-                requiredPropertyObjects.filter((property) => {
-                    if(property.path == key){
-                        requiredMappingsSet++
-                    }
-                })
-                optionalPropertyObjects.filter((property) => {
-                    if(property.path == key){
-                        optionalMappingsSet++
-                    }
-                })
+            propertyKeys.forEach((key, index) => {
+                if(propertyValues[index]?.input?.actionId == nodeActions[sourceNode.id]?.uuid && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid){
+                    requiredPropertyObjects.filter((property) => {
+                 
+                        if(property.path == key){
+                            requiredMappingsSet++
+                        }
+                    })
+                    optionalPropertyObjects.filter((property) => {
+                        if(property.path == key){
+                            optionalMappingsSet++
+                        }
+                    })
+                } 
             })
         }
         setRequiredMapped(requiredMappingsSet)
@@ -731,7 +734,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                                     <Text style={{marginRight: 34, display:'flex', width: '90%',fontFamily: 'Visuelt', fontWeight: 100, color: 'black', justifyContent:'center'}}>{selectedMapping?.sourceProperty?.path.split('.').length > 2 ? selectedMapping?.sourceProperty?.path.split('.')[0] + " [...] " + selectedMapping?.sourceProperty?.path.split('.').pop() : selectedMapping?.sourceProperty?.path}</Text> 
                                                 </Tooltip>
                                             </div>
-                                        ) : mappings[targetNode?.id] && mappings[targetNode?.id][property.path] ? (
+                                        ) : mappings[targetNode?.id] && mappings[targetNode?.id][property.path] &&  mappings[targetNode?.id][property.path].input?.actionId == nodeActions[sourceNode.id].uuid && mappings[targetNode?.id][property.path].output?.actionId == nodeActions[targetNode.id].uuid ? (
                                             <div style={{
                                                 fontFamily: 'Visuelt',
                                                 fontWeight: 100,

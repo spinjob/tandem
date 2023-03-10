@@ -192,12 +192,12 @@ function ActionNode ({id, data}) {
                 onClick={() => {
                     setSelectedAction(action)
                     data.selectedAction = action
-                   setNodeViews([
-                        {
-                            id: id,
-                            selectedAction: action
-                        }
-                    ])
+                    setNodeViews([
+                            {
+                                id: id,
+                                selectedAction: action
+                            }
+                        ])
 
                     setNodeAction(id, action)
                 }}
@@ -1011,6 +1011,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
     const setGlobalEdgeState = useStore((state) => state.setEdges);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const deleteNodeAction = useStore((state) => state.deleteNodeAction);
 
     const onConnect = useCallback(
         (params) => setEdges((eds) => addEdge({ ...params, sourceHandle: connectingHandleId.current, type:'buttonEdge', data: {
@@ -1096,6 +1097,9 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
                     nodes={nodes}
                     edges={edges}
                     onNodesChange={onNodesChange}
+                    onNodesDelete={(nodes) => {
+                        deleteNodeAction(nodes[0].id)
+                    }}
                     onEdgesChange={onEdgesChange}
                     onConnectStart={onConnectStart}
                     onConnectEnd={onConnectEnd}
