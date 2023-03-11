@@ -28,14 +28,19 @@ import {
 
 //   import ReactJson from 'react-json-view';
 
-  import axios from 'axios';
-  import useStore from '../../context/store'
-  import {Player } from '@lottiefiles/react-lottie-player';
+import axios from 'axios';
+import useStore from '../../context/store'
+import {Player } from '@lottiefiles/react-lottie-player';
+import bannerImage from '../../../public/Mobile-Section-1-Drawing.svg'
+import bannerComponentA from '../../../public/Banner_Component_A.svg'
+import bannerComponentB from '../../../public/Banner_Component_B.svg'
+import bannerComponentC from '../../../public/Banner_Component_C.svg'
+import bannerComponentD from '../../../public/Banner_Component_D.svg'
 
-  import titleAnimation from '../../../public/animations/LevelUp_Icons_A_Circles.json'
-  import primaryLockupBlack from '../../../public/logos/SVG/Primary Lockup_Black.svg'
-  import scheduledIcon from '../../../public/icons/calendar-schedule-refresh.svg'
-  import webhookIcon from '../../../public/icons/programming-code-message-chat-2.svg'
+import titleAnimation from '../../../public/animations/LevelUp_Icons_A_Circles.json'
+import primaryLockupBlack from '../../../public/logos/SVG/Primary Lockup_Black.svg'
+import scheduledIcon from '../../../public/icons/calendar-schedule-refresh.svg'
+import webhookIcon from '../../../public/icons/programming-code-message-chat-2.svg'
 
 import {jsPDF} from 'jspdf'
 import html2canvas from "html2canvas";
@@ -84,16 +89,6 @@ const WorkflowScope = ({partnership}) => {
         var mappingOutputActionId = targetProperty?.actionId
         var inputAction = nodeActions[inputNodeId]
         var outputAction = nodeActions[outputNodeId]
-
-        console.log("Input Action")
-        console.log(inputAction)
-
-        console.log("Output Action")
-        console.log(outputAction)
-
-        console.log("formulas")
-        console.log(formulas)
-
 
         formulas.forEach((formula, index) => {
             if (formula.formula == 'ifthen'){
@@ -173,10 +168,6 @@ const WorkflowScope = ({partnership}) => {
 
         var trigger = workflow?.trigger
         var action1 = nodeActions['action-1']
-        console.log(action1.name)
-        var headings = ['Trigger Field', 'Formula', action1.name + ' Property']
-        var inputActionId = nodeActions['trigger']?.uuid
-        var outputActionId = nodeActions['action-1'].uuid
 
         if(trigger.type == 'webhook'){
             return(
@@ -250,105 +241,6 @@ const WorkflowScope = ({partnership}) => {
                         <div style={{height: 20}}/>
                         <ReactJson collapsed={true} src = {trigger?.selectedWebhook?.requestBody2?.schema}/>
                         <div style={{height: 40}}/> */}
-
-                        <div style={{height: 40}}/>
-                        <Text sx={{fontFamily: 'Vulf Sans', fontSize: '24px', fontWeight: 300,color: '#000000'}}>
-                            Webhook to {action1.name} Data Mapping and Adaptions
-                        </Text>
-                        <div style={{height: 20}}/>
-                        <table 
-                            key={'triggerAdaptionTable'}
-                            style={{ 
-                                width: '85%',
-                                borderCollapse: 'collapse',
-                                border: '1px solid #E7E7E7',
-                                fontFamily: 'Visuelt',
-                                fontSize: '14px',
-                                fontWeight: 100,
-                                textAlign: 'left',
-
-                            }}>
-                                <colgroup>
-                                    <col style={{width: '30%'}}/>
-                                    <col style={{width: '40%'}}/>
-                                    <col style={{width: '30%'}}/>
-                                </colgroup>
-                                <thead
-                                    style={{
-                                        backgroundColor: '#E7E7E7',
-                                        color: '#000000',
-                                        fontFamily: 'Vulf Sans',
-                                        fontSize: '18px',
-                                        fontWeight: 600,
-                                        lineHeight: '16px',
-                                        textAlign: 'left',
-                                        textTransform: 'uppercase',
-                                        height: '30px'
-                                    }}
-                                >
-                                    <tr
-                                        style={{
-                                            height: '50px'
-                                        }}
-                                    >
-                                        {headings.map((heading) => {
-                                            return(
-                                                <th key={heading}>{heading}</th>
-                                            )
-                                        })}
-                                    </tr>
-                                </thead>
-                                <tbody
-                                    key={'triggerAdaptionRows'}
-                                    style={{
-                                        backgroundColor: '#FFFFFF',
-                                        color: '#000000',
-                                        fontFamily: 'apercu-regular-pro',
-                                        fontSize: '14px',
-                                        fontWeight: 100,
-                                        textAlign: 'left'
-                                    }}
-                                >
-                                    {
-                                       
-                                        mappings['action-1'] ? (
-                                            Object.keys(mappings['action-1']).map((targetKey, index) => {
-                                                var mappingValues = Object.values(mappings['action-1'])[index]
-                                                if (mappingValues?.input?.actionId == inputActionId && mappingValues?.output?.actionId == outputActionId){
-                                                    const inputFormulas = mappingValues?.input?.formulas
-                                                    var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,'trigger', 'action-1')
-                                                    return cleanedRows.map(
-                                                        (row) => (
-                                                            <tr
-                                                                key={row}
-                                                                style={{
-                                                                    height: '70px',
-                                                                    borderBottom: '1px solid #E7E7E7'
-                                                                }}
-                                                            >
-                                                                {row.map((cell) => {
-                                                                    return (
-                                                                        <td key={cell}>{cell}</td>
-                                                                    ) 
-                                                                })}
-                                                            </tr>
-                                                    )
-                                                    )
-                                                }
-                                            })): (
-                                                <tr
-                                                    key={'noTriggerAdaptionRows'}
-                                                    style={{
-                                                        height: '70px',
-                                                        borderBottom: '1px solid #E7E7E7'
-                                                    }}
-                                                >
-                                                    <td colSpan={3}>No Mappings from Webhook</td>
-                                                </tr>   
-                                            )
-                                    }
-                                </tbody>
-                        </table>
                     </div>
 
                 </div>
@@ -456,14 +348,16 @@ const WorkflowScope = ({partnership}) => {
 
     const renderTriggeredActionContent = () => {
         const triggeredAction = nodeActions['action-1']
-
+        const trigger = workflow?.trigger
+        var headings = [ trigger?.selectedWebhook?.name ? trigger?.selectedWebhook?.name + " Property" : 'Webhook Property' , 'Formula', triggeredAction?.name ? triggeredAction?.name + ' Property' : "Action Property"]
+        var inputActionId = nodeActions['trigger']?.uuid
+        var outputActionId = nodeActions['action-1']?.uuid
         return(
 
+        <div>
             <div>
-            <div>
-                <Text
-                    sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
-                    2. {triggeredAction?.name}
+                <Text sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
+                   2.  {triggeredAction?.method.toUpperCase()} {triggeredAction?.path}
                 </Text>
                 <div style={{height: 20}}/>
                  <Divider size={'xs'} sx={{width: '40%'}}/>
@@ -483,39 +377,325 @@ const WorkflowScope = ({partnership}) => {
                             width: '90%'
                         }}
                     >
-                        The workflow will be triggered by the receipt of a webhook.  The following section describes how this webhook is described in the API documentation and the data mapping the Integration Manager has designed with the data it could contain.
+                            {
+                                trigger?.type == 'webhook' ? (
+                                    <Text  sx={{  fontFamily: 'Visuelt', fontWeight: 100,  fontSize: '16px',  width: '90%'}}>
+                                        When the {trigger?.selectedWebhook?.name} webhook is received, the integration should send a {triggeredAction?.method.toUpperCase()} request to the following endpoint: {triggeredAction?.path}
+                                    </Text>
+                                ) : (
+                                    <Text  sx={{ fontFamily: 'Visuelt',  fontWeight: 100, fontSize: '16px', width: '90%'}}>
+                                        The following section describes the action that will be triggered on a scheduled cadence.
+                                    </Text>
+                                )
+                            }
                     </Text>
                     
                 </div>
                 <div style={{height: 20}}/>
             </div>
            <div style={{height: 20}}/>
+          
             <div style={{display: 'flex',flexDirection: 'column',justifyContent: 'flex-start',}}>
-                <div>
-                    <Text sx={{fontFamily: 'Vulf Sans', fontSize: '24px', fontWeight: 300, color: '#000000'}}>
-                       Webhook Documentation
-                    </Text>
-                    <Text sx={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 100, color: '#000000'}}>
-                        The metadata provided below is sourced directly from the API documentation for the selected webhook.
-                    </Text>
-                    <div style={{height: 30}}/>
-                    <div style={{display:'flex', flexDirection: 'row'}} >
-                        <Text sx={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 400, color: '#000000'}}>
-                            Name:
-                        </Text>
-                        <div style={{width: 10}}/>
-                        <Text sx={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 100, color: '#000000'}}>
-                            
-                        </Text>
-                    </div>
+            { 
+                mappings['action-1'] ? 
+                (
+                    <div>
+                    {
+                        Object.values(mappings['action-1']).filter((mapping)=> {
+                            return mapping.output?.in == 'header'
+                        }).length > 0 ? (
+                                <>
+                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500, color: '#000000'}}>
+                                        Header Parameters
+                                    </Text>
+                                    <table key={'actionHeaderAdaptionTable'} style={{ width: '85%', borderCollapse: 'collapse', border: '1px solid #E7E7E7',fontFamily: 'Visuelt',fontSize: '14px',fontWeight: 100,textAlign: 'left',}}>
+                                            <colgroup>
+                                                <col style={{width: '30%'}}/>
+                                                <col style={{width: '40%'}}/>
+                                                <col style={{width: '30%'}}/>
+                                            </colgroup>
+                                            <thead
+                                                style={{
+                                                    backgroundColor: '#E7E7E7',
+                                                    color: '#000000',
+                                                    fontFamily: 'Vulf Sans',
+                                                    fontSize: '18px',
+                                                    fontWeight: 600,
+                                                    lineHeight: '16px',
+                                                    textAlign: 'left',
+                                                    textTransform: 'uppercase',
+                                                    height: '30px'
+                                                }}
+                                            >
+                                                <tr
+                                                    style={{
+                                                        height: '50px'
+                                                    }}
+                                                >
+                                                    {headings.map((heading) => {
+                                                        return(
+                                                            <th key={heading}>{heading}</th>
+                                                        )
+                                                    })}
+                                                </tr>
+                                            </thead>
+                                            <tbody
+                                                key={'triggerAdaptionRows'}
+                                                style={{
+                                                    backgroundColor: '#FFFFFF',
+                                                    color: '#000000',
+                                                    fontFamily: 'apercu-regular-pro',
+                                                    fontSize: '14px',
+                                                    fontWeight: 100,
+                                                    textAlign: 'left'
+                                                }}
+                                            >
+                                                {
+                                                    
+                                                    mappings['action-1'] ? (
+                                                        Object.keys(mappings['action-1']).map((targetKey, index) => {
+                                                            var mappingValues = Object.values(mappings['action-1'])[index]
+                                                            if (mappingValues?.input?.actionId == inputActionId && mappingValues?.output?.actionId == outputActionId && mappingValues?.output?.in == 'header'){
+                                                                const inputFormulas = mappingValues?.input?.formulas
+                                                                var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,'trigger', 'action-1')
+                                                                return cleanedRows.map(
+                                                                    (row) => (
+                                                                        <tr
+                                                                            key={row}
+                                                                            style={{
+                                                                                height: '70px',
+                                                                                borderBottom: '1px solid #E7E7E7'
+                                                                            }}
+                                                                        >
+                                                                            {row.map((cell) => {
+                                                                                return (
+                                                                                    <td key={cell}>{cell}</td>
+                                                                                ) 
+                                                                            })}
+                                                                        </tr>
+                                                                )
+                                                                )
+                                                            }
+                                                        })): (
+                                                            <tr
+                                                                key={'noTriggerAdaptionRows'}
+                                                                style={{
+                                                                    height: '70px',
+                                                                    borderBottom: '1px solid #E7E7E7'
+                                                                }}
+                                                            >
+                                                                <td colSpan={3}>No Mappings from Webhook</td>
+                                                            </tr>   
+                                                        )
+                                                }
+                                            </tbody>
+                                    </table>
+                                    <div style={{height: 20}}/>
+                                    </>
+                        ) : null
+                    }
+                    {
+                        Object.values(mappings['action-1']).filter((mapping)=> {
+                            return mapping.output?.in == 'path'
+                        }).length > 0 ? (
+                                <>
+                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500, color: '#000000'}}>
+                                        Path Parameters
+                                    </Text>
+                                    <table key={'actionPathAdaptionTable'}  style={{ width: '85%',borderCollapse: 'collapse', border: '1px solid #E7E7E7',fontFamily: 'Visuelt',fontSize: '14px', fontWeight: 100,textAlign: 'left',}}>
+                                        <colgroup>
+                                            <col style={{width: '30%'}}/>
+                                            <col style={{width: '40%'}}/>
+                                            <col style={{width: '30%'}}/>
+                                        </colgroup>
+                                        <thead
+                                            style={{
+                                                backgroundColor: '#E7E7E7',
+                                                color: '#000000',
+                                                fontFamily: 'Vulf Sans',
+                                                fontSize: '18px',
+                                                fontWeight: 600,
+                                                lineHeight: '16px',
+                                                textAlign: 'left',
+                                                textTransform: 'uppercase',
+                                                height: '30px'
+                                            }}
+                                        >
+                                            <tr
+                                                style={{
+                                                    height: '50px'
+                                                }}
+                                            >
+                                                {headings.map((heading) => {
+                                                    return(
+                                                        <th key={heading}>{heading}</th>
+                                                    )
+                                                })}
+                                            </tr>
+                                        </thead>
+                                        <tbody
+                                            key={'triggerAdaptionRows'}
+                                            style={{
+                                                backgroundColor: '#FFFFFF',
+                                                color: '#000000',
+                                                fontFamily: 'apercu-regular-pro',
+                                                fontSize: '14px',
+                                                fontWeight: 100,
+                                                textAlign: 'left'
+                                            }}
+                                        >
+                                            {
+                                                
+                                                mappings['action-1'] ? (
+                                                    Object.keys(mappings['action-1']).map((targetKey, index) => {
+                                                        var mappingValues = Object.values(mappings['action-1'])[index]
+                                                        if (mappingValues?.input?.actionId == inputActionId && mappingValues?.output?.actionId == outputActionId && mappingValues?.output?.in == 'path'){
+                                                            const inputFormulas = mappingValues?.input?.formulas
+                                                            var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,'trigger', 'action-1')
+                                                            return cleanedRows.map(
+                                                                (row) => (
+                                                                    <tr
+                                                                        key={row}
+                                                                        style={{
+                                                                            height: '70px',
+                                                                            borderBottom: '1px solid #E7E7E7'
+                                                                        }}
+                                                                    >
+                                                                        {row.map((cell) => {
+                                                                            return (
+                                                                                <td key={cell}>{cell}</td>
+                                                                            ) 
+                                                                        })}
+                                                                    </tr>
+                                                            )
+                                                            )
+                                                        } 
+                                                    })): (
+                                                        <tr
+                                                            key={'noTriggerAdaptionRows'}
+                                                            style={{
+                                                                height: '70px',
+                                                                borderBottom: '1px solid #E7E7E7'
+                                                            }}
+                                                        >
+                                                            <td colSpan={3}>No Mappings from Webhook</td>
+                                                        </tr>   
+                                                    )
+                                            }
+                                        </tbody>
+                                    </table>
+                                    <div style={{height: 20}}/>
+                                </>
+                        ) : null
+                    }
+                                        {
+                        Object.values(mappings['action-1']).filter((mapping)=> {
+                            return mapping.output?.in == 'body'
+                        }).length > 0 ? (
+                                <>
+                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500, color: '#000000'}}>
+                                        Request Body Data
+                                    </Text>
+                                    <table 
+                                            key={'triggerAdaptionTable'}
+                                            style={{ 
+                                                width: '85%',
+                                                borderCollapse: 'collapse',
+                                                border: '1px solid #E7E7E7',
+                                                fontFamily: 'Visuelt',
+                                                fontSize: '14px',
+                                                fontWeight: 100,
+                                                textAlign: 'left',
 
-                </div>
-                <div style={{height: 40}}/>
-                <Text sx={{fontFamily: 'Vulf Sans', fontSize: '24px', fontWeight: 300,color: '#000000'}}>
-                    Webhook to Data Mapping and Adaptions
-                </Text>
-                <div style={{height: 20}}/>
-    
+                                            }}>
+                                                <colgroup>
+                                                    <col style={{width: '30%'}}/>
+                                                    <col style={{width: '40%'}}/>
+                                                    <col style={{width: '30%'}}/>
+                                                </colgroup>
+                                                <thead
+                                                    style={{
+                                                        backgroundColor: '#E7E7E7',
+                                                        color: '#000000',
+                                                        fontFamily: 'Vulf Sans',
+                                                        fontSize: '18px',
+                                                        fontWeight: 600,
+                                                        lineHeight: '16px',
+                                                        textAlign: 'left',
+                                                        textTransform: 'uppercase',
+                                                        height: '30px'
+                                                    }}
+                                                >
+                                                    <tr
+                                                        style={{
+                                                            height: '50px'
+                                                        }}
+                                                    >
+                                                        {headings.map((heading) => {
+                                                            return(
+                                                                <th key={heading}>{heading}</th>
+                                                            )
+                                                        })}
+                                                    </tr>
+                                                </thead>
+                                                <tbody
+                                                    key={'triggerAdaptionRows'}
+                                                    style={{
+                                                        backgroundColor: '#FFFFFF',
+                                                        color: '#000000',
+                                                        fontFamily: 'apercu-regular-pro',
+                                                        fontSize: '14px',
+                                                        fontWeight: 100,
+                                                        textAlign: 'left'
+                                                    }}
+                                                >
+                                                    {
+                                                    
+                                                        mappings['action-1'] ? (
+                                                            Object.keys(mappings['action-1']).map((targetKey, index) => {
+                                                                var mappingValues = Object.values(mappings['action-1'])[index]
+                                                                if (mappingValues?.input?.actionId == inputActionId && mappingValues?.output?.actionId == outputActionId && mappingValues?.output?.in == 'body'){
+                                                                    const inputFormulas = mappingValues?.input?.formulas
+                                                                    var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,'trigger', 'action-1')
+                                                                    return cleanedRows.map(
+                                                                        (row) => (
+                                                                            <tr
+                                                                                key={row}
+                                                                                style={{
+                                                                                    height: '70px',
+                                                                                    borderBottom: '1px solid #E7E7E7'
+                                                                                }}
+                                                                            >
+                                                                                {row.map((cell) => {
+                                                                                    return (
+                                                                                        <td key={cell}>{cell}</td>
+                                                                                    ) 
+                                                                                })}
+                                                                            </tr>
+                                                                    )
+                                                                    )
+                                                                }
+                                                            })): (
+                                                                <tr
+                                                                    key={'noTriggerAdaptionRows'}
+                                                                    style={{
+                                                                        height: '70px',
+                                                                        borderBottom: '1px solid #E7E7E7'
+                                                                    }}
+                                                                >
+                                                                    <td colSpan={3}>No Mappings from Webhook</td>
+                                                                </tr>   
+                                                            )
+                                                    }
+                                                </tbody>
+                                    </table>
+                                    <div style={{height: 20}}/>
+                                </>
+                        ) : null
+                    }
+                    </div>
+                ) : null
+            }
             </div>
 
         </div>
@@ -556,7 +736,8 @@ const WorkflowScope = ({partnership}) => {
                         <Text
                             sx={{
                                 fontFamily:'Vulf Sans',
-                                fontSize: '40px',
+                                fontWeight: 700,
+                                fontSize: '50px',
                             }}
                         >{workflow?.name}</Text>
                     </div>
@@ -586,6 +767,7 @@ const WorkflowScope = ({partnership}) => {
                 {renderTriggerContent()}
                 </div>
                 <div style={{height: 20}}/>
+
                 <div
                     style={{
                         paddingLeft: 100,

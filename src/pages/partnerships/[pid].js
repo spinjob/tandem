@@ -129,11 +129,11 @@ useEffect(() => {
                     border: '1px solid #F2F0ED',
                   }}} rightIcon={
                     <div style={{height: 10, width: 10}}>
-                      <Image src={arrowDownIcon}/>
+                     <Image alt="arrow-down" src={arrowDownIcon}/>
                     </div>
                   } leftIcon={
                     <div style={{height: 20, width: 20}}>
-                      <Image src={
+                      <Image alt="status" src={
                        partnership.status ? partnershipStatusOptions.find(option => option.label == partnership.status).icon : activeIcon
                       }/>
                     
@@ -146,7 +146,7 @@ useEffect(() => {
                   {partnershipStatusOptions.map((option, index) => (
                     <Menu.Item key={index} icon={
                       <div style={{height: 20, width: 20}}>
-                        <Image src={option.icon}/>
+                        <Image alt="status" src={option.icon}/>
                       </div>
                       
                       } onClick={() => 

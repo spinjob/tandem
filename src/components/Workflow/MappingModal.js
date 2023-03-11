@@ -38,6 +38,7 @@ const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, 
     const inputPaths = useStore(state => state.inputPaths)
     
     const saveMapping = () => {
+        console.log(selectedMapping?.targetProperty)
         const newMapping = {
             id: uuidv4(),
             stepIndex: stepIndex,
@@ -74,7 +75,6 @@ const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, 
         }
         return selectionOptionsArray
     }
-    console.log(selectedMapping)
 
     const renderConfigurationCreationCard = () => {
         return(

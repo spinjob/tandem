@@ -246,9 +246,6 @@ function PartnershipsTable({ data, statusFilter }: TableSortProps) {
               sortable={true}
             >
               <div>
-                <Image>
-
-                </Image>
               </div>
               Partnership
             </Th>

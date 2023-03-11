@@ -204,11 +204,11 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
             <Switch color="dark" checked={true} />
           ) : row.status != 'Draft' ? (
             <div style={{borderRadius: 8, backgroundColor:'#EBE9E6',  height: 30, width: 30, padding: 5}}>
-              <Image src={workflowIcon} />
+              <Image alt="workflowIcon" src={workflowIcon} />
             </div>
           ) : (
             <div style={{borderRadius: 8, opacity: '50%', backgroundColor:'#EBE9E6',  height: 30, width: 30, padding: 5}}>
-              <Image src={draftIcon} />
+              <Image alt="draftIcon" src={draftIcon} />
             </div>
           )
       }</td>
@@ -231,7 +231,7 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
         <Menu trigger="hover">
             <Menu.Target>
                 <ActionIcon>
-                  <Image src={elipsisIcon} style={{zIndex: 1,width: 20, height: 20}}/>
+                  <Image alt="elipsisIcon" src={elipsisIcon} style={{zIndex: 1,width: 20, height: 20}}/>
                 </ActionIcon>        
             </Menu.Target>
             <Menu.Dropdown  >
@@ -241,7 +241,7 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
                   }}>
                   <div style={{display:'flex', flexDirection: 'row'}}>
                     <div style={{width: 20, height: 20}}>
-                      <Image src={archiveIcon} />
+                      <Image alt="archiveIcon" src={archiveIcon} />
                       </div>
                       <div style={{width: 10}}/>
                       <Text sx={{fontFamily: 'Visuelt', fontWeight: 100}}>
@@ -261,11 +261,11 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
             <Switch color="dark" checked={true} />
           ) : row.status != 'Draft' ? (
             <div style={{borderRadius: 8, backgroundColor:'#EBE9E6',  height: 30, width: 30, padding: 5}}>
-              <Image src={workflowIcon} />
+              <Image alt="workflowIcon" src={workflowIcon} />
             </div>
           ) : (
             <div style={{borderRadius: 8, opacity: '50%', backgroundColor:'#EBE9E6',  height: 30, width: 30, padding: 5}}>
-              <Image src={draftIcon} />
+              <Image alt="draftIcon" src={draftIcon} />
             </div>
           )
       }</td>
@@ -288,7 +288,7 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
         <Menu trigger="hover">
             <Menu.Target>
                 <ActionIcon>
-                  <Image src={elipsisIcon} style={{zIndex: 1,width: 20, height: 20}}/>
+                  <Image alt="elipsisIcon" src={elipsisIcon} style={{zIndex: 1,width: 20, height: 20}}/>
                 </ActionIcon>        
             </Menu.Target>
             <Menu.Dropdown  >
@@ -298,7 +298,7 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
                   }}>
                   <div style={{display:'flex', flexDirection: 'row'}}>
                     <div style={{width: 20, height: 20}}>
-                      <Image src={archiveIcon} />
+                      <Image alt="archiveIcon" src={archiveIcon} />
                       </div>
                       <div style={{width: 10}}/>
                       <Text sx={{fontFamily: 'Visuelt', fontWeight: 100}}>
