@@ -1,6 +1,6 @@
 import { Navbar, createStyles, Group, Code, Tooltip, Image,Text, Avatar, Button} from "@mantine/core";
 import { useState, useCallback, useContext, useEffect } from "react";
-import {useRouter} from 'next/navigation'
+import {useRouter} from 'next/router'
 import { useUser } from "@auth0/nextjs-auth0/client";
 import {MdConnectWithoutContact} from 'react-icons/md'
 import {CgListTree} from 'react-icons/cg'
@@ -24,6 +24,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
     const {setOrganization} = useContext(AppContext)
     const {dbUser} = useContext(AppContext).state
     const {setDbUser} = useContext(AppContext)
+    const [active, setActive] = useState('Partnerships');
 
     const useStyles = createStyles((theme, _params, getRef) => {
         const icon = getRef('icon');
@@ -136,7 +137,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
       });
 
     const { classes, cx } = useStyles();
-    const [active, setActive] = useState('Partnerships');
+
 
     const handleToggle = useCallback(() => {
         setIsOpened(!isOpened);
@@ -323,6 +324,17 @@ const Navigation = ({setIsOpened, isOpened}) => {
         fetchDbUser()
       }
     }, [organization, user, dbUser, fetchDbUser])
+
+    useEffect(() => {
+      if (active == 'My APis' && router.route != '/myApis') {
+        setActive('My APIs')
+      } else if (active == 'My Organization' && router.route != '/myOrganization') {
+        setActive('My Organization')
+      } else if (active == 'Partnerships' && router.route != '/partnerships') {
+        setActive('Partnerships')
+      }
+    }, [active, setActive, router.route])
+
     return !user ? (
     <div>
 

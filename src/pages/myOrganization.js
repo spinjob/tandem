@@ -22,6 +22,15 @@ const MyOrganization = () => {
         type: 'String'
     }]
 
+    const userData = organizationUsers?.map((user) => {
+        return {
+            id: user._id,
+            key: user._id,
+            name: user.name ? user.name : user.email,
+            email: user.email,
+            role: 'Admin'
+        }
+    })
 
     const fetchOrganizationUsers = useCallback(() => {
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/users?organization=' + organization).then((res) => {
@@ -86,7 +95,11 @@ const MyOrganization = () => {
                         >
                             
                         </TextInput>
-                        <TeamTable data={testData} />
+                        {
+                            organizationUsers ? (
+                                <TeamTable data={userData} />
+                            ) : (null)
+                        }
                     </div>
                    
                 </Tabs.Panel>

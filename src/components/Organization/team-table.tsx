@@ -39,8 +39,9 @@ const useStyles = createStyles((theme) => ({
 interface RowData {
   id: string;
   key: string;
-  type: string;
-  value: string;
+  role: string;
+  name: string;
+  email: string;
 }
 
 interface TableSortProps {
@@ -104,7 +105,6 @@ function TeamTable({ data }: TableSortProps) {
   const [sortedData, setSortedData] = useState(data);
   const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
-  const router  = useRouter();
 
   const setSorting = (field: keyof RowData) => {
     const reversed = field === sortBy ? !reverseSortDirection : false;
@@ -121,17 +121,22 @@ function TeamTable({ data }: TableSortProps) {
 
   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
     const { id } = event.currentTarget.dataset;
-    // router.push(`/partnerships/${id}`)
   };
 
-  const rows = sortedData.map((row) => (
+  const rows = sortedData?.map((row) => (
     <tr data-id={row.id} onClick={handleRowClick} key={row.id}>
-      <td data-id={row.id}>{row.key}</td>
+      <td data-id={row.id} style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+        <Avatar radius="xl">
+            {row.name[0]+row.name[1]}
+        </Avatar>
+        <div style={{width: 10}}/>
+        {row.name}
+      </td>
       <td data-id={row.id}>{
-        <Text style={{fontFamily:'apercu-regular-pro', fontSize:'15px', color:'grey'}}>{row.type}</Text>
+        <Text style={{fontFamily:'apercu-regular-pro', fontSize:'15px', color:'grey'}}>{row.role}</Text>
       }</td>
       <td data-id={row.id}>{
-        <Text style={{fontFamily:'apercu-regular-pro', fontSize:'15px', color:'grey'}}>{row.value}</Text>
+        <Text style={{fontFamily:'apercu-regular-pro', fontSize:'15px', color:'grey'}}>{row.email}</Text>
       }</td>
     </tr>
   ));
@@ -161,34 +166,34 @@ function TeamTable({ data }: TableSortProps) {
         <thead>
           <tr>
             <Th
-              sorted={sortBy === 'key'}
+              sorted={sortBy === 'name'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('key')}
+              onSort={() => setSorting('name')}
             >
-              <Text style={{fontFamily:'Visuelt', fontSize:'15px'}}>Member</Text>
+              <Text style={{fontFamily:'Visuelt', fontSize:'15px'}}>Team Member</Text>
             </Th>
             <Th
-              sorted={sortBy === 'type'}
+              sorted={sortBy === 'role'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('type')}
+              onSort={() => setSorting('role')}
             >
-               <Text>Partnerships</Text>
+               <Text>Role</Text>
             </Th>
             <Th
-              sorted={sortBy === 'value'}
+              sorted={sortBy === 'email'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('value')}
+              onSort={() => setSorting('email')}
             >
-               <Text>Team Permissions</Text>
+               <Text>Email</Text>
             </Th>
           </tr>
         </thead>
         <tbody>
-          {rows.length > 0 ? (
+          {rows?.length > 0 ? (
             rows
           ) : (
             <tr>
-              <td colSpan={Object.keys(data[0]).length}>
+              <td colSpan={3}>
                 <Text weight={500} align="center">
                   Nothing found
                 </Text>
