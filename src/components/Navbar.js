@@ -340,7 +340,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
 
     </div>)
     : user && isOpened ? (
-        <div style={{position:'fixed', width:300, zIndex: 9999999999}}>
+        <div style={{position:'fixed', width:300}}>
             <Navbar style={{backgroundColor: '#F8F6F4'}} height={'100vh'} width={{ sm: 245 }}>
                 <Navbar.Section grow>
                     <Group className={classes.header} position='left'>

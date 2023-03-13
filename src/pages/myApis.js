@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import {Modal, Button,Text, Loader, ScrollArea, Grid, Container, Badge, createSt} from '@mantine/core'
+import {Modal, Button,Text, Loader, ScrollArea, Grid, Container, Badge, Progress} from '@mantine/core'
 import {GrAddCircle} from 'react-icons/gr'
 import {VscTypeHierarchy} from 'react-icons/vsc'
+import {AiOutlineCheckCircle} from 'react-icons/ai'
 import ImportApiDropzone from '../components/import-api.tsx'
 import { useUser } from '@auth0/nextjs-auth0/client';
 import {useContext} from 'react'
@@ -18,9 +19,12 @@ const MyApis = () => {
    const {setOrganization} = useContext(AppContext)
    const {dbUser} = useContext(AppContext).state
    const {setDbUser} = useContext(AppContext)
+   const [isUploading, setIsUploading] = useState(false)
+   const [uploadProgress, setUploadProgress] = useState(0)
+   const [uploadJob, setUploadJob] = useState(null)
    const router  = useRouter();
 
-
+   const delay = (ms) => new Promise((res) => setTimeout(res, ms));
   useEffect(() => {
     if(user?.email && !dbUser){
         console.log('refetching user')
@@ -50,9 +54,64 @@ const MyApis = () => {
             })
    }, [organization])
 
+   const updateProgress = (job) => {
+    var schemaProgress = job.metadata.schema.status == 'COMPLETED' ? 100 : 0
+    var actionStatus = job.metadata.actions.status == 'COMPLETED' ? 100 : 0
+    var parameterStatus = job.metadata.parameters.status == 'COMPLETED' ? 100 : 0
+    var securitySchemeStatus = job.metadata.securitySchemes.status == 'COMPLETED' ? 100 : 0
+    var webhookStatus = job.metadata.webhooks.status == 'COMPLETED' ? 100 : 0
+
+    var totalProgress = (schemaProgress + actionStatus + parameterStatus + securitySchemeStatus + webhookStatus) / 5
+
+    if(totalProgress == 100){
+
+            setUploadProgress(100)
+            fetchApis()
+            updateJob(job.uuid)
+
+            delay(2000).then(() => {
+                setIsUploading(false)
+                
+            })
+      
+    } else {
+        setUploadProgress(totalProgress)
+        delay(1000).then(() => {
+            fetchJob(job.uuid)
+        })
+        console.log(totalProgress)
+    }
+}
+
+
+   const fetchJob = useCallback((uuid) => {
+        axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/jobs/' + uuid).then((res) => {
+            updateProgress(res.data)
+            setUploadJob(res.data)
+            console.log(res.data)
+        }).catch((err) => {
+            console.log(err)
+        })
+    }, [updateProgress])
+
+    const updateJob = useCallback((uuid) => {
+        axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/jobs/' + uuid, {status: "COMPLETE"}).then((res) => {
+            setUploadJob(res.data)
+        }).catch((err) => {
+            console.log(err)
+        })
+    })
+
    const handleApiClick = (api) => {
         router.push('/apis/' + api.uuid)
     }
+
+    const setInitialJob = (job) => {
+        setUploadJob(job)
+        setIsUploading(true)
+        fetchJob(job.uuid)
+    }
+
 
    useEffect(() => {
         if(organization && !apis){
@@ -117,18 +176,131 @@ const MyApis = () => {
             <Modal
                 centered
                 opened={modalOpened}
-                onClose={() => setModalOpened(false)}
+                onClose={() => {
+                    setModalOpened(false)
+                    setUploadJob(null)
+                    setUploadProgress(0)
+                    setIsUploading(false)
+                }}
                 size="lg"
                 title={
-                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontSize: '30px', paddingLeft: 10,paddingTop: 10}}>Upload API Spec</Text>                      
+                    uploadProgress == 100 ? (
+                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontSize: '30px', paddingLeft: 10,paddingTop: 10}}>We have processed your API spec</Text>                 
+
+                    ) : (
+                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontSize: '30px', paddingLeft: 10,paddingTop: 10}}>Upload API Spec</Text>                 
+
+                    )     
                 }
             >
-                <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', paddingBottom: 10}}>
-                    <Text style={{ fontFamily: 'Visuelt', fontSize: '15px', paddingLeft: 10, color: '#3E3E3E'}}>Supported Open API Versions:</Text> 
-                    <Badge color="gray" style={{marginLeft: 10}}>v2.X</Badge>
-                    <Badge color="gray" style={{marginLeft: 10}}>v3.X</Badge>
-                </div>
-                <ImportApiDropzone organizationId={organization} userId={user?.sub}/>
+               
+                {
+                    isUploading && uploadProgress < 100 ? (
+                        <div>
+                            <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F6F3', padding: 30 }}>
+                                <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '20px', color: '#3E3E3E'}}>{uploadProgress}%</Text>
+                                <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'center'}}>
+                                    <Text style={{fontFamily: 'Visuelt', fontSize: '20px', color: '#3E3E3E'}}></Text>
+                                    <div style={{height: 60}}/>
+                                    <Progress animate striped color={'#9595FF'} style={{width: 300, height: 10, backgroundColor: '#EAEAFF', borderRadius: 10}} value={uploadProgress} />
+                                </div>
+                            </div>
+                        </div>
+                        
+                    ) : uploadProgress == 100 ? (
+                        <>
+                            <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F6F3', padding: 30 }}>
+                            <div style={{display:'flex', flexDirection:'column', width:"100%"}}>
+                                <div style={{display:'flex', flexDirection:'row', alignItems:'center', }}>
+                                    <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                    <div style={{width: 10}}/>
+                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.schema?.count} Schemas</Text> 
+                                </div>
+                                <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                    <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                    <div style={{width: 10}}/>
+                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.actions?.count} Actions</Text> 
+                                </div>
+                                <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                    <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                    <div style={{width: 10}}/>
+                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.parameters?.count} Parameters</Text> 
+                                </div>
+                                <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                    <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                    <div style={{width: 10}}/>
+                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.webhooks?.count} Webhooks</Text> 
+                                </div>
+                                <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                    <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                    <div style={{width: 10}}/>
+                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.securitySchemes?.count} Security Schemes</Text> 
+                                </div>
+                            </div>
+                            </div>
+                            <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'white', paddingTop: 30}}>
+                                <Button
+                                    onClick={() => {
+                                        setModalOpened(false)
+                                        setUploadJob(null)
+                                        setUploadProgress(0)
+                                        setIsUploading(false)
+                                    }}
+                                    sx={{
+                                        backgroundColor: 'white',
+                                        color: 'black',
+                                        '&:hover': {
+                                            backgroundColor: 'white',
+                                            color: 'black',
+                                            border: '1px solid #3E3E3E',
+                                            
+                                        },
+                                        fontFamily: 'Visuelt',
+                                        border: '1px solid #3E3E3E',
+                                        fontSize: '18px',
+                                        fontWeight: 400,
+                                        width: 120,
+                                        height: 50,
+                                        borderRadius: 10,
+                                    }}
+                                >Close</Button>
+                                <Button
+                                    onClick={() => {
+                                        
+                                        router.push(`/apis/${uploadJob?.metadata?.interface}`)
+
+                                    }}
+                                    sx={{
+                                        backgroundColor: 'black',
+                                        color: 'white',
+                                        '&:hover': {
+                                            backgroundColor: '#3E3E3E',
+                                         
+                                        },
+                                        fontFamily: 'Visuelt',
+                                        border: '1px solid #eaeaff',
+                                        fontSize: '18px',
+                                        fontWeight: 400,
+                                        
+                                        height: 50,
+                                        borderRadius: 10,
+                                    }}
+                               >View API Spec</Button>
+                            </div>
+                        </>
+                       
+                    ) : (
+                        <>
+                         <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', paddingBottom: 10}}>
+                            <Text style={{ fontFamily: 'Visuelt', fontSize: '15px', paddingLeft: 10, color: '#3E3E3E'}}>Supported Open API Versions:</Text> 
+                            <Badge color="gray" style={{marginLeft: 10}}>v2.X</Badge>
+                            <Badge color="gray" style={{marginLeft: 10}}>v3.X</Badge>
+                        </div>
+                        <ImportApiDropzone setUploadJob={setInitialJob} organizationId={organization} userId={user?.sub}/>
+
+                        </>
+                    )
+                }
             </Modal>
             <div style={{height: '100vh', width: '45vw',padding:30, display:'flex', flexDirection:'column'}}>
                 <Text style={{paddingLeft: 20,paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>Imported APIs</Text>

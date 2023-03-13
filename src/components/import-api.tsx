@@ -9,6 +9,7 @@ import axios from 'axios';
 type Props = {
   organizationId: string;
   userId: string;
+  setUploadJob: (job: any | undefined) => void;
 }
 
 const useStyles = createStyles((theme) => ({
@@ -43,9 +44,8 @@ async function processJsonFile (file: any, userId: string, organizationId: strin
   }
   return new Promise((resolve, reject) => {
     axios.post(process.env.NEXT_PUBLIC_API_BASE_URL+'/interfaces/upload', updatedFile).then((res) => {
-      console.log(res)
       if(res.status === 200) {
-        resolve({status: 'Success',message: res.data})
+        resolve(res.data)
       }
     }).catch((err) => {
       console.log(err)
@@ -54,7 +54,7 @@ async function processJsonFile (file: any, userId: string, organizationId: strin
   });
 }
 
-const ImportApiDropzone: React.FC<Props> = ({organizationId, userId}) => {
+const ImportApiDropzone: React.FC<Props> = ({organizationId, userId, setUploadJob}) => {
   const { classes, theme } = useStyles();
   const openRef = useRef<() => void>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,8 +75,8 @@ const ImportApiDropzone: React.FC<Props> = ({organizationId, userId}) => {
               const binaryStr = reader.result;
               var json = JSON.parse(binaryStr as string)
               processJsonFile(json, userId, organizationId).then((res) => {
-                console.log(res)
                 setResult(res)
+                setUploadJob(res)
                 setIsLoading(false);
               }).catch((err) => {
                 console.log(err)
