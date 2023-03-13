@@ -72,6 +72,10 @@ const MyApis = () => {
             .catch((err) => {
                 console.log(err)
             })
+        } else if (dbUser) {
+            if(dbUser.organization){
+                setOrganization(dbUser.organization)
+            }
         } else {
             console.log('no user')
         }

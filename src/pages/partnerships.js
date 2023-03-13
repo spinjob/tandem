@@ -5,6 +5,7 @@ import PartnershipsTable from '../components/Partnerships/partnership-table'
 import NewPartnership from '../components/Partnerships/newPartnership'
 import axios from 'axios';
 import {useContext} from 'react'
+import {useRouter} from 'next/router'
 import AppContext from '../context/AppContext';
 import partnershipsTableBackground from '../../public/Partnerships-Table-Background.svg'
 import helpCardBackground from '../../public/Help-Card-Background.svg'
@@ -21,7 +22,8 @@ const Partnerships = () => {
     const [modalOpened, setModalOpened] = useState(false)
     const [apis, setApis] = useState(null)
     const [statusFilter, setStatusFilter] = useState('None')
-    
+    const router = useRouter()
+
     const data = partnerships?.map((partnership) => {
         return {
             id: partnership.uuid,
@@ -45,6 +47,8 @@ const Partnerships = () => {
     const fetchPartnerships = useCallback(() => {
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects?organization=' + organization)
             .then((res) => {
+                console.log("Partnerships Found")
+                console.log(res.data)
                 setPartnerships(res.data)
             })
             .catch((err) => {
@@ -77,7 +81,7 @@ const Partnerships = () => {
         if (organization && !partnerships) {
             fetchPartnerships()
         }
-    }, [organization, fetchPartnerships, partnerships])
+    }, [organization, partnerships])
 
     useEffect(() => {
         if (!organization && user && !dbUser) {
@@ -188,10 +192,19 @@ const Partnerships = () => {
                                 {renderStatusFilters()}
                             </div>
                             <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
-                                    <Text>New Partnership</Text>
+                                <Text>New Partnership</Text>
                             </Button>
                         </div>
-                        <PartnershipsTable statusFilter={statusFilter} data={data}/>
+                        <PartnershipsTable statusFilter={statusFilter} data={
+                            partnerships?.map((partnership) => {
+                                return {
+                                    id: partnership.uuid,
+                                    name: partnership.name,
+                                    workflows: partnership.workflows?.length,
+                                    updated: partnership.updated_at,
+                                    status: partnership.status
+                                }
+                            })}/>
                      </BackgroundImage>
                 </div>
             </div>  

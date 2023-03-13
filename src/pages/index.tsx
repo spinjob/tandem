@@ -10,48 +10,108 @@ import Partnerships from './partnerships'
 import { useContext} from 'react'
 import AppContext from '../context/AppContext'
 import axios from 'axios';
+import { useRouter } from 'next/router';
 import OrganizationInput from '../components/Home/organization-input'
 import LoadingAnimation from '../../public/animations/Loading_Animation.json'
 
 const Index: NextPage = () => {
 
-  const [isLoggingIn, setIsLoggingIn] = useState(false)
   const { user, error, isLoading } = useUser();
   const {organization} = useContext(AppContext).state
   const {setOrganization} = useContext(AppContext)
   const {dbUser} = useContext(AppContext).state
   const {setDbUser} = useContext(AppContext)
   const [isDbUserLoading, setIsDbUserLoading] = useState(false)
-
-  const toggleLogin = () => {
-      setIsLoggingIn(!isLoggingIn)
-  }
+  const [hasCheckedDbUser, setHasCheckedDbUser] = useState(false)
+  const [organizationCode, setOrganizationCode] = useState('')
+  const [organizationCheckLoading, setOrganizationCheckLoading] = useState(false)
+  const [organizationCodeError, setOrganizationCodeError] = useState(null)
+  const router = useRouter()
 
   const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
   useEffect(() => {
-    if(user?.email && !dbUser){
+    if(user?.email && !dbUser && !isDbUserLoading && !hasCheckedDbUser){
         console.log('refetching user')
         setIsDbUserLoading(true)
         axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email})
         .then((res) => {
             setDbUser(res.data)
-            delay(5000).then(() => setIsDbUserLoading(false))
-            if(res.data.organization){
+            delay(5000).then(() => {
+              setIsDbUserLoading(false)
+              setHasCheckedDbUser(true)
+            })
+            
+            if(res.data.organization && !organization ){
               console.log("Organization Found for User")
               setOrganization(res.data.organization)
+            } else if (!res.data.organization && organization){
+              console.log("Organization Found for User")
+              axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/' + res.data._id, {organization: organization.uuid}).then((res) => {
+                console.log("User Updated")
+              }).catch((err) => {
+                console.log(err)
+              })
+
             }
         })
         .catch((err) => {
             console.log(err)
             setIsDbUserLoading(false)
+            setHasCheckedDbUser(true)
         })
-    } else {
+    } 
 
+    if (!user && !isLoading) {
+      router.push('/api/auth/login')
     }
-}, [user, dbUser, setOrganization, setDbUser])
 
-return !user && isLoggingIn ? (
+    if(user && dbUser && organization){
+      router.push('/partnerships')
+    }
+
+    if(dbUser && isDbUserLoading){
+      setIsDbUserLoading(false)
+    }
+
+    if(user && dbUser && organization && dbUser?.organization == ""){
+      console.log("DB User without Organization")
+      axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/' + dbUser._id, {organization: organization.uuid}).then((res) => {
+        console.log("User Updated")
+        setDbUser(
+          {...dbUser, organization: organization.uuid}
+        )
+      }).catch((err) => {
+        console.log(err)
+      })
+    }
+
+}, [user, dbUser, organization, setDbUser, isLoading, isDbUserLoading])
+
+const confirmOrganization = () => {
+    setOrganizationCheckLoading(true)
+    axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/organizations/' + organizationCode)
+    .then((res) => {
+        setOrganization(res.data.uuid)
+        setOrganizationCheckLoading(false)
+        if(dbUser?._id){
+          axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/' + dbUser._id, {organization: res.data.uuid}).then((res) => {
+            setOrganizationCheckLoading(false)
+          }).catch((err) => {
+            console.log(err)
+            setOrganizationCheckLoading(false)
+          })
+        }
+        
+    
+    })
+    .catch((err) => {
+      console.log(err)
+      setOrganizationCheckLoading(false)
+    })
+}
+
+return !user && !dbUser ? (
     <Center sx={{
       width: '100%',
       height: '100vh',
@@ -60,52 +120,14 @@ return !user && isLoggingIn ? (
       justifyContent: 'center',
       alignItems: 'center'
       }}>
-      <Player
-        src={LoadingAnimation}
-        style={{width: 200, height: 200}}
-        loop
-        autoplay
-        />
-  </Center>  
-) : !user && !isLoggingIn ?  (
-  <div style={{display:'flex', flexDirection:'row'}}>
-      <Head>
-        <title>Login Page</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <div style={{width: '60vw', alignContent:'center'}}>
-          <Image alt='landing-page' src= 'https://i.ibb.co/5rzpBx3/landing-Page.png' style={{width: '100%', height:'100vh'}}/>
-      </div>
-      <div style={{width: '40vw', justifyItems:'center'}}>
-          <RegistrationForm toggleLogin={toggleLogin} />
-      </div>
-  </div>
-) : user && !isLoggingIn && organization && !isDbUserLoading ? (
-  <div style={{display: 'flex', height: '100vh', width: '100vw'}}>
-      <Head>
-        <title>Tandem</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <Partnerships />
-  </div>
-) :  user && !isLoggingIn && !organization && isDbUserLoading ? (
-        <Center sx={{
-          width: '100%',
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center'
-          }}>
-          <Player
+        <Player
           src={LoadingAnimation}
           style={{width: 200, height: 200}}
           loop
           autoplay
           />
-      </Center>   
-)
-: user && !isLoggingIn && !organization && !isDbUserLoading ? (
+  </Center>  
+) : user && dbUser && !organization && !isDbUserLoading ? (
   <div style={{display: 'flex', height: '100vh', width: '80vw'}}>
       <Head>
         <title>Tandem</title>
@@ -125,11 +147,15 @@ return !user && isLoggingIn ? (
                         height: '44px', 
                         borderRadius: 8}}
                       onChange={(e) => {
-                          
+                          setOrganizationCode(e.target.value)
                       }}  
                   />
                   <div style={{paddingTop: 10}}/>
-                  <Button type="submit" style={{backgroundColor: 'black', height: '44px',width: '400px', borderRadius: 8}}>
+                  <Button loading={organizationCheckLoading} type="submit" style={{backgroundColor: 'black', height: '44px',width: '400px', borderRadius: 8}} 
+                      onClick={() => {
+                          confirmOrganization()
+                      }}
+                  >
                       <Text className='registrationButtonText'>Confirm Company Code</Text>
                   </Button>
               </Card.Section>
