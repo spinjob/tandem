@@ -69,18 +69,6 @@ const WorkflowScope = ({partnership}) => {
         pdf.save("print.pdf");
     }
 
-    // console.log("Partnership")
-    // console.log(partnership)
-
-    // console.log("Global Workflow State")
-    // console.log(workflow)
-
-    // console.log("Node Actions")
-    // console.log(nodeActions)
-
-    // console.log("Mappings")
-    // console.log(mappings)
-
     const renderAdaptionTable = (formulas, targetProperty, inputProperty, inputNodeId, outputNodeId) => {
         
         var rows = []
@@ -159,7 +147,6 @@ const WorkflowScope = ({partnership}) => {
         }
 
         var cleanedRows = rows.length > 1 ? [rows[rows.length-1]] : rows
-        console.log(cleanedRows)
         
        return cleanedRows
     }
@@ -175,7 +162,7 @@ const WorkflowScope = ({partnership}) => {
                     <div>
                         <Text
                             sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
-                            1. Webhook Trigger
+                            Webhook Trigger
                         </Text>
                         <div style={{height: 20}}/>
                          <Divider size={'xs'} sx={{width: '40%'}}/>
@@ -345,374 +332,6 @@ const WorkflowScope = ({partnership}) => {
         }
 
     }
-
-    const renderTriggeredActionContent = () => {
-        const triggeredAction = nodeActions['action-1']
-        const trigger = workflow?.trigger
-        var headings = [ trigger?.selectedWebhook?.name ? trigger?.selectedWebhook?.name + " Property" : 'Webhook Property' , 'Formula', triggeredAction?.name ? triggeredAction?.name + ' Property' : "Action Property"]
-        var inputActionId = nodeActions['trigger']?.uuid
-        var outputActionId = nodeActions['action-1']?.uuid
-        return(
-
-        <div>
-            <div>
-                <Text sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
-                   2.  {triggeredAction?.method.toUpperCase()} {triggeredAction?.path}
-                </Text>
-                <div style={{height: 20}}/>
-                 <Divider size={'xs'} sx={{width: '40%'}}/>
-                 <div style={{height: 10}}/>
-                <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'flex-start',
-                        paddingLeft: '40x'
-                    }}>
-                    <div style={{height: 10}}/>
-                    <Text
-                        sx={{
-                            fontFamily: 'Visuelt',
-                            fontWeight: 100,
-                            fontSize: '16px',
-                            width: '90%'
-                        }}
-                    >
-                            {
-                                trigger?.type == 'webhook' ? (
-                                    <Text  sx={{  fontFamily: 'Visuelt', fontWeight: 100,  fontSize: '16px',  width: '90%'}}>
-                                        When the {trigger?.selectedWebhook?.name} webhook is received, the integration should send a {triggeredAction?.method.toUpperCase()} request to the following endpoint: {triggeredAction?.path}
-                                    </Text>
-                                ) : (
-                                    <Text  sx={{ fontFamily: 'Visuelt',  fontWeight: 100, fontSize: '16px', width: '90%'}}>
-                                        The following section describes the action that will be triggered on a scheduled cadence.
-                                    </Text>
-                                )
-                            }
-                    </Text>
-                    
-                </div>
-                <div style={{height: 20}}/>
-            </div>
-           <div style={{height: 20}}/>
-          
-            <div style={{display: 'flex',flexDirection: 'column',justifyContent: 'flex-start',}}>
-            { 
-                mappings['action-1'] ? 
-                (
-                    <div>
-                    {
-                        Object.values(mappings['action-1']).filter((mapping)=> {
-                            return mapping.output?.in == 'header'
-                        }).length > 0 ? (
-                                <>
-                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500, color: '#000000'}}>
-                                        Header Parameters
-                                    </Text>
-                                    <table key={'actionHeaderAdaptionTable'} style={{ width: '85%', borderCollapse: 'collapse', border: '1px solid #E7E7E7',fontFamily: 'Visuelt',fontSize: '14px',fontWeight: 100,textAlign: 'left',}}>
-                                            <colgroup>
-                                                <col style={{width: '30%'}}/>
-                                                <col style={{width: '40%'}}/>
-                                                <col style={{width: '30%'}}/>
-                                            </colgroup>
-                                            <thead
-                                                style={{
-                                                    backgroundColor: '#E7E7E7',
-                                                    color: '#000000',
-                                                    fontFamily: 'Vulf Sans',
-                                                    fontSize: '18px',
-                                                    fontWeight: 600,
-                                                    lineHeight: '16px',
-                                                    textAlign: 'left',
-                                                    textTransform: 'uppercase',
-                                                    height: '30px'
-                                                }}
-                                            >
-                                                <tr
-                                                    style={{
-                                                        height: '50px'
-                                                    }}
-                                                >
-                                                    {headings.map((heading) => {
-                                                        return(
-                                                            <th key={heading}>{heading}</th>
-                                                        )
-                                                    })}
-                                                </tr>
-                                            </thead>
-                                            <tbody
-                                                key={'triggerAdaptionRows'}
-                                                style={{
-                                                    backgroundColor: '#FFFFFF',
-                                                    color: '#000000',
-                                                    fontFamily: 'apercu-regular-pro',
-                                                    fontSize: '14px',
-                                                    fontWeight: 100,
-                                                    textAlign: 'left'
-                                                }}
-                                            >
-                                                {
-                                                    
-                                                    mappings['action-1'] ? (
-                                                        Object.keys(mappings['action-1']).map((targetKey, index) => {
-                                                            var mappingValues = Object.values(mappings['action-1'])[index]
-                                                            if (mappingValues?.input?.actionId == inputActionId && mappingValues?.output?.actionId == outputActionId && mappingValues?.output?.in == 'header'){
-                                                                const inputFormulas = mappingValues?.input?.formulas
-                                                                var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,'trigger', 'action-1')
-                                                                return cleanedRows.map(
-                                                                    (row) => (
-                                                                        <tr
-                                                                            key={row}
-                                                                            style={{
-                                                                                height: '70px',
-                                                                                borderBottom: '1px solid #E7E7E7'
-                                                                            }}
-                                                                        >
-                                                                            {row.map((cell) => {
-                                                                                return (
-                                                                                    <td key={cell}>{cell}</td>
-                                                                                ) 
-                                                                            })}
-                                                                        </tr>
-                                                                )
-                                                                )
-                                                            }
-                                                        })): (
-                                                            <tr
-                                                                key={'noTriggerAdaptionRows'}
-                                                                style={{
-                                                                    height: '70px',
-                                                                    borderBottom: '1px solid #E7E7E7'
-                                                                }}
-                                                            >
-                                                                <td colSpan={3}>No Mappings from Webhook</td>
-                                                            </tr>   
-                                                        )
-                                                }
-                                            </tbody>
-                                    </table>
-                                    <div style={{height: 20}}/>
-                                    </>
-                        ) : null
-                    }
-                    {
-                        Object.values(mappings['action-1']).filter((mapping)=> {
-                            return mapping.output?.in == 'path'
-                        }).length > 0 ? (
-                                <>
-                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500, color: '#000000'}}>
-                                        Path Parameters
-                                    </Text>
-                                    <table key={'actionPathAdaptionTable'}  style={{ width: '85%',borderCollapse: 'collapse', border: '1px solid #E7E7E7',fontFamily: 'Visuelt',fontSize: '14px', fontWeight: 100,textAlign: 'left',}}>
-                                        <colgroup>
-                                            <col style={{width: '30%'}}/>
-                                            <col style={{width: '40%'}}/>
-                                            <col style={{width: '30%'}}/>
-                                        </colgroup>
-                                        <thead
-                                            style={{
-                                                backgroundColor: '#E7E7E7',
-                                                color: '#000000',
-                                                fontFamily: 'Vulf Sans',
-                                                fontSize: '18px',
-                                                fontWeight: 600,
-                                                lineHeight: '16px',
-                                                textAlign: 'left',
-                                                textTransform: 'uppercase',
-                                                height: '30px'
-                                            }}
-                                        >
-                                            <tr
-                                                style={{
-                                                    height: '50px'
-                                                }}
-                                            >
-                                                {headings.map((heading) => {
-                                                    return(
-                                                        <th key={heading}>{heading}</th>
-                                                    )
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody
-                                            key={'triggerAdaptionRows'}
-                                            style={{
-                                                backgroundColor: '#FFFFFF',
-                                                color: '#000000',
-                                                fontFamily: 'apercu-regular-pro',
-                                                fontSize: '14px',
-                                                fontWeight: 100,
-                                                textAlign: 'left'
-                                            }}
-                                        >
-                                            {
-                                                
-                                                mappings['action-1'] ? (
-                                                    Object.keys(mappings['action-1']).map((targetKey, index) => {
-                                                        var mappingValues = Object.values(mappings['action-1'])[index]
-                                                        if (mappingValues?.input?.actionId == inputActionId && mappingValues?.output?.actionId == outputActionId && mappingValues?.output?.in == 'path'){
-                                                            const inputFormulas = mappingValues?.input?.formulas
-                                                            var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,'trigger', 'action-1')
-                                                            return cleanedRows.map(
-                                                                (row) => (
-                                                                    <tr
-                                                                        key={row}
-                                                                        style={{
-                                                                            height: '70px',
-                                                                            borderBottom: '1px solid #E7E7E7'
-                                                                        }}
-                                                                    >
-                                                                        {row.map((cell) => {
-                                                                            return (
-                                                                                <td key={cell}>{cell}</td>
-                                                                            ) 
-                                                                        })}
-                                                                    </tr>
-                                                            )
-                                                            )
-                                                        } 
-                                                    })): (
-                                                        <tr
-                                                            key={'noTriggerAdaptionRows'}
-                                                            style={{
-                                                                height: '70px',
-                                                                borderBottom: '1px solid #E7E7E7'
-                                                            }}
-                                                        >
-                                                            <td colSpan={3}>No Mappings from Webhook</td>
-                                                        </tr>   
-                                                    )
-                                            }
-                                        </tbody>
-                                    </table>
-                                    <div style={{height: 20}}/>
-                                </>
-                        ) : null
-                    }
-                                        {
-                        Object.values(mappings['action-1']).filter((mapping)=> {
-                            return mapping.output?.in == 'body'
-                        }).length > 0 ? (
-                                <>
-                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500, color: '#000000'}}>
-                                        Request Body Data
-                                    </Text>
-                                    <table 
-                                            key={'triggerAdaptionTable'}
-                                            style={{ 
-                                                width: '85%',
-                                                borderCollapse: 'collapse',
-                                                border: '1px solid #E7E7E7',
-                                                fontFamily: 'Visuelt',
-                                                fontSize: '14px',
-                                                fontWeight: 100,
-                                                textAlign: 'left',
-
-                                            }}>
-                                                <colgroup>
-                                                    <col style={{width: '30%'}}/>
-                                                    <col style={{width: '40%'}}/>
-                                                    <col style={{width: '30%'}}/>
-                                                </colgroup>
-                                                <thead
-                                                    style={{
-                                                        backgroundColor: '#E7E7E7',
-                                                        color: '#000000',
-                                                        fontFamily: 'Vulf Sans',
-                                                        fontSize: '18px',
-                                                        fontWeight: 600,
-                                                        lineHeight: '16px',
-                                                        textAlign: 'left',
-                                                        textTransform: 'uppercase',
-                                                        height: '30px'
-                                                    }}
-                                                >
-                                                    <tr
-                                                        style={{
-                                                            height: '50px'
-                                                        }}
-                                                    >
-                                                        {headings.map((heading) => {
-                                                            return(
-                                                                <th key={heading}>{heading}</th>
-                                                            )
-                                                        })}
-                                                    </tr>
-                                                </thead>
-                                                <tbody
-                                                    key={'triggerAdaptionRows'}
-                                                    style={{
-                                                        backgroundColor: '#FFFFFF',
-                                                        color: '#000000',
-                                                        fontFamily: 'apercu-regular-pro',
-                                                        fontSize: '14px',
-                                                        fontWeight: 100,
-                                                        textAlign: 'left'
-                                                    }}
-                                                >
-                                                    {
-                                                    
-                                                        mappings['action-1'] ? (
-                                                            Object.keys(mappings['action-1']).map((targetKey, index) => {
-                                                                var mappingValues = Object.values(mappings['action-1'])[index]
-                                                                if (mappingValues?.input?.actionId == inputActionId && mappingValues?.output?.actionId == outputActionId && mappingValues?.output?.in == 'body'){
-                                                                    const inputFormulas = mappingValues?.input?.formulas
-                                                                    var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,'trigger', 'action-1')
-                                                                    return cleanedRows.map(
-                                                                        (row) => (
-                                                                            <tr
-                                                                                key={row}
-                                                                                style={{
-                                                                                    height: '70px',
-                                                                                    borderBottom: '1px solid #E7E7E7'
-                                                                                }}
-                                                                            >
-                                                                                {row.map((cell) => {
-                                                                                    return (
-                                                                                        <td key={cell}>{cell}</td>
-                                                                                    ) 
-                                                                                })}
-                                                                            </tr>
-                                                                    )
-                                                                    )
-                                                                }
-                                                            })): (
-                                                                <tr
-                                                                    key={'noTriggerAdaptionRows'}
-                                                                    style={{
-                                                                        height: '70px',
-                                                                        borderBottom: '1px solid #E7E7E7'
-                                                                    }}
-                                                                >
-                                                                    <td colSpan={3}>No Mappings from Webhook</td>
-                                                                </tr>   
-                                                            )
-                                                    }
-                                                </tbody>
-                                    </table>
-                                    <div style={{height: 20}}/>
-                                </>
-                        ) : null
-                    }
-                    </div>
-                ) : null
-            }
-            </div>
-
-        </div>
-        )
-
-    }
-
-    const renderActionContent = () => {
-        var startingNodeId = 'action-1'
-        var startingEdges = edges.filter((edge) => edge.source == startingNodeId)
-        var successEdges = edges.filter((edge) => edge.sourceHandle == 'actionSuccess')
-        var failureEdges = edges.filter((edge) => edge.sourceHandle == 'actionFailure')
-        
-
-    }
-
-
     return typeof window !== 'undefined' ? (
         <>
             <Button  sx={{
@@ -768,15 +387,421 @@ const WorkflowScope = ({partnership}) => {
                 </div>
                 <div style={{height: 20}}/>
 
-                <div
+                {/* <div
                     style={{
                         paddingLeft: 100,
                         paddingTop: 50
                     }}
                 >
                  {renderTriggeredActionContent()}
-                </div>
-               
+                </div> */}
+                <div
+                    style={{
+                        paddingLeft: 100,
+                        paddingTop: 50
+                    }}
+                >
+                    {
+                        edges.map((edge) => 
+                           {
+
+                                return mappings[edge.target] && edge.source != 'trigger-1' || mappings[edge.target] && edge.source != 'action-1' ? (
+                                
+                                <div key={edge.id}>
+                                    <div>
+                                        <Text sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
+                                           {edge.target.split('-')[1]}. {nodeActions[edge.target]?.method.toUpperCase()} {nodeActions[edge.target]?.path}
+                                        </Text>
+                                        <div style={{height: 20}}/>
+                                        <Divider size={'xs'} sx={{width: '40%'}}/>
+                                        <div style={{height: 10}}/>
+                                        {
+                                            edge.target.split('-')[1] == "1" && workflow?.trigger?.type == 'webhook' ? (
+                                                <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
+                                                    When the {workflow?.trigger?.selectedWebhook?.name} webhook is received, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path} with the following data mappings:
+                                                </Text>
+
+                                            ) : edge.target.split('-')[1] == "1" && workflow?.trigger?.type == 'scheduled' ? (
+                                                <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
+                                                    When the scheduled {trigger?.cadence} cadence is triggered, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path} with the following data mappings:
+                                                </Text>
+                                            ) : (
+                                                <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
+                                                   If {nodeActions[edge.source].name} responds {edge.sourceHandle == 'actionSuccess' ? 'successfully' : 'unsuccessfully'}, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path} with the following data mappings:
+                                                </Text>
+                                            )
+                                        }
+                                        
+                                        <div style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                justifyContent: 'flex-start',
+                                                paddingLeft: '40x'
+                                            }}>
+                                            <div style={{height: 10}}/>
+                                            <Text
+                                                sx={{
+                                                    fontFamily: 'Visuelt',
+                                                    fontWeight: 100,
+                                                    fontSize: '16px',
+                                                    width: '90%'
+                                                }}
+                                            >
+                                            </Text>
+                                            
+                                        </div>
+                                        <div style={{height: 20}}/>
+                                    </div>
+                                    <div style={{height: 20}}/>
+                                        {
+                                            Object.values(mappings[edge?.target]).filter((mapping)=> {
+                                                return mapping.output?.in == 'header'
+                                            }).length > 0 ? (
+                                                    <>
+                                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500, color: '#000000'}}>
+                                                            Header Parameters
+                                                        </Text>
+                                                        <table key={edge.target+'-HeaderAdaptionTable'} style={{ width: '85%', borderCollapse: 'collapse', border: '1px solid #E7E7E7',fontFamily: 'Visuelt',fontSize: '14px',fontWeight: 100,textAlign: 'left'}}>
+                                                                <colgroup>
+                                                                    <col style={{width: '30%'}}/>
+                                                                    <col style={{width: '40%'}}/>
+                                                                    <col style={{width: '30%'}}/>
+                                                                </colgroup>
+                                                                <thead
+                                                                    style={{
+                                                                        backgroundColor: '#E7E7E7',
+                                                                        color: '#000000',
+                                                                        fontFamily: 'Vulf Sans',
+                                                                        fontSize: '18px',
+                                                                        fontWeight: 600,
+                                                                        lineHeight: '16px',
+                                                                        textAlign: 'left',
+                                                                        textTransform: 'uppercase',
+                                                                        height: '30px'
+                                                                    }}
+                                                                >
+                                                                    <tr
+                                                                        key={edge.target+"-HeaderAdaptionTableRow"}
+                                                                        style={{
+                                                                            height: '50px'
+                                                                        }}
+                                                                    >
+                                                                        {[ "Input", 'Formula',"Action Property"].map((heading) => {
+                                                                            return(
+                                                                                <th key={heading}>{heading}</th>
+                                                                            )
+                                                                        })}
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody
+                                                                    key={edge.target+ '-HeaderAdaptionRows'}
+                                                                    style={{
+                                                                        backgroundColor: '#FFFFFF',
+                                                                        color: '#000000',
+                                                                        fontFamily: 'apercu-regular-pro',
+                                                                        fontSize: '14px',
+                                                                        fontWeight: 100,
+                                                                        textAlign: 'left'
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        
+                                                                        mappings[edge.target] ? (
+                                                                            Object.keys(mappings[edge.target]).map((targetKey, index) => {
+                                                                                var mappingValues = Object.values(mappings[edge.target])[index]
+                                                                                if (mappingValues?.input?.actionId == nodeActions[edge.source]?.uuid && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'header'){
+                                                                                    const inputFormulas = mappingValues?.input?.formulas
+                                                                                    var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,edge.source, edge.target)
+                                                                                    return cleanedRows.map(
+                                                                                        (row) => (
+                                                                                            <tr
+                                                                                                key={row+edge.target+"TableRow"}
+                                                                                                style={{
+                                                                                                    height: '70px',
+                                                                                                    borderBottom: '1px solid #E7E7E7'
+                                                                                                }}
+                                                                                            >
+                                                                                                {row.map((cell) => {
+                                                                                                    return (
+                                                                                                        <td key={cell}>{cell}</td>
+                                                                                                    ) 
+                                                                                                })}
+                                                                                            </tr>
+                                                                                    )
+                                                                                    )
+                                                                                }
+                                                                            })): (
+                                                                                <tr
+                                                                                    key={edge.target+'noHeaderAdaptionRows'}
+                                                                                    style={{
+                                                                                        height: '70px',
+                                                                                        borderBottom: '1px solid #E7E7E7'
+                                                                                    }}
+                                                                                >
+                                                                                    <td colSpan={3}>No Header Mappings</td>
+                                                                                </tr>   
+                                                                            )
+                                                                    }
+                                                                </tbody>
+                                                        </table>
+                                                        <div style={{height: 20}}/>
+                                                        </>
+                                            ) : null
+                                        }
+                                        {
+                                            Object.values(mappings[edge?.target]).filter((mapping)=> {
+                                                return mapping.output?.in == 'path'
+                                            }).length > 0 ? (
+                                                    <>
+                                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500, color: '#000000'}}>
+                                                            Path Parameters
+                                                        </Text>
+                                                        <table key={edge.target+'-PathAdaptionTable'}  style={{ width: '85%',borderCollapse: 'collapse', border: '1px solid #E7E7E7',fontFamily: 'Visuelt',fontSize: '14px', fontWeight: 100,textAlign: 'left',}}>
+                                                            <colgroup>
+                                                                <col style={{width: '30%'}}/>
+                                                                <col style={{width: '40%'}}/>
+                                                                <col style={{width: '30%'}}/>
+                                                            </colgroup>
+                                                            <thead
+                                                                style={{
+                                                                    backgroundColor: '#E7E7E7',
+                                                                    color: '#000000',
+                                                                    fontFamily: 'Vulf Sans',
+                                                                    fontSize: '18px',
+                                                                    fontWeight: 600,
+                                                                    lineHeight: '16px',
+                                                                    textAlign: 'left',
+                                                                    textTransform: 'uppercase',
+                                                                    height: '30px'
+                                                                }}
+                                                            >
+                                                                <tr
+                                                                    key={edge.target+"-PathAdaptionTableRow"}
+                                                                    style={{
+                                                                        height: '50px'
+                                                                    }}
+                                                                >
+                                                                    {[ "Input", 'Formula',"Action Property"].map((heading) => {
+                                                                        return(
+                                                                            <th key={heading}>{heading}</th>
+                                                                        )
+                                                                    })}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody
+                                                                key={edge.target+'-PathAdaptionRows'}
+                                                                style={{
+                                                                    backgroundColor: '#FFFFFF',
+                                                                    color: '#000000',
+                                                                    fontFamily: 'apercu-regular-pro',
+                                                                    fontSize: '14px',
+                                                                    fontWeight: 100,
+                                                                    textAlign: 'left'
+                                                                }}
+                                                            >
+                                                                {
+                                                                    
+                                                                    mappings[edge.target] ? (
+                                                                        Object.keys(mappings[edge.target]).map((targetKey, index) => {
+                                                                            var mappingValues = Object.values(mappings[edge.target])[index]
+                                                                            if (mappingValues?.input?.actionId == nodeActions[edge.source]?.uuid && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'path'){
+                                                                                const inputFormulas = mappingValues?.input?.formulas
+                                                                                var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,edge.input, edge.target)
+                                                                                return cleanedRows.map(
+                                                                                    (row) => (
+                                                                                        <tr
+                                                                                            key={edge.target+row+"PathTableRow"}
+                                                                                            style={{
+                                                                                                height: '70px',
+                                                                                                borderBottom: '1px solid #E7E7E7'
+                                                                                            }}
+                                                                                        >
+                                                                                            {row.map((cell) => {
+                                                                                                return (
+                                                                                                    <td key={cell}>{cell}</td>
+                                                                                                ) 
+                                                                                            })}
+                                                                                        </tr>
+                                                                                )
+                                                                                )
+                                                                            } 
+                                                                        })): (
+                                                                            <tr
+                                                                                key={edge.target+'noPathAdaptionRows'}
+                                                                                style={{
+                                                                                    height: '70px',
+                                                                                    borderBottom: '1px solid #E7E7E7'
+                                                                                }}
+                                                                            >
+                                                                                <td colSpan={3}>No Path Parameter Mappings</td>
+                                                                            </tr>   
+                                                                        )
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                        <div style={{height: 20}}/>
+                                                    </>
+                                            ) : null
+                                        }
+                                        {
+                                            Object.values(mappings[edge?.target]).filter((mapping)=> {
+                                                return mapping.output?.in == 'body'
+                                            }).length > 0 ? (
+                                                    <>
+                                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500, color: '#000000'}}>
+                                                            Request Body Data
+                                                        </Text>
+                                                        <table 
+                                                                key={edge.target+'-RequestBodyAdaptionTable'}
+                                                                style={{ 
+                                                                    width: '85%',
+                                                                    borderCollapse: 'collapse',
+                                                                    border: '1px solid #E7E7E7',
+                                                                    fontFamily: 'Visuelt',
+                                                                    fontSize: '14px',
+                                                                    fontWeight: 100,
+                                                                    textAlign: 'left',
+                        
+                                                                }}>
+                                                                    <colgroup>
+                                                                        <col style={{width: '30%'}}/>
+                                                                        <col style={{width: '40%'}}/>
+                                                                        <col style={{width: '30%'}}/>
+                                                                    </colgroup>
+                                                                    <thead
+                                                                        style={{
+                                                                            backgroundColor: '#E7E7E7',
+                                                                            color: '#000000',
+                                                                            fontFamily: 'Vulf Sans',
+                                                                            fontSize: '18px',
+                                                                            fontWeight: 600,
+                                                                            lineHeight: '16px',
+                                                                            textAlign: 'left',
+                                                                            textTransform: 'uppercase',
+                                                                            height: '30px'
+                                                                        }}
+                                                                    >
+                                                                        <tr
+                                                                            key={edge.target+"-RequestBodyAdaptionTableRow"}
+                                                                            style={{
+                                                                                height: '50px'
+                                                                            }}
+                                                                        >
+                                                                            {[ "Input", 'Formula',"Action Property"].map((heading) => {
+                                                                                return(
+                                                                                    <th key={heading}>{heading}</th>
+                                                                                )
+                                                                            })}
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody
+                                                                        key={edge.target+'-RequestBodyAdaptionRows'}
+                                                                        style={{
+                                                                            backgroundColor: '#FFFFFF',
+                                                                            color: '#000000',
+                                                                            fontFamily: 'apercu-regular-pro',
+                                                                            fontSize: '14px',
+                                                                            fontWeight: 100,
+                                                                            textAlign: 'left'
+                                                                        }}
+                                                                    >
+                                                                        {
+                                                                        
+                                                                            mappings[edge?.target] ? (
+                                                                                Object.keys(mappings[edge?.target]).map((targetKey, index) => {
+                                                                                    var mappingValues = Object.values(mappings[edge?.target])[index]
+                                                                                    if (mappingValues?.input?.actionId == nodeActions[edge.source]?.uuid && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'body'){
+                                                                                        const inputFormulas = mappingValues?.input?.formulas
+                                                                                        var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,edge?.source, edge?.target)
+                                                                                      
+                                                                                        return cleanedRows.map(
+                                                                                            (row) => (
+                                                                                                <tr
+                                                                                                    key={edge.target+row+"RequestBodyTableRow"}
+                                                                                                    style={{
+                                                                                                        height: '70px',
+                                                                                                        borderBottom: '1px solid #E7E7E7'
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {row.map((cell, index) => {
+                                                    
+                                                                                                        return (
+                                                                                                            <td key={cell+"-"+index}>{cell}</td>
+                                                                                                        ) 
+                                                                                                    })}
+                                                                                                </tr>
+                                                                                        )
+                                                                                        )
+                                                                                    }
+                                                                                })): (
+                                                                                    <tr
+                                                                                        key={edge.target+'noRequestBodyAdaptionRows'}
+                                                                                        style={{
+                                                                                            height: '70px',
+                                                                                            borderBottom: '1px solid #E7E7E7'
+                                                                                        }}
+                                                                                    >
+                                                                                        <td colSpan={3}>No Mappings from Previous Action</td>
+                                                                                    </tr>   
+                                                                                )
+                                                                        }
+                                                                    </tbody>
+                                                        </table>
+                                                        <div style={{height: 20}}/>
+                                                    </>
+                                            ) : null
+                                        }
+                                </div>) : (
+                                     <div key={edge.id}>
+                                     <Text sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
+                                        {edge.target.split('-')[1]} {nodeActions[edge.target]?.method.toUpperCase()} {nodeActions[edge.target]?.path}
+                                     </Text>
+                                     <div style={{height: 20}}/>
+                                     <Divider size={'xs'} sx={{width: '40%'}}/>
+                                     <div style={{height: 10}}/>
+                                     {
+                                            edge.target.split('-')[1] == "1" && workflow?.trigger?.type == 'webhook' ? (
+                                                <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
+                                                    When the {workflow?.trigger?.selectedWebhook?.name} webhook is received, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path}.  There are no mappings from the webhook schema.
+                                                </Text>
+
+                                            ) : edge.target.split('-')[1] == "1" && workflow?.trigger?.type == 'scheduled' ? (
+                                                <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
+                                                    When the scheduled {trigger?.cadence} cadence is triggered, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path}.
+                                                </Text>
+                                            ) : (
+                                                <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
+                                                   If {nodeActions[edge.source].name} responds {edge.sourceHandle == 'actionSuccess' ? 'successfully' : 'unsuccessfully'}, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path}.  There are no mappings set from the previous response schema.
+                                                </Text>
+                                            )
+                                    }
+                                     <div style={{
+                                             display: 'flex',
+                                             flexDirection: 'column',
+                                             justifyContent: 'flex-start',
+                                             paddingLeft: '40x'
+                                         }}>
+                                         <div style={{height: 10}}/>
+                                         <Text
+                                             sx={{
+                                                 fontFamily: 'Visuelt',
+                                                 fontWeight: 100,
+                                                 fontSize: '16px',
+                                                 width: '90%'
+                                             }}
+                                         >
+                                         </Text>
+                                         
+                                     </div>
+                                     <div style={{height: 20}}/>
+                                 </div>
+                            )
+                           }
+
+                        )
+                    }
+              
+               </div>
             </div>
         </>
      ) : (

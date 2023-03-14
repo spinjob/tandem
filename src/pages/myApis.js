@@ -210,33 +210,33 @@ const MyApis = () => {
                     ) : uploadProgress == 100 ? (
                         <>
                             <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F6F3', padding: 30 }}>
-                            <div style={{display:'flex', flexDirection:'column', width:"100%"}}>
-                                <div style={{display:'flex', flexDirection:'row', alignItems:'center', }}>
-                                    <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
-                                    <div style={{width: 10}}/>
-                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.schema?.count} Schemas</Text> 
+                                <div style={{display:'flex', flexDirection:'column', width:"100%"}}>
+                                    <div style={{display:'flex', flexDirection:'row', alignItems:'center', }}>
+                                        <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                        <div style={{width: 10}}/>
+                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.schema?.count} Schemas</Text> 
+                                    </div>
+                                    <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                        <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                        <div style={{width: 10}}/>
+                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.actions?.count} Actions</Text> 
+                                    </div>
+                                    <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                        <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                        <div style={{width: 10}}/>
+                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.parameters?.count} Parameters</Text> 
+                                    </div>
+                                    <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                        <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                        <div style={{width: 10}}/>
+                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.webhooks?.count} Webhooks</Text> 
+                                    </div>
+                                    <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                        <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                        <div style={{width: 10}}/>
+                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.securitySchemes?.count} Security Schemes</Text> 
+                                    </div>
                                 </div>
-                                <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                    <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
-                                    <div style={{width: 10}}/>
-                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.actions?.count} Actions</Text> 
-                                </div>
-                                <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                    <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
-                                    <div style={{width: 10}}/>
-                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.parameters?.count} Parameters</Text> 
-                                </div>
-                                <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                    <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
-                                    <div style={{width: 10}}/>
-                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.webhooks?.count} Webhooks</Text> 
-                                </div>
-                                <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                    <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
-                                    <div style={{width: 10}}/>
-                                    <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.securitySchemes?.count} Security Schemes</Text> 
-                                </div>
-                            </div>
                             </div>
                             <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'white', paddingTop: 30}}>
                                 <Button
@@ -293,8 +293,8 @@ const MyApis = () => {
                         <>
                          <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', paddingBottom: 10}}>
                             <Text style={{ fontFamily: 'Visuelt', fontSize: '15px', paddingLeft: 10, color: '#3E3E3E'}}>Supported Open API Versions:</Text> 
-                            <Badge color="gray" style={{marginLeft: 10}}>v2.X</Badge>
-                            <Badge color="gray" style={{marginLeft: 10}}>v3.X</Badge>
+                            <Badge>v2.X</Badge>
+                            <Badge>v3.X</Badge>
                         </div>
                         <ImportApiDropzone setUploadJob={setInitialJob} organizationId={organization} userId={user?.sub}/>
 

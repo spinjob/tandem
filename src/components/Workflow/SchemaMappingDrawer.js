@@ -535,7 +535,8 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     }
 
     useEffect (() => {
-            if(outputPaths.length == 0){
+    
+            if(outputPaths.length == 0 && action?.requestBody2?.schema || outputPaths.length == 0 && action?.parameterSchema?.path || outputPaths.length == 0 && action?.parameterSchema?.header){
                 var pathArray = []
                 if (action?.requestBody2?.schema && outputPaths.length == 0) {
                     var paths = processPaths(action.requestBody2.schema)
@@ -579,7 +580,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 var paths = processPaths(nodeActions[sourceNode?.id]?.responses[0]?.schema)
                 setInputPaths(paths)
             } 
-     }, [setOutputPaths, setInputPaths, action, nodeActions, sourceNode, targetNode, inputPaths, outputPaths, processPaths])
+     }, [action, nodeActions, sourceNode, targetNode, inputPaths, outputPaths])
 
     useEffect (() => {
 

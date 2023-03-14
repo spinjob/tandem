@@ -1,4 +1,4 @@
-import {Card, Text, TextInput, Image, Button, ActionIcon, Anchor, Modal, Select, Loader} from '@mantine/core'
+import {Card, Text, NumberInput, TextInput, Image, Button, ActionIcon, Anchor, Modal, Select, Loader} from '@mantine/core'
 import {useEffect, useState} from 'react'
 import cancelIcon from '../../../../public/icons/delete-disabled.svg'
 import {v4 as uuidv4} from 'uuid'
@@ -111,7 +111,64 @@ const IfThenRecipeCard = ({updateFormula, recipe, sourceProperty, targetProperty
                                             }}
                                             />
 
-                                            ) : null
+                                            ) : sourceProperty?.type == 'boolean' ? (
+                                                <Select
+                                                    key={condition?.if?.property.uuid+'-selectTopCondition-if-'+index}
+                                                    onChange={(value) => {
+                                                        setTopLevelCondition(value)
+                                                        var newConditions = conditions
+                                                        newConditions[index].if.condition = value
+                                                    setConditions(newConditions)
+                                                    }}
+                                                    data={[
+                                                        {label: 'is', value: 'equals'},
+                                                        {label: 'is not', value: 'notEquals'},
+                                                    ]}
+                                                    value={topLevelCondition}
+                                                    sx={{
+                                                        width: 128,
+                                                        '& input': {
+                                                            '&:focus':{
+                                                                borderColor: 'black'
+                                                            },
+                                                            fontFamily: 'Visuelt',
+                                                            fontSize: '16px',
+                                                            fontWeight: 100
+                                                        }
+                                                    }}
+                                                    />
+                                            ) : sourceProperty?.type == 'number' || sourceProperty?.type == 'float' || sourceProperty?.type == 'integer' ? (
+                                                <Select
+                                                    key={condition?.if?.property.uuid+'-selectTopCondition-if-'+index}
+                                                    onChange={(value) => {
+                                                        setTopLevelCondition(value)
+                                                        var newConditions = conditions
+                                                        newConditions[index].if.condition = value
+                                                    setConditions(newConditions)
+                                                    }}
+                                                    data={[
+                                                        {label: 'equals', value: 'equals'},
+                                                        {label: 'does not equal', value: 'notEquals'},
+                                                        {label: 'is greater than', value: 'greaterThan'},
+                                                        {label: 'is less than', value: 'lessThan'},
+                                                        {label: 'is greater than or equal to', value: 'greaterThanOrEqual'},
+                                                        {label: 'is less than or equal to', value: 'lessThanOrEqual'}
+                                                    ]}
+                                                    value={topLevelCondition}
+                                                    sx={{
+                                                        width: 220,
+                                                        '& input': {
+                                                            '&:focus':{
+                                                                borderColor: 'black'
+                                                            },
+                                                            fontFamily: 'Visuelt',
+                                                            fontSize: '16px',
+                                                            fontWeight: 100
+                                                        }
+                                                    }}
+                                                    />
+                                            ) 
+                                            : null
                                     }
                                     <div style={{width: 10}}/>
                                     {
@@ -161,10 +218,59 @@ const IfThenRecipeCard = ({updateFormula, recipe, sourceProperty, targetProperty
                                                         fontSize: '16px',
                                                         fontWeight: 100
                                                     }
-                                                }}
-                                            />
+                                                    }}
+                                                />
                                             
-                                            ) : null
+                                            ) : sourceProperty?.type == 'boolean' ? (
+                                                    <Select
+                                                    key={condition?.if?.property.uuid+'-selectCondition-if-'+index}
+                                                    onChange={(value) => {
+                                                        var newConditions = conditions
+                                                        newConditions[index].if.value = value
+                                                        setTopLevelConditionValue(value)
+                                                        setConditions(newConditions)
+                                                    }}
+                                                    data={[
+                                                        {label: 'true', value: true},
+                                                        {label: 'false', value: false},
+                                                    ]}
+                                                    value={topLevelConditionValue}
+                                                    sx={{
+                                                        width: 380,
+                                                        '& input': {
+                                                            '&:focus':{
+                                                                borderColor: 'black'
+                                                            },
+                                                            fontFamily: 'Visuelt',
+                                                            fontSize: '16px',
+                                                            fontWeight: 100
+                                                        }
+                                                    }}
+                                                    />
+                                            ) : sourceProperty?.type == 'number' || sourceProperty?.type == 'float' || sourceProperty?.type == 'integer' ? (
+                                                <NumberInput 
+                                                    key={condition?.if?.property.uuid+'-selectCondition-if-'+index}
+                                                    onChange={(event) => {
+                                                        var newConditions = conditions
+                                                        newConditions[index].if.value = event
+                                                        setTopLevelConditionValue(event)
+                                                        setConditions(newConditions)
+                                                    }}
+                                                    value={topLevelConditionValue}
+                                                    sx={{
+                                                        width: 290,
+                                                        '& input': {
+                                                            '&:focus':{
+                                                                borderColor: 'black'
+                                                            },
+                                                            fontFamily: 'Visuelt',
+                                                            fontSize: '16px',
+                                                            fontWeight: 100
+                                                        }
+                                                    }}
+                                                />
+                                            )
+                                            : null
                                     }
                                     <div style={{width: 10}}/>
                                     {
@@ -222,6 +328,68 @@ const IfThenRecipeCard = ({updateFormula, recipe, sourceProperty, targetProperty
                                                                 }
                                                             }} />
 
+                                                        ) : sourceProperty?.type == 'boolean' ? (
+                                                            <Select
+                                                            key={orCondition.uuid+'-selectCondition-or-'+index}
+                                                            value={orCondition?.condition}
+                                                            onChange={(value) => {
+                                                                var updatedConditions = [...conditions]
+                                                                updatedConditions.filter((conditionItem) => {
+                                                                    if (conditionItem.uuid == condition.uuid) {
+                                                                        conditionItem.if.or[index].condition = value
+                                                                    }
+                                                                }
+                                                                )
+                                                                setConditions(updatedConditions)
+                                                            }}
+                                                            data={[
+                                                                {label: 'is', value: 'equals'},
+                                                                {label: 'is not', value: 'notEquals'},
+                                                            ]}
+                                                            sx={{
+                                                                width: 128,
+                                                                '& input': {
+                                                                    '&:focus':{
+                                                                        borderColor: 'black'
+                                                                    },
+                                                                    fontFamily: 'Visuelt',
+                                                                    fontSize: '16px',
+                                                                    fontWeight: 100
+                                                                }
+                                                            }} />
+                                                        ) : sourceProperty?.type == 'number' || sourceProperty?.type == 'float' || sourceProperty?.type == 'integer'? (
+                                                            <Select
+                                                                key={orCondition.uuid+'-selectCondition-or-'+index}
+                                                            value={orCondition?.condition}
+                                                            onChange={(value) => {
+                                                                var updatedConditions = [...conditions]
+                                                                updatedConditions.filter((conditionItem) => {
+                                                                    if (conditionItem.uuid == condition.uuid) {
+                                                                        conditionItem.if.or[index].condition = value
+                                                                    }
+                                                                }
+                                                                )
+                                                                setConditions(updatedConditions)
+                                                            }}
+                                                            data={[
+                                                                {label: 'equals', value: 'equals'},
+                                                                {label: 'does not equal', value: 'notEquals'},
+                                                                {label: 'is greater than', value: 'greaterThan'},
+                                                                {label: 'is less than', value: 'lessThan'},
+                                                                {label: 'is greater than or equal to', value: 'greaterThanOrEqual'},
+                                                                {label: 'is less than or equal to', value: 'lessThanOrEqual'}
+                                                            ]}
+                                                            sx={{
+                                                                width: 220,
+                                                                '& input': {
+                                                                    '&:focus':{
+                                                                        borderColor: 'black'
+                                                                    },
+                                                                    fontFamily: 'Visuelt',
+                                                                    fontSize: '16px',
+                                                                    fontWeight: 100
+                                                                }
+                                                            }} />
                                                         ) : null
                                                     }
                                                     <div style={{width: 10}}/>
@@ -257,6 +425,60 @@ const IfThenRecipeCard = ({updateFormula, recipe, sourceProperty, targetProperty
                                                                 }
                                                             }} />
 
+                                                       ) : sourceProperty?.type == 'boolean' ? (
+                                                            <Select
+                                                                key={orCondition.uuid+'-selectOption-or-'+index}
+                                                                onChange={(value) => {
+                                                                var updatedConditions = [...conditions]
+                                                                    updatedConditions.filter((conditionItem) => {
+                                                                        if (conditionItem.uuid == condition.uuid) {
+                                                                            conditionItem.if.or[index].value = value
+                                                                        }
+                                                                    }
+                                                                    )
+                                                                    setConditions(updatedConditions)
+                                                                }}
+                                                                value={orCondition?.value}
+                                                                data={[
+                                                                    {label: 'true', value: true},
+                                                                    {label: 'false', value: false},
+                                                                ]}
+                                                                sx={{
+                                                                    width: 380,
+                                                                    '& input': {
+                                                                        '&:focus':{
+                                                                            borderColor: 'black'
+                                                                        },
+                                                                        fontFamily: 'Visuelt',
+                                                                        fontSize: '16px',
+                                                                        fontWeight: 100
+                                                                    }
+                                                                }} />
+                                                       ) : sourceProperty?.type == 'number' || sourceProperty?.type == 'float' || sourceProperty?.type == 'integer'  ? (
+                                                        <NumberInput
+                                                            key={orCondition.uuid+'-input-or-'+index}
+                                                            value={orCondition?.value}
+                                                            onChange={(event) => {
+                                                                var updatedConditions = [...conditions]
+                                                                updatedConditions.filter((conditionItem) => {
+                                                                    if (conditionItem.uuid == condition.uuid) {
+                                                                        conditionItem.if.or[index].value = event
+                                                                    }
+                                                                }
+                                                            )
+                                                                setConditions(updatedConditions)
+                                                            }}
+                                                            sx={{
+                                                                width: 290,
+                                                                '& input': {
+                                                                    '&:focus':{
+                                                                        borderColor: 'black'
+                                                                    },
+                                                                    fontFamily: 'Visuelt',
+                                                                    fontSize: '16px',
+                                                                    fontWeight: 100
+                                                                }
+                                                            }} />
                                                        ) : (
                                                           <TextInput
                                                             key={orCondition.uuid+'-input-or-'+index}
@@ -438,6 +660,35 @@ const IfThenRecipeCard = ({updateFormula, recipe, sourceProperty, targetProperty
                                                         )
                                                         setConditions(updatedConditions)
                                                     }}
+                                                    sx={{
+                                                        width: 380,
+                                                        '& input': {
+                                                            '&:focus':{
+                                                                borderColor: 'black'
+                                                            },
+                                                            fontFamily: 'Visuelt',
+                                                            fontSize: '16px',
+                                                            fontWeight: 100
+                                                        }
+                                                    }}/>
+                                            ) : targetProperty?.type == 'boolean' ? (
+                                                <Select
+                                                    key={condition.uuid+'-selectOption-then'}
+                                                    onChange={(value) => {
+                                                        var updatedConditions = [...conditions]
+                                                        updatedConditions.filter((conditionItem) => {
+                                                            if (conditionItem.uuid == condition.uuid) {
+                                                                conditionItem.then.value = value
+                                                            }
+                                                        }
+                                                        )
+                                                        setConditions(updatedConditions)
+                                                    }}
+                                                    value={condition.then?.value}
+                                                    data={[
+                                                        {label: 'true', value: true},
+                                                        {label: 'false', value: false}
+                                                    ]}
                                                     sx={{
                                                         width: 380,
                                                         '& input': {
