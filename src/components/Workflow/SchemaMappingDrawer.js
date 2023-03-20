@@ -193,6 +193,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         const nestedPropertyValues = Object.values(properties)
         
         const nestedPropertyObjects = nestedPropertyKeys.map((key, index) => {
+            console.log(requiredSchemaArray)
             if(requiredSchemaArray){
                 return {
                     key: key,

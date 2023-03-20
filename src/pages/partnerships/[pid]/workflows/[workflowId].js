@@ -1322,6 +1322,7 @@ const WorkflowStudio = () => {
     //From Global State
     const nodeActions = useStore((state) => state.nodeActions);
     const nodes = useStore((state) => state.nodes);
+    const edges = useStore((state) => state.edges);
     const nodeViews = useStore((state) => state.nodeViews);
     const [mappingModalOpen, setMappingModalOpen] = useState(false);
     const setNodeViews = useStore((state) => state.setNodeViews);
@@ -1335,7 +1336,7 @@ const WorkflowStudio = () => {
     const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
     const [view, setView] = useState('studio');
-    
+
     const toggleMappingModal = () => {
         
         setMappingModalOpen(!mappingModalOpen)

@@ -73,12 +73,8 @@ const WorkflowScope = ({partnership}) => {
         
         var rows = []
         //Specifying all of the mappings action IDs so we can filter out any previously mapped properties from other actions.
-        var mappingInputActionId = inputProperty?.actionId
-        var mappingOutputActionId = targetProperty?.actionId
-        var inputAction = nodeActions[inputNodeId]
-        var outputAction = nodeActions[outputNodeId]
-
-        formulas.forEach((formula, index) => {
+        
+        formulas?.forEach((formula, index) => {
             if (formula.formula == 'ifthen'){
                 var ifObject = formula.inputs['ifThen'][0]['if']
                 var ifCondition = ifObject?.condition == 'equals' ? '==' : '!='
@@ -418,16 +414,16 @@ const WorkflowScope = ({partnership}) => {
                                         {
                                             edge.target.split('-')[1] == "1" && workflow?.trigger?.type == 'webhook' ? (
                                                 <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
-                                                    When the {workflow?.trigger?.selectedWebhook?.name} webhook is received, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path} with the following data mappings:
+                                                    When the {workflow?.trigger?.selectedWebhook?.name} webhook is received, the integration should send a {nodeActions[edge.target]?.method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target]?.path} with the following data mappings:
                                                 </Text>
 
                                             ) : edge.target.split('-')[1] == "1" && workflow?.trigger?.type == 'scheduled' ? (
                                                 <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
-                                                    When the scheduled {trigger?.cadence} cadence is triggered, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path} with the following data mappings:
+                                                    When the scheduled {trigger?.cadence} cadence is triggered, the integration should send a {nodeActions[edge.target]?.method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target]?.path} with the following data mappings:
                                                 </Text>
                                             ) : (
                                                 <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
-                                                   If {nodeActions[edge.source].name} responds {edge.sourceHandle == 'actionSuccess' ? 'successfully' : 'unsuccessfully'}, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path} with the following data mappings:
+                                                   If {nodeActions[edge.source]?.name} responds {edge.sourceHandle == 'actionSuccess' ? 'successfully' : 'unsuccessfully'}, the integration should send a {nodeActions[edge.target]?.method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target]?.path} with the following data mappings:
                                                 </Text>
                                             )
                                         }
@@ -762,16 +758,16 @@ const WorkflowScope = ({partnership}) => {
                                      {
                                             edge.target.split('-')[1] == "1" && workflow?.trigger?.type == 'webhook' ? (
                                                 <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
-                                                    When the {workflow?.trigger?.selectedWebhook?.name} webhook is received, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path}.  There are no mappings from the webhook schema.
+                                                    When the {workflow?.trigger?.selectedWebhook?.name} webhook is received, the integration should send a {nodeActions[edge.target]?.method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target]?.path}.  There are no mappings from the webhook schema.
                                                 </Text>
 
                                             ) : edge.target.split('-')[1] == "1" && workflow?.trigger?.type == 'scheduled' ? (
                                                 <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
-                                                    When the scheduled {trigger?.cadence} cadence is triggered, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path}.
+                                                    When the scheduled {trigger?.cadence} cadence is triggered, the integration should send a {nodeActions[edge.target]?.method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target]?.path}.
                                                 </Text>
                                             ) : (
                                                 <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
-                                                   If {nodeActions[edge.source].name} responds {edge.sourceHandle == 'actionSuccess' ? 'successfully' : 'unsuccessfully'}, the integration should send a {nodeActions[edge.target].method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target].path}.  There are no mappings set from the previous response schema.
+                                                   If {nodeActions[edge.source]?.name} responds {edge.sourceHandle == 'actionSuccess' ? 'successfully' : 'unsuccessfully'}, the integration should send a {nodeActions[edge.target]?.method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target]?.path}.  There are no mappings set from the previous response schema.
                                                 </Text>
                                             )
                                     }

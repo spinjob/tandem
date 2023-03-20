@@ -134,7 +134,7 @@ useEffect(() => {
                   } leftIcon={
                     <div style={{height: 20, width: 20}}>
                       <Image alt="status" src={
-                       partnership.status ? partnershipStatusOptions.find(option => option.label == partnership.status).icon : activeIcon
+                       partnership.status ? partnershipStatusOptions.find(option => option.label == partnership.status)?.icon : activeIcon
                       }/>
                     
                     </div>

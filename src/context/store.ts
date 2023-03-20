@@ -90,13 +90,11 @@ const useStore = create<RFState>((set, get) => (
     inputPaths: [],
     outputPaths: [],
     setInputPaths: (inputPaths: Array<string>) => {
-      console.log("inputPaths", inputPaths)
       set({
         inputPaths: inputPaths
       })
     },
     setOutputPaths: (outputPaths: Array<string>) => {
-      console.log("inputPaths", outputPaths)
       set({
         outputPaths: outputPaths
       })
