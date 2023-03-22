@@ -184,8 +184,8 @@ const ViewApi = () => {
                 </Tabs.List>
 
                 <Tabs.Panel value="metadata" label="Metadata">
-                    {apiMetadata ? (
-                        <ApiMetadata metadata={apiMetadata}/>
+                    {apiMetadata || securitySchemas ? (
+                        <ApiMetadata metadata={apiMetadata} securityScheme={securitySchemas}/>
                     ) : (
                         <Loader/>
                     )}
