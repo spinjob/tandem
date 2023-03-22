@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import {Modal, Button,Text, Loader, ScrollArea, Grid, Container, Image, Badge} from '@mantine/core'
+import {Modal, Button,Text, Loader, ScrollArea, Grid, Container, Image, Badge, TextInput, Textarea, PasswordInput} from '@mantine/core'
 import {GrAddCircle} from 'react-icons/gr'
 import {VscTypeHierarchy} from 'react-icons/vsc'
 import apiIcon from '../../../../public/icons/Programing, Data.2.svg'
@@ -10,24 +10,59 @@ import AppContext from '@/context/AppContext';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 
-const PartnershipApis = ({pid, partnershipApis}) => {
+const PartnershipApis = ({pid, partnershipApis, partnership}) => {
 
    const [modalOpened, setModalOpened] = useState(false)
    const [apis, setApis] = useState(partnershipApis)
-   const { user, error, isLoading } = useUser();
+   const [securityScheme, setSecurityScheme] = useState(null)
+   const [selectedApi, setSelectedApi] = useState(null)
+   const [partnershipAuthentication, setPartnershipAuthentication] = useState(partnership?.authentication ? partnership.authentication : null)
+   const [isEditingAuthentication, setIsEditingAuthentication] = useState(false)
+   const { user, error,isLoading } = useUser();
    const {organization} = useContext(AppContext).state
    const {dbUser, setDbUser} = useContext(AppContext).state
    const router = useRouter();
+
+   const fetchSecuritySchemes = useCallback(() => {
+        var apiIds = []
+        partnershipApis.forEach((api) => {
+            apiIds.push(api.uuid)
+        })
+        axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/security',{interfaces: apiIds}).then((res) => {
+            setSecurityScheme(res.data)
+            console.log(res.data)
+        }).catch((err) => {
+            console.log(err)
+        }
+        )
+    }, [partnershipApis])
+    
+    useEffect(() => {
+        if (partnershipApis && !securityScheme) {
+            fetchSecuritySchemes()
+            setSelectedApi(partnershipApis[0].uuid)
+        }
+    }, [partnershipApis, securityScheme, fetchSecuritySchemes])
+
+    const savePartnershipAuthentication = () => {
+        axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/authentication', {authentication: partnershipAuthentication}).then((res) => {
+            console.log(res.data)
+        }).catch((err) => {
+            console.log(err)
+        })
+    }
 
    const renderApis = () => {
         return partnershipApis.map((api) => {
             return (
                 <Grid.Col key={"gridColumn"+api.uuid} xs={4}>
                         <Button key={'button_'+api.uuid} onClick={() => {
-                            router.push('/apis/' + api.uuid)
+                            setSelectedApi(api.uuid)
                         }} sx={{
+                            border: selectedApi == api.uuid ? '1px solid #000000' : '1px solid #f2f0ee',
+                            boxShadow: selectedApi == api.uuid ? '0 0 0 1px #000000' : null,
                             '&:hover': {
-                                boxShadow: '0 0 0 1px #eaeaff'
+                                boxShadow: selectedApi == api.uuid ? '0 0 0 1px #000000' : '0 0 0 1px #eaeaff'
                             }
                         }} style={{padding: 0, paddingLeft: 2, height: 170, width: 280, backgroundColor: '#ffffff', borderRadius: 20, borderColor: '#f2f0ee'}}>
                             <Container style={{display:'flex', flexDirection: 'column'}}>
@@ -49,16 +84,269 @@ const PartnershipApis = ({pid, partnershipApis}) => {
         })
     }
 
-
     return partnershipApis ? (
         <div>
-            <div style={{height: '100vh',width: '75%',paddingTop: 30, display:'flex', flexDirection:'column'}}>
+            <div style={{width: '75%',paddingTop: 30, paddingBottom: 30, display:'flex', flexDirection:'column'}}>
                     <Container style={{width: '100vw'}}>
                         <Grid grow={false}>  
                             {renderApis()}
                         </Grid>
                     </Container>   
-                </div>   
+            </div> 
+            <div style={{ paddingLeft: 20, width: '75%',paddingTop: 30, paddingBottom: 30,display:'flex', flexDirection:'column'}}>
+                {
+                    securityScheme ? (
+                        securityScheme.filter((scheme) => {
+                            return scheme.parent_interface_uuid == selectedApi
+                        }).map((scheme) => {
+                            return (
+                                <div key={scheme.uuid} style={{display:'flex', flexDirection:'column',paddingBottom: 100, width: '100%',alignItems: 'left'}}>
+                                   <div style={{display:'flex', flexDirection:'column', width: 580}}>
+                                        <Text sx={{fontFamily:'Visuelt', fontSize: '24px'}}>
+                                            {partnershipApis.filter((api) => {
+                                                    return api.uuid == scheme.parent_interface_uuid
+                                                })[0].name
+                                            } Credentials
+                                        </Text>
+                                        <Text sx={{fontFamily:'Visuelt', fontSize: '15px', fontWeight: 100, color:'#939393'}}>
+                                           The following credentials and configurations are required to authorize your requests to {partnershipApis.filter((api) => {
+                                                    return api.uuid == scheme.parent_interface_uuid
+                                                })[0].name} according to the documented security scheme.
+                                        </Text>
+                                        <div style={{height: 20}}/>
+                                        <div style={{display:'flex', flexDirection:'row'}}>
+                                            <Badge sx={{backgroundColor:'#EAEAFF', color:'black', fontFamily: 'Visuelt', fontWeight: 500}}>
+                                                {scheme.type ? scheme.type : scheme.type}
+                                            </Badge>
+                                            <div style={{width: 10}}/>
+                                            {
+                                                scheme.flows && scheme.flows.length > 0 && scheme.flows[0].type ? (
+                                                    <Badge sx={{backgroundColor:'#EAEAFF', color:'black', fontFamily: 'Visuelt', fontWeight: 500}}>
+                                                        {scheme.flows ? scheme.flows[0].type : scheme.type}
+                                                    </Badge>
+                                                ) : null
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div style={{height: 20}}/>
+                                    <div>
+
+                                    {
+                                            scheme.type == 'oauth2' ? (
+                                                <div style={{display:'flex', flexDirection:'column', width: '100vw', alignItems: 'left'}}>
+                                                    <TextInput
+                                                    disabled={!isEditingAuthentication}
+                                                    value={partnershipAuthentication && partnershipAuthentication[scheme.parent_interface_uuid] ? partnershipAuthentication[scheme.parent_interface_uuid].client_id : ''}
+                                                    onChange={(e) => {
+                                                            if(partnershipAuthentication){
+                                                                setPartnershipAuthentication({
+                                                                    ...partnershipAuthentication,
+                                                                    [scheme.parent_interface_uuid]: {
+                                                                        ...partnershipAuthentication[scheme.parent_interface_uuid],
+                                                                        client_id: e.target.value
+                                                                    }
+                                                                })
+                                                            } else {
+                                                                setPartnershipAuthentication({
+                                                                    [scheme.parent_interface_uuid]: {
+                                                                        client_id: e.target.value
+                                                                    }
+                                                                })
+                                                            }
+                                                        }
+                                                    }
+                                                    label={
+                                                        <Text sx={{fontFamily: 'Visuelt'}}>
+                                                            Client ID
+                                                        </Text>
+                                                    } sx={{width: 580}} />
+                                                    <PasswordInput 
+                                                     value={ partnershipAuthentication && partnershipAuthentication[scheme.parent_interface_uuid] ? partnershipAuthentication[scheme.parent_interface_uuid].client_secret : ''}
+                                                     disabled={!isEditingAuthentication}
+                                                     onChange={(e) => {
+                                                            if(partnershipAuthentication){
+                                                                setPartnershipAuthentication({
+                                                                    ...partnershipAuthentication,
+                                                                    [scheme.parent_interface_uuid]: {
+                                                                        ...partnershipAuthentication[scheme.parent_interface_uuid],
+                                                                        client_secret: e.target.value
+                                                                    }
+                                                                })
+                                                            } else {
+                                                                setPartnershipAuthentication({
+                                                                    [scheme.parent_interface_uuid]: {
+                                                                        client_secret: e.target.value
+                                                                    }
+                                                                })
+                                                            }
+                                                        }
+                                                    }
+                                                    label={
+                                                        <Text sx={{fontFamily: 'Visuelt'}}>
+                                                            Client Secret
+                                                        </Text>
+                                                    }  sx={{width: 580}} />
+                                                    <Textarea 
+                                                        value={partnershipAuthentication && partnershipAuthentication[scheme.parent_interface_uuid] ? partnershipAuthentication[scheme.parent_interface_uuid].scope : ''}
+                                                        disabled={!isEditingAuthentication}
+                                                        onChange={(e) => {
+                                                            if(partnershipAuthentication){
+                                                                setPartnershipAuthentication({
+                                                                    ...partnershipAuthentication,
+                                                                    [scheme.parent_interface_uuid]: {
+                                                                        ...partnershipAuthentication[scheme.parent_interface_uuid],
+                                                                        scope: e.target.value
+                                                                    }
+                                                                })
+                                                            } else {
+                                                                setPartnershipAuthentication({
+                                                                    [scheme.parent_interface_uuid]: {
+                                                                        scope: e.target.value
+                                                                    }
+                                                                })
+                                                            }
+                                                        }}
+                                                    label={
+                                                        <Text sx={{fontFamily: 'Visuelt'}}>
+                                                            Scopes (comma separated)
+                                                        </Text>
+                                                    }  sx={{width: 580}} />
+                                                    <TextInput disabled label={
+                                                        <Text sx={{fontFamily: 'Visuelt'}}>
+                                                            Grant Type
+                                                        </Text>
+                                                    } sx={{width: 580}} value={
+                                                        scheme.flows && scheme.flows[0].type == 'clientCredentials' ? 'client_credentials' : scheme.type
+                                                    }/>
+                                                    <div style={{height: 20}}/>
+                                                    <div style={{display: 'flex'}}>
+                                                        <Button sx={{width: !isEditingAuthentication ? 580 : 285}} onClick={() => {
+                                                            if(isEditingAuthentication) {
+                                                                savePartnershipAuthentication()
+                                                            }
+                                                            setIsEditingAuthentication(!isEditingAuthentication)
+                                                            }} radius={'sm'} style={{backgroundColor: 'white', color:"black", border:'1px solid black'}}>
+                                                                { !isEditingAuthentication ? 'Edit' : 'Save'}
+                                                        </Button>
+                                                        {
+                                                            isEditingAuthentication ? (
+                                                                <>
+                                                                    <div style={{width: 10}}/>
+                                                                    <Button onClick={()=>{
+                                                                        setIsEditingAuthentication(false)
+                                                                        setPartnershipAuthentication(partnership?.authentication ? partnership.authentication : null)
+                                                                    }
+                                                                    } radius={'sm'} style={{backgroundColor: 'white', color:"#FF7E35", width: 280, border:'1px solid #FF7E35'}}>
+                                                                        Cancel
+                                                                    </Button>
+                                                                </>
+                                                                
+                                                            ) : (
+                                                                null
+                                                            )
+
+                                                        }
+                                                    </div>
+                                                </div>
+                                                ) : scheme.type == 'apiKey' ? (
+                                                    <div style={{display:'flex', flexDirection:'column', width: '100vw', alignItems: 'left'}}>
+                                                        <TextInput
+                                                            value={partnershipAuthentication && partnershipAuthentication[scheme.parent_interface_uuid] ? partnershipAuthentication[scheme.parent_interface_uuid].keyName : ''}  
+                                                            disabled={!isEditingAuthentication}
+                                                            onChange={(e) => {
+                                                                if(partnershipAuthentication){
+                                                                    setPartnershipAuthentication({
+                                                                        ...partnershipAuthentication,
+                                                                        [scheme.parent_interface_uuid]: {
+                                                                            ...partnershipAuthentication[scheme.parent_interface_uuid],
+                                                                            keyName: e.target.value
+                                                                        }
+                                                                    })
+                                                                } else {
+                                                                    setPartnershipAuthentication({
+                                                                        [scheme.parent_interface_uuid]: {
+                                                                            keyName: e.target.value
+                                                                        }
+                                                                    })
+                                                                }
+                                                            }}  
+                                                            placeholder="e.g. X-API-KEY" 
+                                                            label={
+                                                                <Text  sx={{fontFamily: 'Visuelt'}}>Key Name</Text>
+                                                            } 
+                                                            sx={{width: 580}} />
+                                                        <PasswordInput
+                                                            value={partnershipAuthentication && partnershipAuthentication[scheme.parent_interface_uuid] ? partnershipAuthentication[scheme.parent_interface_uuid].key : ''}
+                                                            disabled={!isEditingAuthentication} 
+                                                            onChange={(e) => {
+                                                                if(partnershipAuthentication){
+                                                                    setPartnershipAuthentication({
+                                                                        ...partnershipAuthentication,
+                                                                        [scheme.parent_interface_uuid]: {
+                                                                            ...partnershipAuthentication[scheme.parent_interface_uuid],
+                                                                            key: e.target.value
+                                                                        }
+                                                                    })
+                                                                } else {
+                                                                    setPartnershipAuthentication({
+                                                                        [scheme.parent_interface_uuid]: {
+                                                                            key: e.target.value
+                                                                        }
+                                                                    })
+                                                                }
+                                                            }}  
+                                                            label={
+                                                                <Text sx={{fontFamily: 'Visuelt'}}>
+                                                                    Key
+                                                                </Text>
+                                                            }  
+                                                            sx={{width: 580}} />
+                                                        <div style={{height: 20}}/>
+                                                        <div style={{display: 'flex'}}>
+                                                        <Button sx={{width: !isEditingAuthentication ? 580 : 285}} onClick={() => {
+                                                            if(isEditingAuthentication) {
+                                                                savePartnershipAuthentication()
+                                                            }
+                                                            setIsEditingAuthentication(!isEditingAuthentication)
+                                                            }} radius={'sm'} style={{backgroundColor: 'white', color:"black", border:'1px solid black'}}>
+                                                                { !isEditingAuthentication ? 'Edit' : 'Save'}
+                                                        </Button>
+                                                        {
+                                                            isEditingAuthentication ? (
+                                                                <>
+                                                                    <div style={{width: 10}}/>
+                                                                    <Button onClick={()=>{
+                                                                        setIsEditingAuthentication(false)
+                                                                        setPartnershipAuthentication(partnership?.authentication ? partnership.authentication : null)
+                                                                    }
+                                                                    } radius={'sm'} style={{backgroundColor: 'white', color:"#FF7E35", width: 285, border:'1px solid #FF7E35'}}>
+                                                                        Cancel
+                                                                    </Button>
+                                                                </>
+                                                                
+                                                            ) : (
+                                                                null
+                                                            )
+
+                                                        }
+                                                    </div>
+                                                    </div>
+                    
+                                                ) : ( 
+                                                    null
+                                                )
+                                    }
+                                   </div>
+                                   
+                                </div>
+                            )
+                        })
+                    ) : (
+                        null 
+                    )
+                }
+            </div>
         </div>
         ) : (
             <div style={{display:'flex',flexDirection:'column',width: '100vw',height:'100vh', justifyContent:'center', alignItems:'center'}}>

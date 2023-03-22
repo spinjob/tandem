@@ -1523,7 +1523,7 @@ const WorkflowStudio = () => {
     const setNodeAction = useStore((state) => state.setNodeAction);
     const selectedEdge = useStore((state) => state.selectedEdge);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
-    console.log(nodeActions)
+
     const toggleMappingModal = () => {
         
         setMappingModalOpen(!mappingModalOpen)
@@ -1699,7 +1699,7 @@ const WorkflowStudio = () => {
                 size={1000}
                 title={<Text style={{padding:20, fontFamily:'Visuelt', fontSize: '30px', fontWeight: 600}}>Mapping Configuration</Text>}
             >
-               <MappingModal getSchemaFromPath={getSchemaFromPath} toggleMappingModal={toggleMappingModal} partnership={partnership[0]} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} edge={selectedEdge} nodes={nodeActions} />
+               <MappingModal apis={apis} getSchemaFromPath={getSchemaFromPath} toggleMappingModal={toggleMappingModal} partnership={partnership[0]} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} edge={selectedEdge} nodes={nodeActions} />
             </Modal>
             <Drawer lockScroll={false} size={610} style={{overflowY: 'scroll', zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
             <SchemaMappingDrawer nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   

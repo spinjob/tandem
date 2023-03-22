@@ -10,7 +10,7 @@ import {BiBook} from 'react-icons/bi'
 import {HiOutlineKey} from 'react-icons/hi'
 import AdaptionDesigner from './AdaptionDesigner'
 
-const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, partnership, toggleMappingModal}) => { 
+const MappingModal = ({ apis, getSchemaFromPath, edge, nodes, sourceNode, targetNode, partnership, toggleMappingModal}) => { 
 
     const selectedMapping = useStore(state => state.selectedMapping)
     const selectedEdge  = useStore(state => state.selectedEdge)
@@ -36,9 +36,9 @@ const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, 
     const [formulas, handlers] = useListState([])
     const [didLoadInitialFormula, setDidLoadInitialFormula] = useState(false)
     const inputPaths = useStore(state => state.inputPaths)
-    
+
     const saveMapping = () => {
-        console.log(selectedMapping?.targetProperty)
+        console.log(selectedMapping)
         const newMapping = {
             id: uuidv4(),
             stepIndex: stepIndex,
@@ -65,12 +65,28 @@ const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, 
 
     }
 
-    const renderPartershipConfigurationMenu = () => {
+    const renderPartnershipConfigurationMenu = () => {
         var selectionOptionsArray = [{'label': 'New Workflow Variable', 'value': 'new'}]
         if(partnership?.configuration){
             var configurationKeys = Object.keys(partnership.configuration)
             configurationKeys.forEach((key) => {
-                selectionOptionsArray.push({label: key, value: key})
+                selectionOptionsArray.push({label: key, value: key, group: 'Partnership Configurations'})
+            })
+        }
+        if(partnership?.authentication){
+            var authenticationKeys = Object.keys(partnership.authentication)
+            var authenticationValues = Object.values(partnership.authentication)
+            
+            authenticationKeys.forEach((key, index) => {
+                var apiId = key
+                var apiGroup = apis.filter((api) => api.uuid === key)[0].name + " Authentication Credentials"
+                var authenticationCredentialKeys = Object.keys(authenticationValues[index])
+                var authenticationCredentialValues = Object.values(authenticationValues[index])
+
+                authenticationCredentialKeys.forEach((key,index) => {
+                    selectionOptionsArray.push({label: key, value: '$AuthKey-'+key+'$AuthValue-'+authenticationCredentialValues[index]+'$AuthGroup-'+apiId, group: apiGroup})
+                })
+             
             })
         }
         return selectionOptionsArray
@@ -369,10 +385,10 @@ const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, 
                                                 configurationMappingView == 'view' ? 'view' : 'create' ? 'create' : 'select'
                                             }
                                             placeholder="Select Configuration"
-                                            data={renderPartershipConfigurationMenu()}
+                                            data={renderPartnershipConfigurationMenu()}
                                             dropdownPosition="bottom"
                                             zIndex={1000}
-                                            onChange={(value) => {
+                                            onChange={(value, group) => {
                                                 setConfigurationMenuValue(value)
                                                 if(value == 'new'){
                                                     setConfigurationMappingView('create')
@@ -381,10 +397,35 @@ const MappingModal = ({ getSchemaFromPath, edge, nodes, sourceNode, targetNode, 
                                                     setNewConfigValue('')
                                                     setNewConfigType('')
 
-                                                } else {
+                                                } else if (value.includes('$Auth')) {
+                                                    setConfigurationMappingView('view')
+                                                    var authConfigKey = value.split('$AuthKey-')[1].split('$AuthValue-')[0]
+                                                    var authConfigValue = value.split('$AuthValue-')[1].split('$AuthGroup-')[0]
+                                                    var authConfigSecuritySchemaId = value.split('$AuthGroup-')[1]
+                                                    setSelectedConfiguration({type: 'string', value: authConfigValue, key: authConfigKey})
+                                                    setConfigurationMappingView('view')
+                                                    var sourceProperty = {
+                                                        key: authConfigKey,
+                                                        path: '$variable.'+authConfigKey,
+                                                        description: authConfigValue,
+                                                        type: 'string',
+                                                        value: authConfigValue,
+                                                    }
+                                                  
+                                                    setSelectedMapping({...selectedMapping, sourceProperty: sourceProperty})
+                                                } 
+                                                else {
                                                     setConfigurationMappingView('view')
                                                     setSelectedConfiguration({type: partnership.configuration[value].type, value: partnership.configuration[value].value, key: value})
-
+                                                    var sourceProperty = {
+                                                        key: value,
+                                                        path: '$variable.'+value,
+                                                        description: value,
+                                                        type: partnership.configuration[value].type,
+                                                        value: partnership.configuration[value].value,
+                                                    }
+    
+                                                    setSelectedMapping({...selectedMapping, sourceProperty: sourceProperty})
                                                 }
                                             }}
                                             sx={{

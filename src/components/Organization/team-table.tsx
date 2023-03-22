@@ -127,7 +127,7 @@ function TeamTable({ data }: TableSortProps) {
     <tr data-id={row.id} onClick={handleRowClick} key={row.id}>
       <td data-id={row.id} style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
         <Avatar radius="xl">
-            {row.name[0]+row.name[1]}
+            {row.name ? row.name[0]+row.name[1] : row.email[0]+row.email[1]}
         </Avatar>
         <div style={{width: 10}}/>
         {row.name}

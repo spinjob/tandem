@@ -30,6 +30,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     const setMappings = useStore(state => state.setMappings)
 
     /// Functions related to the generation of GPT-3 prompts and handling the response.
+    console.log(mappings)
 
     async function getMappingSuggestions (prompt, inputSchema, outputSchema) {
         setAreSuggestionsLoading(true)
@@ -601,9 +602,11 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         if(mappings[targetNode?.id] && requiredPropertyObjects && optionalPropertyObjects){
             var propertyKeys = Object.keys(mappings[targetNode?.id])
             var propertyValues = Object.values(mappings[targetNode?.id])
+            console.log(propertyKeys)
+            console.log(propertyValues)
 
             propertyKeys.forEach((key, index) => {
-                if(propertyValues[index]?.input?.actionId == nodeActions[sourceNode.id]?.uuid && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid){
+                if(propertyValues[index]?.input?.actionId == nodeActions[sourceNode.id]?.uuid && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid || propertyValues[index]?.input?.path.includes('$variable') && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid ){
                     requiredPropertyObjects.filter((property) => {
                  
                         if(property.path == key){
@@ -738,7 +741,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                                     <Text style={{marginRight: 34, display:'flex', width: '90%',fontFamily: 'Visuelt', fontWeight: 100, color: 'black', justifyContent:'center'}}>{selectedMapping?.sourceProperty?.path.split('.').length > 2 ? selectedMapping?.sourceProperty?.path.split('.')[0] + " [...] " + selectedMapping?.sourceProperty?.path.split('.').pop() : selectedMapping?.sourceProperty?.path}</Text> 
                                                 </Tooltip>
                                             </div>
-                                        ) : mappings[targetNode?.id] && mappings[targetNode?.id][property.path] &&  mappings[targetNode?.id][property.path].input?.actionId == nodeActions[sourceNode.id].uuid && mappings[targetNode?.id][property.path].output?.actionId == nodeActions[targetNode.id].uuid ? (
+                                        ) : mappings[targetNode?.id] && mappings[targetNode?.id][property.path] && mappings[targetNode?.id][property.path].output?.actionId == nodeActions[targetNode.id].uuid ? (
                                             <div style={{
                                                 fontFamily: 'Visuelt',
                                                 fontWeight: 100,
@@ -768,21 +771,28 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                                     >
                                                     <RiCloseCircleFill style={{color:'#000000'}} />
                                                 </ActionIcon>    
-                                                 <Tooltip 
-                                                    withinPortal={true} 
-                                                    color={'#000000'}
-                                                    label={
-                                                        <Text sx={{
-                                                            fontFamily: 'Visuelt',
-                                                            fontWeight: 100,
-                                                            color: 'white',
-                                                        }}>
-                                                            {mappings[targetNode?.id][property.path]?.sourcePath}
-                                                        </Text>
-                                                        } 
-                                                    placement="top">      
-                                                    <Text truncate={true} style={{marginRight: 34, display:'flex', width: '90%',fontFamily: 'Visuelt', fontWeight: 100, color: 'black', justifyContent:'center'}}>{mappings[targetNode?.id][property.path]?.sourcePath.split('.').length > 2 ? mappings[targetNode?.id][property.path]?.sourcePath.split('.')[0] + " [...] " + mappings[targetNode?.id][property.path]?.sourcePath.split('.').pop() : mappings[targetNode?.id][property.path]?.sourcePath}</Text> 
-                                                </Tooltip>
+                                                {
+                                                    mappings[targetNode?.id][property.path]?.sourcePath ? (
+                                                        <Tooltip 
+                                                            withinPortal={true} 
+                                                            color={'#000000'}
+                                                            label={
+                                                                <Text sx={{
+                                                                    fontFamily: 'Visuelt',
+                                                                    fontWeight: 100,
+                                                                    color: 'white',
+                                                                }}>
+                                                                    {mappings[targetNode?.id][property.path]?.sourcePath}
+                                                                </Text>
+                                                                } 
+                                                            placement="top">      
+                                                            <Text truncate={true} style={{marginRight: 34, display:'flex', width: '90%',fontFamily: 'Visuelt', fontWeight: 100, color: 'black', justifyContent:'center'}}>{mappings[targetNode?.id][property.path]?.sourcePath.split('.').length > 2 ? mappings[targetNode?.id][property.path]?.sourcePath.split('.')[0] + " [...] " + mappings[targetNode?.id][property.path]?.sourcePath.split('.').pop() : mappings[targetNode?.id][property.path]?.sourcePath}</Text> 
+                                                        </Tooltip>
+                                                    ) : (
+                                                        null
+                                                    )
+                                                }
+                                                 
                                             </div>
                                         ) : mappingSuggestions && mappingSuggestions[property.path] ? (
                                             <div style={{

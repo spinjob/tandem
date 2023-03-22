@@ -70,7 +70,7 @@ const WorkflowScope = ({partnership}) => {
     }
 
     const renderAdaptionTable = (formulas, targetProperty, inputProperty, inputNodeId, outputNodeId) => {
-        
+
         var rows = []
         //Specifying all of the mappings action IDs so we can filter out any previously mapped properties from other actions.
         
@@ -382,15 +382,6 @@ const WorkflowScope = ({partnership}) => {
                 {renderTriggerContent()}
                 </div>
                 <div style={{height: 20}}/>
-
-                {/* <div
-                    style={{
-                        paddingLeft: 100,
-                        paddingTop: 50
-                    }}
-                >
-                 {renderTriggeredActionContent()}
-                </div> */}
                 <div
                     style={{
                         paddingLeft: 100,
@@ -401,7 +392,7 @@ const WorkflowScope = ({partnership}) => {
                         edges.map((edge) => 
                            {
 
-                                return mappings[edge.target] && edge.source != 'trigger-1' || mappings[edge.target] && edge.source != 'action-1' ? (
+                                return mappings[edge.target] ? (
                                 
                                 <div key={edge.id}>
                                     <div>
@@ -419,7 +410,7 @@ const WorkflowScope = ({partnership}) => {
 
                                             ) : edge.target.split('-')[1] == "1" && workflow?.trigger?.type == 'scheduled' ? (
                                                 <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
-                                                    When the scheduled {trigger?.cadence} cadence is triggered, the integration should send a {nodeActions[edge.target]?.method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target]?.path} with the following data mappings:
+                                                    When the scheduled {workflow?.trigger?.cadence} cadence is triggered, the integration should send a {nodeActions[edge.target]?.method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target]?.path} with the following data mappings:
                                                 </Text>
                                             ) : (
                                                 <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
@@ -706,7 +697,8 @@ const WorkflowScope = ({partnership}) => {
                                                                             mappings[edge?.target] ? (
                                                                                 Object.keys(mappings[edge?.target]).map((targetKey, index) => {
                                                                                     var mappingValues = Object.values(mappings[edge?.target])[index]
-                                                                                    if (mappingValues?.input?.actionId == nodeActions[edge.source]?.uuid && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'body'){
+                                                                                    //Check that the action is the same as the source node and that the output is the body OR (if the mappings are all variables because the input has no data) that the input is a variable.
+                                                                                    if (mappingValues?.input?.actionId == nodeActions[edge.source]?.uuid && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'body' || mappingValues?.input?.path?.includes('$variable') && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'body'){
                                                                                         const inputFormulas = mappingValues?.input?.formulas
                                                                                         var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,edge?.source, edge?.target)
                                                                                       

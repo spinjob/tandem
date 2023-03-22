@@ -23,17 +23,7 @@ const Partnership = () => {
   const { pid } = router.query
   const [partnership, setPartnership] = useState(null)
   const [apis, setApis] = useState(null)
-
-  const testUserData = [
-    {
-      "name": "Spencer Johnson",
-      "image": null
-    },
-    {
-      "name": "Test Name",
-      "image": null
-    },
-  ]
+  const [organizationUsers, setOrganizationUsers] = useState(null)
 
   const partnershipStatusOptions = [
     { label: 'Active', value: 'active', icon: activeIcon},
@@ -50,29 +40,41 @@ const Partnership = () => {
     axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/details')
         .then((res) => {
             setPartnership(res.data[0])
+            fetchOrganizationUsers(res.data[0].owning_organization)
         })
         .catch((err) => {
             console.log(err)
         })
-}, [setPartnership, pid])
+  }, [setPartnership, pid])
+
+  const fetchOrganizationUsers = useCallback((organizationId) => {
+    axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/users?organization=' + organizationId).then((res) => {
+        setOrganizationUsers(res.data)
+        console.log(res.data)
+    })
+    .catch((err) => {
+        console.log(err)
+    })
+}, [organizationUsers])
+
 
   useEffect(() => {
     if (pid && !partnership) {
         fetchPartnershipDetails()
     } 
-}, [pid, fetchPartnershipDetails, partnership])
+}, [pid, fetchPartnershipDetails, fetchOrganizationUsers, partnership, organizationUsers])
 
-useEffect(() => { 
-  if (partnership && !apis) {
-    axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/interfaces', {interfaces: partnership.interfaces})
-      .then((res) => {
-        setApis(res.data)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-}, [partnership, apis])
+  useEffect(() => { 
+    if (partnership && !apis) {
+      axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/interfaces', {interfaces: partnership.interfaces})
+        .then((res) => {
+          setApis(res.data)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    }
+  }, [partnership, apis])
 
   const items = [
     { title: 'Partnerships', href: '/partnerships' },
@@ -164,8 +166,11 @@ useEffect(() => {
               </Menu>
               <div style={{width: 20}}/>
               <Avatar.Group>
-                {testUserData.map((user, index) => (
-                  <Avatar key={index} src={user.image} alt={user.name} radius='xl' size={'md'} sx={{border:'1px solid black'}} />
+                {organizationUsers?.map((user, index) => (
+                  <Avatar key={index} alt={user.name} radius='xl' size={'md'} sx={{border:'1px solid black'}}>
+                      {
+                       user?.name ? user.name[0]+user.name[1] : user?.email[0]+user?.email[2]}
+                  </Avatar>
                 ))}
               </Avatar.Group>
               <div style={{width: 20}}/>
@@ -181,19 +186,18 @@ useEffect(() => {
         <Tabs.List>
           <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500}} value="workflows">Workflows</Tabs.Tab>
           <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500}} value="apis">APIs</Tabs.Tab>
-          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500}} value="configurations">Configurations</Tabs.Tab>        
+          <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 500}} value="configurations">Partner Configurations</Tabs.Tab>   
         </Tabs.List>
 
         <Tabs.Panel value="workflows">
           <PartnershipWorkflows apis={apis} pid={pid}/>
         </Tabs.Panel>
         <Tabs.Panel value="apis">
-          <PartnershipApis pid={pid} partnershipApis={apis}/>
+          <PartnershipApis pid={pid} partnership={partnership} partnershipApis={apis}/>
         </Tabs.Panel>
         <Tabs.Panel value="configurations">
           <PartnershipConfigurations partnership={partnership}/>
         </Tabs.Panel>
-
       </Tabs>
     </div>   
 )
