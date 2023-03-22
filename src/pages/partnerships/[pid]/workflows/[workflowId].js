@@ -1291,8 +1291,6 @@ const WorkflowHeader = ({workflow, setView, apis, actions, setSuggestedEdges, se
         setAreSuggestionsLoading(true)
 
         const promptPrefix = "INTEGRATION_NAME: " + workflowName + "."
-        const api1uuid = apis[0].uuid
-        const api2uuid = apis[1].uuid
         const api1OperationIds = generateOperationIdArray(actions.filter((action) => action.parent_interface_uuid === apis[0].uuid), 'API1')
         const api2OperationIds = generateOperationIdArray(actions.filter((action) => action.parent_interface_uuid === apis[1].uuid), 'API2')
         const api1Actions = actions.filter((action) => action.parent_interface_uuid === apis[0].uuid)
@@ -1688,12 +1686,6 @@ const WorkflowStudio = () => {
         }
 
     }, [pid, workflowId, workflow, partnership, apis, setApis, setPartnership, workflowActions, setWorkflowActions, workflowWebhooks, setWorkflowWebhooks, setGlobalWorkflowState, setNodeAction, setMappings])
-
-    console.log('workflow', workflow)
-    console.log('partnership', partnership)
-    console.log('apis', apis)
-    console.log('workflowActions', workflowActions)
-    console.log('workflowWebhooks', workflowWebhooks)
 
     return workflow && partnership && apis && workflowActions ? (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', marginLeft: -15}}>
