@@ -27,6 +27,7 @@ const Partnerships = () => {
     const data = partnerships?.map((partnership) => {
         return {
             id: partnership.uuid,
+            key: partnership.uuid,
             name: partnership.name,
             workflows: partnership.workflows?.length,
             updated: partnership.updated_at,
@@ -47,8 +48,6 @@ const Partnerships = () => {
     const fetchPartnerships = useCallback(() => {
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects?organization=' + organization)
             .then((res) => {
-                console.log("Partnerships Found")
-                console.log(res.data)
                 setPartnerships(res.data)
             })
             .catch((err) => {
@@ -61,7 +60,6 @@ const Partnerships = () => {
         .then((res) => {
             setDbUser(res.data)
             if(res.data.organization){
-              console.log("Organization Found for User")
               setOrganization(res.data.organization)
             }
         })
@@ -98,7 +96,7 @@ const Partnerships = () => {
         })
         return statusArray.map((status) => {
             return status != 'Active' && status ? (
-                    <div style={{paddingRight: 8}}>
+                    <div key={status} style={{paddingRight: 8}}>
                         <Button onClick={() => setStatusFilter(status)}  style={{fontFamily: 'apercu-light-pro', borderRadius: 30, height: 20, backgroundColor:'#e7e7e7', color: 'black'}} >
                             {status} ({partnerships.filter((partnership) => partnership.status === status).length})
                         </Button>
@@ -199,6 +197,7 @@ const Partnerships = () => {
                             partnerships?.map((partnership) => {
                                 return {
                                     id: partnership.uuid,
+                                    key: partnership.uuid,
                                     name: partnership.name,
                                     workflows: partnership.workflows?.length,
                                     updated: partnership.updated_at,

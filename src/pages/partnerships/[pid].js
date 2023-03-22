@@ -67,7 +67,6 @@ useEffect(() => {
     axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/interfaces', {interfaces: partnership.interfaces})
       .then((res) => {
         setApis(res.data)
-        console.log(res.data)
       })
       .catch((err) => {
         console.log(err)

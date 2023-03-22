@@ -39,7 +39,6 @@ const PartnershipWorkflows = ({apis, pid }) => {
       if (!workflows) {
         axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/workflows/details',{parent_project_uuid: pid})
           .then(res => {
-            console.log(res.data)
             setWorkflows(res.data)
           })
           .catch(err => {

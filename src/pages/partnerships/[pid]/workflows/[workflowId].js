@@ -42,6 +42,7 @@ import {AiOutlinePlusSquare, AiFillCheckCircle, AiFillMinusCircle, AiFillPlusCir
 import {FiChevronDown} from 'react-icons/fi'
 import {HiOutlineArrowLeft, HiOutlineTrash, HiOutlineDocumentDownload, HiOutlineDotsHorizontal} from 'react-icons/hi'
 import {HiOutlineCommandLine} from 'react-icons/hi2'
+import {VscWand} from 'react-icons/vsc'
 import {TiFlowSwitch} from 'react-icons/ti'
 import {BsViewList} from 'react-icons/bs'
 import {TbWebhook} from 'react-icons/tb'
@@ -132,7 +133,6 @@ function DownloadButton() {
         </Button>
     )
 }
-
 
 function ActionNode ({id, data}) {
     const {classes, cx} = useStyles();
@@ -939,7 +939,7 @@ const NewNodeButtonMenu = () => {
     )
 }
 
-function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
+function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, suggestedEdges}) {
 
     var initialNodes = [
         {
@@ -1087,6 +1087,13 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
 
     }, [nodes, edges, globalNodeState, globalEdgeState, setGlobalNodeState, setGlobalEdgeState])
 
+    useEffect(() => {
+        if(suggestedEdges && suggestedNodes){ 
+            setNodes(suggestedNodes)
+            setEdges(suggestedEdges)
+        }
+    }, [suggestedEdges, suggestedNodes])
+
     return (
         <div style={{ height: '100%', width:'100%', backgroundColor:'#FBFAF9'}}>
             <div style={{position:'absolute', padding: 40, zIndex: 1, height: 40, width: 220}}>
@@ -1127,7 +1134,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer}) {
     )
 }
 
-const WorkflowHeader = ({workflow, setView}) => {
+const WorkflowHeader = ({workflow, setView, apis, actions, setSuggestedEdges, setSuggestedNodes, webhooks}) => {
     const { classes } = useStyles()
     const router = useRouter();
     const [isNameFieldActive, setIsNameFieldActive] = useState(false);
@@ -1138,14 +1145,14 @@ const WorkflowHeader = ({workflow, setView}) => {
     const mappings = useStore((state) => state.mappings);
     const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
+    const setNodeAction = useStore((state) => state.setNodeAction);
     const [saveInProgress, setSaveInProgress] = useState(false);
+    const [areSuggestionsLoading, setAreSuggestionsLoading] = useState(false);
     
     const { pid, workflowId } = router.query;
 
     const processWorkflowSave = () => {
         setSaveInProgress(true)
-        console.log(globalEdgeState)
-        console.log(globalNodeState)
         axios.put(process.env.NEXT_PUBLIC_API_BASE_URL +'/projects/' + workflow.parent_project_uuid + '/workflows/' + workflow.uuid,{
             name: workflowName,
             nodes: globalNodeState,
@@ -1167,8 +1174,166 @@ const WorkflowHeader = ({workflow, setView}) => {
         } )
     }
 
+    const generateOperationIdArray = (actions, apiIndex) => {
+        const operationIdArray = []
+        actions.forEach((action) => {
+            operationIdArray.push(apiIndex + "$$" + action.name)
+        })
+        return operationIdArray
+    }
+
+    const generateSuggestedEdges = (nodes) => {
+        
+        var suggestedEdgesArray = [  {
+            id: 'trigger-to-action-1',
+            source: 'trigger',
+            target: 'action-1',
+            type: 'buttonEdge',
+            deletable: false,
+            interactionWidth: 200
+        }];
+
+        nodes.forEach((node, index) => {
+            if(index > 1){
+                const newEdge = {
+                    id: nodes[index - 1].id + '-to-' + node.id ,
+                    source: nodes[index - 1].id,
+                    target: node.id,
+                    type: 'buttonEdge',
+                    deletable: true,
+                    interactionWidth: 200,
+                    sourceHandle: 'actionSuccess',
+                    data:{
+                        handleId: 'actionSuccess'
+                    }
+                }
+                suggestedEdgesArray.push(newEdge)
+            }
+        })
+        
+        return suggestedEdgesArray
+    }
+
+
+    const generateSuggestedNodes = (suggestions, api1Actions, api2Actions, webhooks) => {
+    
+        var suggestedNodeArray = [
+            {
+                id: 'trigger',
+                type: 'trigger',
+                position: { x: 350, y: 400 },
+                deletable: false,
+                data: {
+                    label: 'trigger',
+                    id: 'trigger',
+                    apis: apis,
+                    webhooks: webhooks
+                } 
+            }
+        ];
+
+        suggestions.forEach((suggestion, index) => {
+            var actionNodeUuid = uuidv4()
+            if(index > 0){
+                const suggestionArray = suggestion.split("$$")
+                const apiIndex = suggestionArray[0]
+                const operationId = suggestionArray[1]
+                const action = apiIndex == 'API1' ? api1Actions.filter((action) => action.name == operationId)[0] : api2Actions.filter((action) => action.name == operationId)[0]
+                
+                const newNode = {
+                    id: 'action-' + (index + 1) + '-' + actionNodeUuid,
+                    label: 'action-' + (index + 1) + '-' + actionNodeUuid,
+                    type: 'action',
+                    position: { x: 350 + ((index + 1) * 500), y: 400},
+                    width: 320,
+                    data: {
+                        id: 'action-' + (index + 1) + '-' + actionNodeUuid,
+                        label: 'action-' + (index + 1) + '-' + actionNodeUuid,
+                        apis: apis,
+                        actions: actions,
+                        selectedAction: action
+                    }
+                } 
+                suggestedNodeArray.push(newNode)
+                setNodeAction('action-' + (index + 1) + '-' + actionNodeUuid, action)
+
+             } else {
+                const suggestionArray = suggestion.split("$$")
+                const apiIndex = suggestionArray[0]
+                const operationId = suggestionArray[1]
+
+                const action = apiIndex === 'API1' ? api1Actions.filter((action) => action.name === operationId)[0] : api2Actions.filter((action) => action.name === operationId)[0]
+
+                var newNode =  {
+                    id: 'action-1',
+                    type: 'action',
+                    position: { x: 850, y: 400},
+                    deletable: false,
+                    data: {
+                        label: 'action-1',
+                        id: 'action-1',
+                        apis: apis,
+                        actions: actions,
+                        selectedAction: action
+                    } 
+                }
+                suggestedNodeArray.push(newNode)
+                setNodeAction('action-1', action)
+            }
+        })
+        
+        return suggestedNodeArray
+    }
+         
+
+
+    function fetchWorkflowSuggestions() {
+        setAreSuggestionsLoading(true)
+
+        const promptPrefix = "INTEGRATION_NAME: " + workflowName + "."
+        const api1uuid = apis[0].uuid
+        const api2uuid = apis[1].uuid
+        const api1OperationIds = generateOperationIdArray(actions.filter((action) => action.parent_interface_uuid === apis[0].uuid), 'API1')
+        const api2OperationIds = generateOperationIdArray(actions.filter((action) => action.parent_interface_uuid === apis[1].uuid), 'API2')
+        const api1Actions = actions.filter((action) => action.parent_interface_uuid === apis[0].uuid)
+        const api2Actions = actions.filter((action) => action.parent_interface_uuid === apis[1].uuid)
+        const systemMessage = {"role": "system", "content": "You are a helpful assistant that only provides a sequenced array of operationIds provided a name of workflow and a list of operationIds from two APIs (API1 and API2.)  The list should will not include all of the operationIds; only relevant operationIds in a sequence that satisfies the purpose of the integration. Only respond with an array with the operationIds and their API number separated with an underscore in the order you suggest."}
+        const userContent = promptPrefix + " " + "API1: " + api1OperationIds + " API2: " + api2OperationIds
+        const userMessage = {"role": "user", "content": userContent}
+
+        axios.post('https://api.openai.com/v1/chat/completions',{
+            "model": "gpt-4",
+            "messages": [
+                systemMessage,
+                userMessage
+            ]
+        },{
+            headers: {
+                "Authorization": "Bearer " + process.env.NEXT_PUBLIC_OPEN_AI_API_KEY
+            }
+        }).then((response) => {      
+            const suggestions = JSON.parse(response.data.choices[0].message.content)
+            const suggestedNodes = generateSuggestedNodes(suggestions, api1Actions, api2Actions, webhooks)
+            const suggestedEdges = suggestedNodes ? generateSuggestedEdges(suggestedNodes) : []
+            if(suggestedNodes.length > 0 && suggestedEdges.length > 0){
+                setSuggestedNodes(suggestedNodes)
+                setSuggestedEdges(suggestedEdges)
+                
+            } else {
+                setSuggestedNodes(null)
+                setSuggestedEdges(null)
+            }
+     
+            setAreSuggestionsLoading(false)
+        }).catch((error) => {
+            console.log(error)
+            setAreSuggestionsLoading(false)
+        })
+    
+    }
+
     useEffect(() => {
-        if(workflowName.length > 0) {
+        if(workflowName.length > 0 && workflowName !== 'My Untitled Workflow') {
             setNameFieldWidth(workflowName.length * 8)
         } else {
             setWorkflowName('My Untitled Workflow')
@@ -1260,6 +1425,31 @@ const WorkflowHeader = ({workflow, setView}) => {
                 </Group>
                 <Group>
                     <Button
+                        loading={ areSuggestionsLoading}
+                        leftIcon={<VscWand />} variant="outline"  
+                        onClick={() => {
+                            fetchWorkflowSuggestions()
+                        }}
+                        sx={{
+                            backgroundColor: '#FFDFB4',
+                            color: 'black',
+                            fontFamily: 'Visuelt',
+                            fontWeight: 300,
+                            fontSize: '16px',
+                            height: 50,
+                            borderRadius: 8,
+                            border: '1px solid #FFC069',
+                            ':hover': {
+                                backgroundColor: '#FFF0DB',
+                                color: 'black',
+                                fontFamily: 'Visuelt',
+                                fontWeight: 300,
+                                fontSize: '16px',
+                            }
+                        }}>
+                        Generate Workflow from Name
+                    </Button>
+                    <Button
                     loading={saveInProgress}
                     onClick={() => processWorkflowSave()} 
                     sx={{
@@ -1282,6 +1472,7 @@ const WorkflowHeader = ({workflow, setView}) => {
                     }}>
                         Save Workflow
                     </Button>
+
                     <DownloadButton />
                     <Menu transition="fade" position='bottom-end' shadow="md" width={150}>
                         <Menu.Target>
@@ -1310,7 +1501,6 @@ const WorkflowHeader = ({workflow, setView}) => {
 
 const WorkflowStudio = () => {
     const router = useRouter();
-    const {user, error, isLoading} = useUser();
     const { pid, workflowId } = router.query;
     const [workflow, setWorkflow] = useState(null);
     const [apis, setApis] = useState(null);
@@ -1319,24 +1509,23 @@ const WorkflowStudio = () => {
     const [workflowWebhooks, setWorkflowWebhooks] = useState(null);
     const [adaptionDrawerOpen, setAdaptionDrawerOpen] = useState(false);
     const [selectedAdaption, setSelectedAdaption] = useState(null);
+    const [view, setView] = useState('studio');
+    const [suggestedNodes, setSuggestedNodes] = useState(null);
+    const [suggestedEdges, setSuggestedEdges] = useState(null);
+
     //From Global State
     const nodeActions = useStore((state) => state.nodeActions);
     const nodes = useStore((state) => state.nodes);
     const edges = useStore((state) => state.edges);
-    const nodeViews = useStore((state) => state.nodeViews);
     const [mappingModalOpen, setMappingModalOpen] = useState(false);
     const setNodeViews = useStore((state) => state.setNodeViews);
     const setSelectedEdge = useStore((state) => state.setSelectedEdge);
-    const selectedMapping = useStore((state) => state.selectedMapping);
     const setSelectedMapping = useStore((state) => state.setSelectedMapping);
     const setMappings = useStore((state) => state.setMappings);
-    const mappings = useStore((state) => state.mappings);
     const setNodeAction = useStore((state) => state.setNodeAction);
     const selectedEdge = useStore((state) => state.selectedEdge);
-    const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
-    const [view, setView] = useState('studio');
-
+    console.log(nodeActions)
     const toggleMappingModal = () => {
         
         setMappingModalOpen(!mappingModalOpen)
@@ -1500,7 +1689,13 @@ const WorkflowStudio = () => {
 
     }, [pid, workflowId, workflow, partnership, apis, setApis, setPartnership, workflowActions, setWorkflowActions, workflowWebhooks, setWorkflowWebhooks, setGlobalWorkflowState, setNodeAction, setMappings])
 
-    return workflow && partnership && apis && workflowActions && workflowWebhooks ? (
+    console.log('workflow', workflow)
+    console.log('partnership', partnership)
+    console.log('apis', apis)
+    console.log('workflowActions', workflowActions)
+    console.log('workflowWebhooks', workflowWebhooks)
+
+    return workflow && partnership && apis && workflowActions ? (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', marginLeft: -15}}>
             <Modal
                 centered
@@ -1527,7 +1722,7 @@ const WorkflowStudio = () => {
                 zIndex: 1,
                 position: 'sticky'
             }}>
-                <WorkflowHeader setView={setView} workflow={workflow[0]} style={{ position: 'sticky', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ position: 'sticky', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '92vh'}}>
                 {
@@ -1535,7 +1730,7 @@ const WorkflowStudio = () => {
                         <WorkflowScope partnership={partnership}/>
                     ) : view == 'studio' && typeof window !== undefined ? (
                         <ReactFlowProvider>
-                            <Flow toggleDrawer={toggleDrawer} workflow={workflow[0]} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
+                            <Flow suggestedNodes={suggestedNodes} suggestedEdges={suggestedEdges} toggleDrawer={toggleDrawer} workflow={workflow[0]} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
                         </ReactFlowProvider>
                     ) : (
                         <div></div>
