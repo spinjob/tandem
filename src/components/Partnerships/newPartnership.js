@@ -1,6 +1,6 @@
 import { useForm } from '@mantine/form';
 import { useRouter } from 'next/router'
-import { TextInput, Button, MultiSelect, Loader } from '@mantine/core';
+import { TextInput, Button, MultiSelect, Loader, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import {useEffect, useState} from 'react';
 import axios from 'axios';
@@ -16,17 +16,19 @@ const NewPartnership= ({apis, organization, toggleModal}) => {
   const SelectApi = ({apiOptions}) => {  
     return (
       <MultiSelect
-        label="Select Partnership APIs"
+        label={<Text sx={{fontSize: '20px', paddingBottom: 10, fontFamily: 'Visuelt'}}>
+          Select Partnership APIs
+        </Text>}
         maxSelectedValues={2}
         placeholder="Select up to 2 APIs"
         data={apiOptions}
         sx={{
-          '&:focus': {
-            outline: 'none',
+          '& select': {
             border: 'none',
             boxShadow: 'none',
-            backgroundColor: 'transparent'
-          }
+            backgroundColor: 'transparent',
+          },
+          
         }}
         value={apiValue}
         onChange={updateApiValue}
@@ -96,14 +98,25 @@ const NewPartnership= ({apis, organization, toggleModal}) => {
   ) 
   : (
     <form onSubmit={form.onSubmit(handleSubmit, handleError)}>
-      <TextInput label="Partnership Name" placeholder="Enter a name for your partnership." {...form.getInputProps('name')} />
+      <TextInput sx={{paddingBottom: 20}} label={<Text sx={{paddingBottom: 10, fontSize: '20px', fontFamily: 'Visuelt'}}>
+        Partnership Name
+      </Text>} placeholder="Enter a name for your partnership." {...form.getInputProps('name')} />
       <SelectApi apiOptions={
         apis.map((api) => {
           return { label: api.name, value: api.uuid }
         })} 
       />
-      <Button onClick={handleSubmit} disabled={!canSubmit} type="submit" mt="sm">
-        Submit
+      <div style={{paddingTop: 20}} />
+      <Button sx={{
+        width: '100%',
+        backgroundColor: '#1A1A1A',
+        color: 'white',
+        '&:hover': {
+          backgroundColor: '#3e3e3e',
+          color: 'white',
+        },
+        }} onClick={handleSubmit} disabled={!canSubmit} type="submit" mt="sm">
+        Create Partnership
       </Button>
     </form>
   );
