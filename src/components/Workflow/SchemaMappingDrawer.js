@@ -30,9 +30,9 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     const setMappings = useStore(state => state.setMappings)
 
     /// Functions related to the generation of GPT-3 prompts and handling the response.
-    console.log(mappings)
 
     async function getMappingSuggestions (prompt, inputSchema, outputSchema) {
+
         setAreSuggestionsLoading(true)
 
         try {
@@ -194,10 +194,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         const nestedPropertyValues = Object.values(properties)
         
         const nestedPropertyObjects = nestedPropertyKeys.map((key, index) => {
-            console.log(requiredSchemaArray)
             if(requiredSchemaArray && typeof requiredSchemaArray == 'object'){
-                console.log("requiredSchemaArray")
-                console.log(requiredSchemaArray)
                 return {
                     key: key,
                     path: parent + "." + key,
@@ -539,7 +536,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     }
 
     useEffect (() => {
-    
+        
             if(outputPaths.length == 0 && action?.requestBody2?.schema || outputPaths.length == 0 && action?.parameterSchema?.path || outputPaths.length == 0 && action?.parameterSchema?.header){
                 var pathArray = []
                 if (action?.requestBody2?.schema && outputPaths.length == 0) {
@@ -575,7 +572,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 }
                 setOutputPaths(pathArray)
             } 
-
             if (sourceNode?.id == 'trigger' && nodeActions['trigger']?.requestBody2?.schema && inputPaths.length == 0) {
                 var paths = processPaths(nodeActions['trigger'].requestBody2.schema)
                 setInputPaths(paths)
@@ -583,8 +579,9 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             } else if (nodeActions[sourceNode?.id]?.responses && Object.keys(nodeActions[sourceNode?.id]?.responses[0]?.schema).length > 0 && inputPaths.length == 0) {
                 var paths = processPaths(nodeActions[sourceNode?.id]?.responses[0]?.schema)
                 setInputPaths(paths)
+                console.log(paths)
             } 
-     }, [action, nodeActions, sourceNode, targetNode, inputPaths, outputPaths])
+     }, [action, nodeActions, sourceNode, targetNode, inputPaths, outputPaths,selectedEdge])
 
     useEffect (() => {
 
@@ -602,9 +599,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
         if(mappings[targetNode?.id] && requiredPropertyObjects && optionalPropertyObjects){
             var propertyKeys = Object.keys(mappings[targetNode?.id])
             var propertyValues = Object.values(mappings[targetNode?.id])
-            console.log(propertyKeys)
-            console.log(propertyValues)
-
             propertyKeys.forEach((key, index) => {
                 if(propertyValues[index]?.input?.actionId == nodeActions[sourceNode.id]?.uuid && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid || propertyValues[index]?.input?.path.includes('$variable') && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid ){
                     requiredPropertyObjects.filter((property) => {
@@ -924,15 +918,15 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     }   
     const fetchMappingSuggestions = () => {
 
-        var promptPrefix = " Provided dot delimited paths to "+ requiredCount +" output data schema properties provide a single dot delimited path from the input schema array that maps best to each output dot delimited property path. Only respond with a parseable JSON dictionary object with this definition {  {{OUTPUT SCHEMA PROPERTY PATH}}: {{INPUT SCHEMA PROPERTY PATH}} }} }.  Neither the output or input property will be an array or an object. The result should only have one key value pair for each of the "+requiredCount+" output property paths."
-
+        //var promptPrefix = " Provided dot delimited paths to "+ requiredCount +" output data schema properties provide a single dot delimited path from the input schema array that maps best to each output dot delimited property path. Only respond with a parseable JSON dictionary object with this definition {  {{OUTPUT SCHEMA PROPERTY PATH}}: {{INPUT SCHEMA PROPERTY PATH}} }} }.  Neither the output or input property will be an array or an object. The result should only have one key value pair for each of the "+requiredCount+" output property paths. The input and output paths provided should not be altered in the response."
+        var promptPrefix = "You are a helpful assistant that takes "+requiredCount+" key strings and matches them to value strings based on the meanings of the words and dot-notation when provided two arrays of strings: a value array and a key array.  Do not change the strings in either array in your suggestions in any way.  When you receive these arrays, only respond with a parseable JSON dictionary where each entry has an item from the key array and an item from the value array."
         var requiredOutputPaths = []
         requiredPropertyObjects.forEach((property) => {
             requiredOutputPaths.push(property.path)
         })
         
-        var inputSchema = "{{INPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(inputPaths) + " {{INPUT SCHEMA ARRAY OPTIONS END}} "
-        var outputSchema = " {{OUTPUT SCHEMA ARRAY OPTIONS START}}: " + JSON.stringify(requiredOutputPaths) + " {{OUTPUT SCHEMA ARRAY OPTIONS END}}"
+        var inputSchema = "This is the value path array: " + JSON.stringify(inputPaths)       
+        var outputSchema = " This is the key path array: " + JSON.stringify(requiredOutputPaths)
         var prompt = promptPrefix + outputSchema + inputSchema
 
         getMappingSuggestions(prompt, inputSchema, outputSchema)

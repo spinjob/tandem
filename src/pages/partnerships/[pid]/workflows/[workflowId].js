@@ -1009,6 +1009,8 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
     const selectedEdge = useStore((state) => state.selectedEdge);
     const setGlobalNodeState = useStore((state) => state.setNodes);
     const setGlobalEdgeState = useStore((state) => state.setEdges);
+    const setInputPaths = useStore((state) => state.setInputPaths);
+    const setOutputPaths = useStore((state) => state.setOutputPaths);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const deleteNodeAction = useStore((state) => state.deleteNodeAction);
@@ -1116,15 +1118,12 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
                     nodeTypes={nodeTypes}
                     onEdgeClick={(event, edge) => {
                         toggleDrawer(event, edge, nodes, edges)
-
-                        // var sourceNodePosition = nodes.filter((node) => node.id === edge.source)[0].position
-                        // var targetNodePosition = nodes.filter((node) => node.id === edge.target)[0].position
-                        
+                        setInputPaths([])
+                        setOutputPaths([])                        
                     }}
                     zoomOnScroll={false}
                     style={{position:'absolute', zIndex: 2, background:'#FBFAF9' }}
                     >
-                    {/* <Background color="#FBFAF9" /> */}
                 </ReactFlow>
             </div>
                 
