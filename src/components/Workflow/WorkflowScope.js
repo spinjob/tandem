@@ -53,7 +53,7 @@ const WorkflowScope = ({partnership}) => {
     const mappings = useStore(state => state.mappings)
     const nodes = useStore(state => state.nodes)
     const edges = useStore(state => state.edges)
-
+    console.log(mappings)
     const printRef = React.useRef();
 
     const createPDF = async () => {
@@ -70,7 +70,7 @@ const WorkflowScope = ({partnership}) => {
     }
 
     const renderAdaptionTable = (formulas, targetProperty, inputProperty, inputNodeId, outputNodeId) => {
-
+        
         var rows = []
         //Specifying all of the mappings action IDs so we can filter out any previously mapped properties from other actions.
         
@@ -129,7 +129,7 @@ const WorkflowScope = ({partnership}) => {
         if(!formulas || formulas.length == 0){
             var row = []
             if(inputProperty.path.includes('$variable')){
-                row.push('{{Configuration}}')
+                row.push('Configured Value')
                 row.push("set value to "+inputProperty?.value)
                 row.push(targetProperty?.path)
                 rows.push(row)
@@ -140,6 +140,9 @@ const WorkflowScope = ({partnership}) => {
                 rows.push(row)
             }
            
+        }
+        if(rows.length == 0){
+            row.push('No Mappings')
         }
 
         var cleanedRows = rows.length > 1 ? [rows[rows.length-1]] : rows
@@ -395,6 +398,101 @@ const WorkflowScope = ({partnership}) => {
                                 return mappings[edge.target] ? (
                                 
                                 <div key={edge.id}>
+                                     {
+                                            Object.values(mappings[edge?.target]).filter((mapping)=> {
+                                                return mapping.output?.in == 'configuration'
+                                            }).length > 0 ? (
+                                                    <>
+                                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500, color: '#000000'}}>
+                                                            Set Configurations
+                                                        </Text>
+                                                        <table key={edge.target+'-ConfigurationAdaptionTable'} style={{ width: '85%', borderCollapse: 'collapse', border: '1px solid #E7E7E7',fontFamily: 'Visuelt',fontSize: '14px',fontWeight: 100,textAlign: 'left'}}>
+                                                                <colgroup>
+                                                                    <col style={{width: '30%'}}/>
+                                                                    <col style={{width: '40%'}}/>
+                                                                    <col style={{width: '30%'}}/>
+                                                                </colgroup>
+                                                                <thead
+                                                                    style={{
+                                                                        backgroundColor: '#E7E7E7',
+                                                                        color: '#000000',
+                                                                        fontFamily: 'Vulf Sans',
+                                                                        fontSize: '18px',
+                                                                        fontWeight: 600,
+                                                                        lineHeight: '16px',
+                                                                        textAlign: 'left',
+                                                                        textTransform: 'uppercase',
+                                                                        height: '30px'
+                                                                    }}
+                                                                >
+                                                                    <tr
+                                                                        key={edge.target+"-ConfigurationAdaptionTableRow"}
+                                                                        style={{
+                                                                            height: '50px'
+                                                                        }}
+                                                                    >
+                                                                        {[ "Input", 'Formula',"Configuration"].map((heading) => {
+                                                                            return(
+                                                                                <th key={heading}>{heading}</th>
+                                                                            )
+                                                                        })}
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody
+                                                                    key={edge.target+ '-ConfigurationAdaptionRows'}
+                                                                    style={{
+                                                                        backgroundColor: '#FFFFFF',
+                                                                        color: '#000000',
+                                                                        fontFamily: 'apercu-regular-pro',
+                                                                        fontSize: '14px',
+                                                                        fontWeight: 100,
+                                                                        textAlign: 'left'
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        
+                                                                        mappings[edge.target] ? (
+                                                                            Object.keys(mappings[edge.target]).map((targetKey, index) => {
+                                                                                var mappingValues = Object.values(mappings[edge.target])[index]
+                                                                                if (mappingValues?.input?.actionId == nodeActions[edge.source]?.uuid && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'configuration'){
+                                                                                    const inputFormulas = mappingValues?.input?.formulas
+                                                                                    var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,edge.source, edge.target)
+                                                                                    return cleanedRows.map(
+                                                                                        (row) => (
+                                                                                            <tr
+                                                                                                key={row+edge.target+"TableRow"}
+                                                                                                style={{
+                                                                                                    height: '70px',
+                                                                                                    borderBottom: '1px solid #E7E7E7'
+                                                                                                }}
+                                                                                            >
+                                                                                                {row.map((cell) => {
+                                                                                                    return (
+                                                                                                        <td key={cell}>{cell}</td>
+                                                                                                    ) 
+                                                                                                })}
+                                                                                            </tr>
+                                                                                    )
+                                                                                    )
+                                                                                }
+                                                                            })): (
+                                                                                <tr
+                                                                                    key={edge.target+'noConfigurationAdaptionRows'}
+                                                                                    style={{
+                                                                                        height: '70px',
+                                                                                        borderBottom: '1px solid #E7E7E7'
+                                                                                    }}
+                                                                                >
+                                                                                    <td colSpan={3}>No Configuration Mappings</td>
+                                                                                </tr>   
+                                                                            )
+                                                                    }
+                                                                </tbody>
+                                                        </table>
+                                                        <div style={{height: 20}}/>
+                                                        </>
+                                            ) : null
+                                        }
                                     <div>
                                         <Text sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
                                            {edge.target.split('-')[1]}. {nodeActions[edge.target]?.method.toUpperCase()} {nodeActions[edge.target]?.path}
