@@ -1,28 +1,9 @@
 import { useRouter } from 'next/router';
 import React, { useCallback, useState, useContext, useEffect, useRef} from 'react';
 import {
-    createStyles,
-    Menu,
-    Loader,
-    Center,
-    Header,
-    Container,
-    Group,
     Button,
-    Select,
-    Card,
     Text,
-    TextInput,
-    Textarea,
-    ActionIcon,
     Image,
-    SegmentedControl,
-    UnstyledButton,
-    ScrollArea,
-    Drawer,
-    Modal,
-    Tooltip,
-    Box,
     Divider
   } from '@mantine/core';
 
@@ -31,16 +12,9 @@ import {
 import axios from 'axios';
 import useStore from '../../context/store'
 import {Player } from '@lottiefiles/react-lottie-player';
-import bannerImage from '../../../public/Mobile-Section-1-Drawing.svg'
-import bannerComponentA from '../../../public/Banner_Component_A.svg'
-import bannerComponentB from '../../../public/Banner_Component_B.svg'
-import bannerComponentC from '../../../public/Banner_Component_C.svg'
-import bannerComponentD from '../../../public/Banner_Component_D.svg'
 
 import titleAnimation from '../../../public/animations/LevelUp_Icons_A_Circles.json'
 import primaryLockupBlack from '../../../public/logos/SVG/Primary Lockup_Black.svg'
-import scheduledIcon from '../../../public/icons/calendar-schedule-refresh.svg'
-import webhookIcon from '../../../public/icons/programming-code-message-chat-2.svg'
 
 import {jsPDF} from 'jspdf'
 import html2canvas from "html2canvas";
@@ -53,8 +27,9 @@ const WorkflowScope = ({partnership}) => {
     const mappings = useStore(state => state.mappings)
     const nodes = useStore(state => state.nodes)
     const edges = useStore(state => state.edges)
-    console.log(mappings)
     const printRef = React.useRef();
+    const router = useRouter()
+    const { pid, workflowId } = router.query
 
     const createPDF = async () => {
         const element = printRef.current;
@@ -73,7 +48,10 @@ const WorkflowScope = ({partnership}) => {
         
         var rows = []
         //Specifying all of the mappings action IDs so we can filter out any previously mapped properties from other actions.
-        
+        console.log(formulas)
+        console.log(targetProperty)
+        console.log(inputProperty)
+
         formulas?.forEach((formula, index) => {
             if (formula.formula == 'ifthen'){
                 var ifObject = formula.inputs['ifThen'][0]['if']
@@ -122,7 +100,79 @@ const WorkflowScope = ({partnership}) => {
                 row.push(fullFormula)
                 row.push(targetProperty?.path)
                 rows.push(row)
+            } else if (formula.formula == 'multiplication'){
+                var multiplicationInput = formula.inputs['multiplication']
+                var fullFormula = inputProperty?.path + ' * ' + multiplicationInput
+                if(index != 0){
+                    fullFormula = rows[index - 1][0] + ' * ' + multiplicationInput
+                }
+                var row = []
+                row.push(inputProperty?.path)
+                row.push(fullFormula)
+                row.push(targetProperty?.path)
+                rows.push(row)
+            } else if (formula.formula == 'division'){
+                var divisionInput = formula.inputs['division']
+                var fullFormula = inputProperty?.path + ' / ' + divisionInput
+                if(index != 0){
+                    fullFormula = rows[index - 1][0] + ' / ' + divisionInput
+                }
+                var row = []
+                row.push(inputProperty?.path)
+                row.push(fullFormula)
+                row.push(targetProperty?.path)
+                rows.push(row)
+            } else if (formula.formula == 'concatenation'){
+                var concatenationInput = formula.inputs['concatenation']
+                var fullFormula = inputProperty?.path + ' + ' + concatenationInput
+                if(index != 0){
+                    fullFormula = rows[index - 1][0] + ' + ' + concatenationInput
+                }
+                var row = []
+                row.push(inputProperty?.path)
+                row.push(fullFormula)
+                row.push(targetProperty?.path)
+                rows.push(row)
+            } else if (formula.formula == 'append'){
+                var appendInput = formula.inputs['append']
+                var fullFormula = inputProperty?.path + ' + ' + appendInput
+                if(index != 0){
+                    fullFormula = rows[index - 1][0] + ' + ' + appendInput
+                }
+                var row = []
+                row.push(inputProperty?.path)
+                row.push(fullFormula)
+                row.push(targetProperty?.path)
+                rows.push(row)
+            } else if (formula.formula == 'prepend'){
+                var prependInput = formula.inputs['prepend']
+                var fullFormula = prependInput + ' + ' + inputProperty?.path
+                if(index != 0){
+                    fullFormula = prependInput + ' + ' + rows[index - 1][0]
+                }
+                var row = []
+                row.push(inputProperty?.path)
+                row.push(fullFormula)
+                row.push(targetProperty?.path)
+                rows.push(row)
+            } else if (formula.formula == 'substring'){
+                var substringInput = formula.inputs['substring']
+                console.log(substringInput)
+                
+                var fullFormula = inputProperty?.path + '.substring(' + substringInput.startingIndex + ',' + substringInput.endingIndex + ')'
+                if(index != 0){
+                    fullFormula = rows[index - 1][0] + '.substring(' + substringInput + ')'
+                }
+                var row = []
+                row.push(inputProperty?.path)
+                row.push(fullFormula)
+                row.push(targetProperty?.path)
+                rows.push(row)
+            } else if (formula.formula == 'replace'){
+
+
             }
+
            
         })
         
@@ -133,16 +183,18 @@ const WorkflowScope = ({partnership}) => {
                 row.push("set value to "+inputProperty?.value)
                 row.push(targetProperty?.path)
                 rows.push(row)
-            } else {
+            } else if (inputProperty.path.includes('$credential')){
+                row.push('Configured Value')
+                row.push("set value to Auth Credential: "+inputProperty?.key)
+                row.push(targetProperty?.path)
+                rows.push(row)
+            }  else {
                 row.push(inputProperty?.path)
                 row.push('One to One Mapping')
                 row.push(targetProperty?.path)
                 rows.push(row)
             }
            
-        }
-        if(rows.length == 0){
-            row.push('No Mappings')
         }
 
         var cleanedRows = rows.length > 1 ? [rows[rows.length-1]] : rows
@@ -153,7 +205,7 @@ const WorkflowScope = ({partnership}) => {
     const renderTriggerContent = () => {
 
         var trigger = workflow?.trigger
-        var action1 = nodeActions['action-1']
+        var action1 = nodeActions['action-1-'+workflowId]
 
         if(trigger.type == 'webhook'){
             return(
@@ -331,6 +383,8 @@ const WorkflowScope = ({partnership}) => {
         }
 
     }
+
+    console.log(edges)
     return typeof window !== 'undefined' ? (
         <>
             <Button  sx={{
@@ -394,6 +448,8 @@ const WorkflowScope = ({partnership}) => {
                     {
                         edges.map((edge) => 
                            {
+
+                            console.log(edge)
 
                                 return mappings[edge.target] ? (
                                 
@@ -606,11 +662,13 @@ const WorkflowScope = ({partnership}) => {
                                                                                                     borderBottom: '1px solid #E7E7E7'
                                                                                                 }}
                                                                                             >
-                                                                                                {row.map((cell) => {
-                                                                                                    return (
-                                                                                                        <td key={cell}>{cell}</td>
-                                                                                                    ) 
-                                                                                                })}
+                                                                                                {
+                                                                                                    row.map((cell) => {
+                                                                                                        return (
+                                                                                                            <td key={cell}>{cell}</td>
+                                                                                                        ) 
+                                                                                                    })
+                                                                                                }
                                                                                             </tr>
                                                                                     )
                                                                                     )
@@ -796,7 +854,7 @@ const WorkflowScope = ({partnership}) => {
                                                                                 Object.keys(mappings[edge?.target]).map((targetKey, index) => {
                                                                                     var mappingValues = Object.values(mappings[edge?.target])[index]
                                                                                     //Check that the action is the same as the source node and that the output is the body OR (if the mappings are all variables because the input has no data) that the input is a variable.
-                                                                                    if (mappingValues?.input?.actionId == nodeActions[edge.source]?.uuid && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'body' || mappingValues?.input?.path?.includes('$variable') && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'body'){
+                                                                                    if (mappingValues?.input?.actionId == nodeActions[edge.source]?.uuid && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'body' || mappingValues?.input?.path?.includes('$variable') && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'body'|| mappingValues?.input?.path?.includes('$credential') && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'body'){
                                                                                         const inputFormulas = mappingValues?.input?.formulas
                                                                                         var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,edge?.source, edge?.target)
                                                                                       
@@ -853,7 +911,7 @@ const WorkflowScope = ({partnership}) => {
 
                                             ) : edge.target.split('-')[1] == "1" && workflow?.trigger?.type == 'scheduled' ? (
                                                 <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>
-                                                    When the scheduled {trigger?.cadence} cadence is triggered, the integration should send a {nodeActions[edge.target]?.method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target]?.path}.
+                                                    When the scheduled {workflow?.trigger?.cadence} cadence is triggered, the integration should send a {nodeActions[edge.target]?.method.toUpperCase()} request to the following endpoint: {nodeActions[edge.target]?.path}.
                                                 </Text>
                                             ) : (
                                                 <Text  sx={{fontFamily: 'Visuelt', fontWeight: 100,fontSize: '16px', width: '90%'}}>

@@ -31,6 +31,9 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     const nodeActions = useStore(state => state.nodeActions)
     const setMappings = useStore(state => state.setMappings)
 
+    console.log(mappings)
+    console.log(targetNode)
+
     /// Functions related to the generation of GPT-3 prompts and handling the response.
 
     async function getMappingSuggestions (prompt, inputSchema, outputSchema) {
@@ -602,7 +605,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             var propertyKeys = Object.keys(mappings[targetNode?.id])
             var propertyValues = Object.values(mappings[targetNode?.id])
             propertyKeys.forEach((key, index) => {
-                if(propertyValues[index]?.input?.actionId == nodeActions[sourceNode.id]?.uuid && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid || propertyValues[index]?.input?.path.includes('$variable') && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid ){
+                if(propertyValues[index]?.input?.actionId == nodeActions[sourceNode.id]?.uuid && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid || propertyValues[index]?.input?.path.includes('$variable') && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid || propertyValues[index]?.input?.path.includes('$credential') && propertyValues[index]?.output?.actionId == nodeActions[targetNode.id]?.uuid){
                     requiredPropertyObjects.filter((property) => {
                  
                         if(property.path == key){
@@ -1209,7 +1212,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     const fetchMappingSuggestions = () => {
 
         //var promptPrefix = " Provided dot delimited paths to "+ requiredCount +" output data schema properties provide a single dot delimited path from the input schema array that maps best to each output dot delimited property path. Only respond with a parseable JSON dictionary object with this definition {  {{OUTPUT SCHEMA PROPERTY PATH}}: {{INPUT SCHEMA PROPERTY PATH}} }} }.  Neither the output or input property will be an array or an object. The result should only have one key value pair for each of the "+requiredCount+" output property paths. The input and output paths provided should not be altered in the response."
-        var promptPrefix = "You are a helpful assistant that takes "+requiredCount+" key strings and matches them to value strings based on the meanings of the words and dot-notation when provided two arrays of strings: a value array and a key array.  Do not change the strings in either array in your suggestions in any way.  When you receive these arrays, only respond with a parseable JSON dictionary where each entry has an item from the key array and an item from the value array."
+        var promptPrefix = "You are a helpful assistant that takes "+requiredCount+" key strings and matches them to value strings based on the meanings of the words and dot-notation when provided two arrays of strings: a value array and a key array.  Do not change the strings in either array in your suggestions in any way.  When you receive these arrays, only respond with a parseable JSON dictionary where each entry has an item from the key array and an item from the value array. Only provide a parseable JSON object."
         var requiredOutputPaths = []
         requiredPropertyObjects.forEach((property) => {
             requiredOutputPaths.push(property.path)

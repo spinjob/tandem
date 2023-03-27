@@ -50,7 +50,6 @@ const Partnership = () => {
   const fetchOrganizationUsers = useCallback((organizationId) => {
     axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/users?organization=' + organizationId).then((res) => {
         setOrganizationUsers(res.data)
-        console.log(res.data)
     })
     .catch((err) => {
         console.log(err)

@@ -30,7 +30,6 @@ const PartnershipApis = ({pid, partnershipApis, partnership}) => {
         })
         axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/security',{interfaces: apiIds}).then((res) => {
             setSecurityScheme(res.data)
-            console.log(res.data)
         }).catch((err) => {
             console.log(err)
         }
@@ -46,7 +45,6 @@ const PartnershipApis = ({pid, partnershipApis, partnership}) => {
 
     const savePartnershipAuthentication = () => {
         axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/authentication', {authentication: partnershipAuthentication}).then((res) => {
-            console.log(res.data)
         }).catch((err) => {
             console.log(err)
         })

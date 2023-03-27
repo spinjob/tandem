@@ -353,7 +353,7 @@ const MappingModal = ({ apis, getSchemaFromPath, edge, nodes, sourceNode, target
                                 <Text style={{fontFamily:'Visuelt', fontSize: '18px'}}>Input</Text>
                                 <div style={{height: 8}}/>
                                 {
-                                    selectedMapping?.sourceProperty?.path?.split('.')[0] == '$variable' ? (
+                                    selectedMapping?.sourceProperty?.path?.split('.')[0] == '$variable' || selectedMapping?.sourceProperty?.path?.split('.')[0] == '$credential'? (
                                         renderPropertyCard(selectedMapping.sourceProperty)
                                     ) : (
                                         renderPropertyCard(getSchemaFromPath(selectedMapping.sourceProperty.path))
@@ -406,7 +406,7 @@ const MappingModal = ({ apis, getSchemaFromPath, edge, nodes, sourceNode, target
                                                     setConfigurationMappingView('view')
                                                     var sourceProperty = {
                                                         key: authConfigKey,
-                                                        path: '$variable.'+authConfigKey,
+                                                        path: '$credential.'+authConfigKey,
                                                         description: authConfigValue,
                                                         type: 'string',
                                                         value: authConfigValue,

@@ -61,6 +61,7 @@ import SchemaMappingDrawer from '../../../../components/Workflow/SchemaMappingDr
 import ActionMappingView from '../../../../components/Workflow/ActionMappingView';
 import MappingModal from '../../../../components/Workflow/MappingModal';
 import WorkflowScope from '../../../../components/Workflow/WorkflowScope';
+import WorkflowMonitor from '../../../../components/Workflow/WorkflowMonitor';
 
 import LoadingAnimation from '../../../../../public/animations/Loading_Animation.json'
 import WorkflowAnimation from '../../../../../public/animations/ValueProp_Section2.json'
@@ -942,6 +943,8 @@ const NewNodeButtonMenu = () => {
 }
 
 function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, suggestedEdges}) {
+    const router = useRouter();
+    const {pid, workflowId} = router.query;
 
     var initialNodes = [
         {
@@ -957,13 +960,13 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
             } 
         },
         {
-            id: 'action-1',
+            id: 'action-1-'+workflowId,
             type: 'action',
             position: { x: 850, y: 400},
             deletable: false,
             data: {
-                label: 'action-1',
-                id: 'action-1',
+                label: 'action-1-'+workflowId,
+                id: 'action-1-'+workflowId,
                 apis: apis,
                 actions: actions
             } 
@@ -973,7 +976,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
     var initialEdges = [  {
         id: 'trigger-to-action-1',
         source: 'trigger',
-        target: 'action-1',
+        target: 'action-1-'+workflowId,
         type: 'buttonEdge',
         deletable: false,
         interactionWidth: 200,
@@ -1085,7 +1088,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
         if(nodes?.length !== globalNodeState?.length) {
             setGlobalNodeState(nodes)
         } 
-        if(edges?.length !== globalEdgeState?.length) {
+        if(edges !== globalEdgeState) {
             setGlobalEdgeState(edges)
         }
 
@@ -1110,6 +1113,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
                     onNodesChange={onNodesChange}
                     onNodesDelete={(nodes) => {
                         deleteNodeAction(nodes[0].id)
+                        
                     }}
                     onEdgesChange={onEdgesChange}
                     onConnectStart={onConnectStart}
@@ -1348,6 +1352,7 @@ const WorkflowHeader = ({workflow, setView, apis, actions, setSuggestedEdges, se
 
 const WorkflowStudio = () => {
     const router = useRouter();
+    
     const { pid, workflowId } = router.query;
     const [workflow, setWorkflow] = useState(null);
     const [apis, setApis] = useState(null);
@@ -1366,7 +1371,6 @@ const WorkflowStudio = () => {
     const nodes = useStore((state) => state.nodes);
     const edges = useStore((state) => state.edges);
     const [mappingModalOpen, setMappingModalOpen] = useState(false);
-    
     const setNodeViews = useStore((state) => state.setNodeViews);
     const setSelectedEdge = useStore((state) => state.setSelectedEdge);
     const setSelectedMapping = useStore((state) => state.setSelectedMapping);
@@ -1379,7 +1383,6 @@ const WorkflowStudio = () => {
     const [workflowDescription, setWorkflowDescription] = useState(null);
     const [workflowSuggestionModalOpen, setWorkflowSuggestionModalOpen] = useState(false);
     const [areSuggestionsLoading, setAreSuggestionsLoading] = useState(false);
-
 
     const generateOperationIdArray = (actions, apiIndex) => {
         const operationIdArray = []
@@ -1394,7 +1397,7 @@ const WorkflowStudio = () => {
         var suggestedEdgesArray = [  {
             id: 'trigger-to-action-1',
             source: 'trigger',
-            target: 'action-1',
+            target: 'action-1-'+workflowId,
             type: 'buttonEdge',
             deletable: false,
             interactionWidth: 200
@@ -1472,20 +1475,20 @@ const WorkflowStudio = () => {
                 const action = apiIndex === 'API1' ? api1Actions.filter((action) => action.name === operationId)[0] : api2Actions.filter((action) => action.name === operationId)[0]
 
                 var newNode =  {
-                    id: 'action-1',
+                    id: 'action-1-'+workflowId,
                     type: 'action',
                     position: { x: 850, y: 400},
                     deletable: false,
                     data: {
-                        label: 'action-1',
-                        id: 'action-1',
+                        label: 'action-1-'+workflowId,
+                        id: 'action-1-'+workflowId,
                         apis: apis,
                         actions: workflowActions,
                         selectedAction: action
                     } 
                 }
                 suggestedNodeArray.push(newNode)
-                setNodeAction('action-1', action)
+                setNodeAction('action-1-'+workflowId, action)
             }
         })
         
@@ -1820,7 +1823,7 @@ const WorkflowStudio = () => {
                             <Flow suggestedNodes={suggestedNodes} suggestedEdges={suggestedEdges} toggleDrawer={toggleDrawer} workflow={workflow[0]} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
                         </ReactFlowProvider>
                     ) : (
-                        <div></div>
+                        <WorkflowMonitor workflow={workflow[0]}/>
                     )
                 }
             </div>

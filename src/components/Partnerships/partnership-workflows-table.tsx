@@ -51,6 +51,7 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
+import useStore from '../../context/store';
 
 interface RowData {
   id: string;
@@ -133,6 +134,10 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
   
   const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
+  const setNodeAction = useStore((state) => state.setNodeAction)
+  const deleteNodeAction = useStore((state) => state.deleteNodeAction)
+  const nodeActions = useStore((state) => state.nodeActions)
+
   const router  = useRouter();
 
   const [sortedData, setSortedData] = useState(data.filter((row) => row.status != "Archived"));
@@ -160,6 +165,7 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
           workflows: [newWorkflow]
         }).then((res) => {
           console.log(res)
+      
           router.push(`/partnerships/${partnershipId}/workflows/${newWorkflow.uuid}`)
         }).catch((err) => {
           console.log(err)
@@ -182,7 +188,6 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
   };
 
   const handleRowClick = (event: React.MouseEvent<HTMLTableCellElement>) => {
-    console.log(event)
     const { id } = event.currentTarget.dataset;
     router.push(`/partnerships/${partnershipId}/workflows/${id}`)
   };
