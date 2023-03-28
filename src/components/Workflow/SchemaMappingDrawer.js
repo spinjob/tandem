@@ -923,8 +923,8 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     
     const renderConfigurationMappingAccordions = () => {
         var configurationObjects =  partnership?.configuration
-        var configurationKeys = Object.keys(partnership?.configuration)
-        var configurationValues =  Object.values(partnership?.configuration)
+        var configurationKeys = partnership?.configuration ? Object.keys(partnership?.configuration) : []
+        var configurationValues =  partnership?.configuration ? Object.values(partnership?.configuration): []
     
             return !configurationObjects ? (
                 <div>
