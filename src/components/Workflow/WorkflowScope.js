@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import React, { useCallback, useState, useContext, useEffect, useRef} from 'react';
+import React, { useCallback, useState, useContext, useEffect, useRef, use} from 'react';
 import {
     Button,
     Text,
@@ -20,7 +20,7 @@ import {jsPDF} from 'jspdf'
 import html2canvas from "html2canvas";
 
 
-const WorkflowScope = ({partnership}) => {
+const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) => {
     
     const workflow = useStore(state => state.workflow)
     const nodeActions = useStore(state => state.nodeActions)
@@ -43,6 +43,13 @@ const WorkflowScope = ({partnership}) => {
         pdf.addImage(data, "PNG", 0, 0, pdfWidth, pdfHeight);
         pdf.save("print.pdf");
     }
+
+    useEffect(() => {
+        if (shouldDownloadPdf){
+            createPDF()
+            setShouldDownloadPdf(false)
+        }
+    }, [shouldDownloadPdf])
 
     const renderAdaptionTable = (formulas, targetProperty, inputProperty, inputNodeId, outputNodeId) => {
         
@@ -387,14 +394,6 @@ const WorkflowScope = ({partnership}) => {
     console.log(edges)
     return typeof window !== 'undefined' ? (
         <>
-            <Button  sx={{
-                height: '40px',
-                radius:0,
-                backgroundColor: '#000000',
-                '&:hover': {
-                    backgroundColor: '#858585',
-                },
-            }} onClick={createPDF}>Download PDF</Button>
             <div ref={printRef} style={{ display: 'flex', flexDirection: 'column', width: '100%', padding: 60}}>
                 
                 <div style={{display: 'flex', flexDirection: 'row',justifyContent: 'space-between',alignItems: 'center', width: '100%', paddingRight: 180}}>

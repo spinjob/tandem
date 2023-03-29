@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router';
 import { useCallback, useState, useContext, useEffect, useRef} from 'react';
-import {useUser} from '@auth0/nextjs-auth0/client'
 import {
     createStyles,
     Menu,
@@ -1139,7 +1138,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
     )
 }
 
-const WorkflowHeader = ({workflow, setView, view, apis, actions, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen}) => {
+const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownloadPdf, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen}) => {
     const { classes } = useStyles()
     const router = useRouter();
     const [isNameFieldActive, setIsNameFieldActive] = useState(false);
@@ -1188,7 +1187,7 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setSuggestedEdg
     }, [workflowName])
 
         return (
-            <Header height={30} sx={{ zIndex: 2, backgroundColor: "transparent", borderBottom: 0 }} >
+            <Header height={30} sx={{ backgroundColor: "transparent", borderBottom: 0 }} >
               <Container className={classes.inner} fluid>
                 <Group>
                 <ActionIcon onClick={() => router.push('/partnerships/'+pid)}>
@@ -1247,25 +1246,45 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setSuggestedEdg
                                 {
                                     value:'studio', 
                                     label: (
-                                        <Center>
+                                        <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
+                                            <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
+                                                Studio
+                                            </Text>
+                                            }>
+                                         <Center>
                                             <Image alt="workflowStudio" src={studioIcon} width={25} height={25}/>
                                         </Center>
+                                    </Tooltip>
                                     ) 
                               },
                               {
                                 value:'scope', 
                                 label: (
-                                    <Center>
-                                        <BsViewList size={25}/>
-                                    </Center>
+                                     <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
+                                            <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
+                                                Documentation
+                                            </Text>
+                                            }>
+                                        <Center>
+                                            <BsViewList size={25}/>
+                                        </Center>
+                                    </Tooltip>
+                                    
                                 ) 
                           }, 
                           {
                             value:'monitor', 
                             label: (
+                                <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
+                                    <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
+                                        Monitor
+                                    </Text>
+                                    }>
                                 <Center>
                                     <HiOutlineCommandLine size={25}/>
                                 </Center>
+                            </Tooltip>
+                                
                             ) 
                         }
                             ]}/>
@@ -1303,23 +1322,27 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setSuggestedEdg
                         </Button>
                         ) : view === 'scope' ? (
                             <Button
-                            sx={{
-                                centerLoader: {
+                                sx={{
+                                    centerLoader: {
+                                        color: 'black',
+                                    },
                                     color: 'black',
-                                },
-                                color: 'black',
-                                fontFamily: 'Vulf Sans',
-                                fontWeight: 300,
-                                fontSize: '16px',
-                                height: 40,
-                                borderRadius: 5,
-                                border: '1px solid #000000',
-                                backgroundColor: 'white',
-                                ':hover': {
-                                    backgroundColor: '#FBFAF9',
-                                    border: '1px solid #262626',
-                                }
-                            }}>
+                                    fontFamily: 'Vulf Sans',
+                                    fontWeight: 300,
+                                    fontSize: '16px',
+                                    height: 40,
+                                    borderRadius: 5,
+                                    border: '1px solid #000000',
+                                    backgroundColor: 'white',
+                                    ':hover': {
+                                        backgroundColor: '#FBFAF9',
+                                        border: '1px solid #262626',
+                                    }
+                                }}
+                                onClick={() => {
+                                    setShouldDownloadPdf(true)
+                                }}
+                            >
                                 Download PDF
                             </Button>
                         ) : view === 'monitor' ? (
@@ -1412,6 +1435,7 @@ const WorkflowStudio = () => {
     const [view, setView] = useState('studio');
     const [suggestedNodes, setSuggestedNodes] = useState(null);
     const [suggestedEdges, setSuggestedEdges] = useState(null);
+    const [shouldDownloadPdf, setShouldDownloadPdf] = useState(false);
 
 
     //From Global State
@@ -1857,15 +1881,16 @@ const WorkflowStudio = () => {
                 width: '100vw',
                 height: 90,
                 boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)',
-                zIndex: 1,
-                position: 'sticky'
+                position: 'fixed',
+                backgroundColor: 'white',
+                zIndex: 1
             }}>
-                <WorkflowHeader view={view} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ position: 'sticky', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader view={view} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '92vh'}}>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '92vh', marginTop: 90}}>
                 {
                     view == 'scope' && typeof window !== undefined ? (
-                        <WorkflowScope partnership={partnership}/>
+                        <WorkflowScope setShouldDownloadPdf={setShouldDownloadPdf} shouldDownloadPdf={shouldDownloadPdf} style={{zIndex: 2}} partnership={partnership}/>
                     ) : view == 'studio' && typeof window !== undefined ? (
                         <ReactFlowProvider>
                             <Flow suggestedNodes={suggestedNodes} suggestedEdges={suggestedEdges} toggleDrawer={toggleDrawer} workflow={workflow[0]} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
