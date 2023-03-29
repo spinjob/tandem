@@ -1139,7 +1139,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
     )
 }
 
-const WorkflowHeader = ({workflow, setView, apis, actions, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen}) => {
+const WorkflowHeader = ({workflow, setView, view, apis, actions, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen}) => {
     const { classes } = useStyles()
     const router = useRouter();
     const [isNameFieldActive, setIsNameFieldActive] = useState(false);
@@ -1271,34 +1271,82 @@ const WorkflowHeader = ({workflow, setView, apis, actions, setSuggestedEdges, se
                             ]}/>
                 </Group>
                 <Group>
-                    <Button
-                        leftIcon={
-                            <div style={{height:15, width: 15}}>
-                                <Image src={blackLogoIcon} />
-                            </div>
-                        } variant="outline"  
-                        onClick={() => {
-                            setWorkflowSuggestionModalOpen(true)
-                        }}
-                        sx={{
-                            centerLoader: {
+                    {
+                        view === 'studio' ? (
+                        <Button
+                            leftIcon={
+                                <div style={{height:15, width: 15}}>
+                                    <Image src={blackLogoIcon} />
+                                </div>
+                            } variant="outline"  
+                            onClick={() => {
+                                setWorkflowSuggestionModalOpen(true)
+                            }}
+                            sx={{
+                                centerLoader: {
+                                    color: 'black',
+                                },
                                 color: 'black',
-                            },
-                            color: 'black',
-                            fontFamily: 'Vulf Sans',
-                            fontWeight: 300,
-                            fontSize: '16px',
-                            height: 40,
-                            borderRadius: 5,
-                            border: '1px solid #000000',
-                            backgroundColor: 'white',
-                            ':hover': {
-                                backgroundColor: '#FBFAF9',
-                                border: '1px solid #262626',
-                            }
-                        }}>
-                        Suggest Workflow
-                    </Button>
+                                fontFamily: 'Vulf Sans',
+                                fontWeight: 300,
+                                fontSize: '16px',
+                                height: 40,
+                                borderRadius: 5,
+                                border: '1px solid #000000',
+                                backgroundColor: 'white',
+                                ':hover': {
+                                    backgroundColor: '#FBFAF9',
+                                    border: '1px solid #262626',
+                                }
+                            }}>
+                            Suggest Workflow
+                        </Button>
+                        ) : view === 'scope' ? (
+                            <Button
+                            sx={{
+                                centerLoader: {
+                                    color: 'black',
+                                },
+                                color: 'black',
+                                fontFamily: 'Vulf Sans',
+                                fontWeight: 300,
+                                fontSize: '16px',
+                                height: 40,
+                                borderRadius: 5,
+                                border: '1px solid #000000',
+                                backgroundColor: 'white',
+                                ':hover': {
+                                    backgroundColor: '#FBFAF9',
+                                    border: '1px solid #262626',
+                                }
+                            }}>
+                                Download PDF
+                            </Button>
+                        ) : view === 'monitor' ? (
+                            <Button
+                            sx={{
+                                centerLoader: {
+                                    color: 'black',
+                                },
+                                color: 'black',
+                                fontFamily: 'Vulf Sans',
+                                fontWeight: 300,
+                                fontSize: '16px',
+                                height: 40,
+                                borderRadius: 5,
+                                border: '1px solid #000000',
+                                backgroundColor: 'white',
+                                ':hover': {
+                                    backgroundColor: '#FBFAF9',
+                                    border: '1px solid #262626',
+                                }
+                            }}>
+                                Trigger Workflow
+                            </Button>
+                        ) : null
+                                
+                    }
+                    
                     <Button
                     loading={saveInProgress}
                     onClick={() => processWorkflowSave()} 
@@ -1812,7 +1860,7 @@ const WorkflowStudio = () => {
                 zIndex: 1,
                 position: 'sticky'
             }}>
-                <WorkflowHeader setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ position: 'sticky', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader view={view} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ position: 'sticky', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '92vh'}}>
                 {

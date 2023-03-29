@@ -109,6 +109,9 @@ function Th({ children, reversed, sorted, width, sortable, onSort }: ThProps) {
 function filterData(data: RowData[], search: any) {
 
   const query = search.toLowerCase().trim();
+  if(!query || query.length == 0){
+    return data;
+  }
   return data.filter((item) =>
     {
       console.log(item)

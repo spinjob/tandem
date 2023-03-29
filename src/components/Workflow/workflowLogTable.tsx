@@ -2,31 +2,18 @@ import { useState } from 'react';
 import {
   createStyles,
   Table,
-  ScrollArea,
   UnstyledButton,
   Group,
   Text,
-  Button,
-  Center,
   TextInput,
-  Badge,
-  Avatar,
-  Loader,
-  Switch,
-  Menu,
-  Image,
-  ActionIcon
+  Select,
+  Image
 } from '@mantine/core';
 import { keys } from '@mantine/utils';
-import { type } from 'os';
 import { useRouter } from 'next/router';
-import {BiSearch} from 'react-icons/bi'
 import {RxCaretSort} from 'react-icons/rx'
-import axios from 'axios';
-import archiveIcon from '../../../public/icons/archive-documents-box-big.svg'
-import workflowIcon from '../../../public/icons/Programing, Data.5.svg'
-import draftIcon from '../../../public/icons/programming-code-edit.svg'
-import elipsisIcon from '../../../public/icons/dots-menu.svg'
+import searchIcon from '../../../public/icons/programming-code-search copy 2.svg'
+
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -43,7 +30,6 @@ const useStyles = createStyles((theme) => ({
       backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
     },
   },
-
   icon: {
     width: 21,
     height: 21,
@@ -51,18 +37,18 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-import useStore from '../../context/store';
-
 interface RowData {
   id: string;
   timestamp: string;
   message: string;
   level: string;
   action: string;
+  traceId: string;
 }
 
 interface TableSortProps {
   data: RowData[];
+  actions: string[];
   partnershipId: string;
   userId: string;
   apis: string[];
@@ -99,18 +85,24 @@ function Th({ children, width, reversed, sorted,  sortable, onSort }: ThProps) {
   );
 }
 
-function filterData(data: RowData[], search: any) {
+function filterData(data: RowData[], search: string) {
   const query = search.toLowerCase().trim();
-  return data.filter((item) =>
-    keys(data[0]).some((key) => item[key].toLowerCase().includes(query))
-  );
+    if (!query || query.length === 0) {
+          return data;
+    } else {
+      return data.filter((item) =>
+      keys(data[0]).some((key) => item[key].toLowerCase().includes(query))
+    );
+    }
+
 }
+
 
 function sortData(
   data: RowData[],
-  payload: { sortBy: keyof RowData | null; reversed: boolean; search: string, statusFilter: string }
+  payload: { sortBy: keyof RowData | null; reversed: boolean; search: string}
 ) {
-  const { sortBy} = payload;
+  const { sortBy } = payload;
 
   if (!sortBy) {
     return filterData(data, payload.search);
@@ -128,49 +120,72 @@ function sortData(
   );
 }
 
-function WorkflowLogsTable({ data, partnershipId, apis, userId}: TableSortProps) {
+function WorkflowLogsTable({ data, partnershipId, apis, userId, actions}: TableSortProps) {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState("None");
+  const [actionFilter, setActionFilter] = useState('all')
+  const [levelFilter, setLevelFilter] = useState('all')
   
   const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
-  const setNodeAction = useStore((state) => state.setNodeAction)
-  const deleteNodeAction = useStore((state) => state.deleteNodeAction)
-  const nodeActions = useStore((state) => state.nodeActions)
 
   const router  = useRouter();
 
   const [sortedData, setSortedData] = useState(data);
 
-  const setSorting = (field: keyof RowData, filter: boolean) => {
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.currentTarget;
+    setSearch(value);
+    setSortedData(sortData(data, { sortBy, reversed: reverseSortDirection, search: value }));
+  };
   
-    if (filter) {
-      setSortedData(sortData(data, { sortBy: field, reversed: false, search, statusFilter }));
-    }
+
+  const setSorting = (field: keyof RowData) => {
+  
     const reversed = field === sortBy ? !reverseSortDirection : false;
     setReverseSortDirection(reversed);
     setSortBy(field);
-    setSortedData(sortData(data, { sortBy: field, reversed, search, statusFilter }));
+    setSortedData(sortData(data, { sortBy: field, reversed, search}));
   };
 
-  const handleRowClick = (event: React.MouseEvent<HTMLTableCellElement>) => {
-    const { id } = event.currentTarget.dataset;
-    router.push(`/partnerships/${partnershipId}/workflows/${id}`)
-  };
+  // const handleRowClick = (event: React.MouseEvent<HTMLTableCellElement>) => {
+  //   const { id } = event.currentTarget.dataset;
+  //   router.push(`/partnerships/${partnershipId}/workflows/${id}`)
+  // };
 
-  const archiveWorkflow = (uuid: string) => {
-    axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId + '/workflows/' + uuid, {
-      status: "Archived"
-    }).then((res) => {
-      console.log(res)
-    }).catch((err) => {
-      console.log(err)
-    })
-  }
-
-  const rows = sortedData.map((row) => (
+  const rows = actionFilter !== 'all' && levelFilter != 'all' ?  sortedData.filter((row) => row.level === levelFilter && row.action == actionFilter).map((row) => (
     <tr style={{cursor:'pointer'}} data-id={row.id} key={row.id}>
       <td data-id={row.id}>{row.timestamp}</td>
+      <td data-id={row.id}>{row.traceId}</td>
+      <td data-id={row.id}>{row.level}</td>
+      <td data-id={row.id}>{row.action ? row.action : 'No Action'}</td>
+      <td data-id={row.id}>{row.message}</td>
+    </tr>
+  )) : actionFilter == 'all' && levelFilter != 'all' ? 
+  (
+    sortedData.filter((row) => row.level === levelFilter).map((row) => (
+      <tr style={{cursor:'pointer'}} data-id={row.id} key={row.id}>
+        <td data-id={row.id}>{row.timestamp}</td>
+        <td data-id={row.id}>{row.traceId}</td>
+        <td data-id={row.id}>{row.level}</td>
+        <td data-id={row.id}>{row.action ? row.action : 'No Action'}</td>
+        <td data-id={row.id}>{row.message}</td>
+      </tr>
+    ))
+  ) : actionFilter != 'all' && levelFilter == 'all' ? 
+  (
+    sortedData.filter((row) => row.action === actionFilter).map((row) => (
+      <tr style={{cursor:'pointer'}} data-id={row.id} key={row.id}>
+        <td data-id={row.id}>{row.timestamp}</td>
+        <td data-id={row.id}>{row.traceId}</td>
+        <td data-id={row.id}>{row.level}</td>
+        <td data-id={row.id}>{row.action ? row.action : 'No Action'}</td>
+        <td style={{overflow: 'hidden'}} data-id={row.id}>{row.message}</td>
+      </tr>
+    ))
+  ) : sortedData.map((row) => (
+    <tr style={{cursor:'pointer'}} data-id={row.id} key={row.id}>
+      <td data-id={row.id}>{row.timestamp}</td>
+      <td data-id={row.id}>{row.traceId}</td>
       <td data-id={row.id}>{row.level}</td>
       <td data-id={row.id}>{row.action ? row.action : 'No Action'}</td>
       <td data-id={row.id}>{row.message}</td>
@@ -179,7 +194,97 @@ function WorkflowLogsTable({ data, partnershipId, apis, userId}: TableSortProps)
 
 
   return  (
-    <div style={{width: '100%', maxWidth:1250}}>
+    <div style={{width: '100%'}}>
+      <div style={{width: '100%', display: 'flex', flexDirection: 'row', paddingLeft: 10}}>
+                <Select
+                    value={levelFilter}
+                    data={[
+                        { label: 'All Levels', value: 'all' },
+                        { label: 'Info', value: 'info' },
+                        { label: 'Error', value: 'error' }
+                    ]}
+                    placeholder="Filter by level"
+                    sx={{
+                        width: 200,
+                        '& input': {
+                          '&: focus': {
+                                  border: '1px solid black'
+                          }
+                      }
+                    }}
+                    styles={{
+                        item: {
+                            '&:hover': {
+                                backgroundColor: '#F8F9FA',
+                          
+                            },
+                            '&[data-selected]': {
+                              '&, &:hover': {
+                                backgroundColor: 'black',
+                                color: 'white',
+                              },
+                            },
+                        }
+                    }}
+                    onChange={(value: string) => {
+                        setLevelFilter(value)
+                    }}
+                />
+                <div style={{width: 20}} />
+              <Select
+                    value={actionFilter}
+                    data={actions}
+                    placeholder="Filter by action"
+                    sx={{
+                      width: 200,
+                      '& input': {
+                        '&: focus': {
+                                border: '1px solid black'
+                        }
+                    }
+                  }}
+                  styles={{
+                      item: {
+                          '&:hover': {
+                              backgroundColor: '#F8F9FA',
+                        
+                          },
+                          '&[data-selected]': {
+                            '&, &:hover': {
+                              backgroundColor: 'black',
+                              color: 'white',
+                            },
+                          },
+                      }
+                  }}
+                    onChange={(value: string) => {
+                        setActionFilter(value)
+                    }}
+                />
+               <TextInput
+                size="sm"
+                value={search}
+                placeholder="Search Logs"
+                onChange={handleSearchChange}
+                icon={
+                  <div style={{height: 20, width: 20}}>
+                    <Image src={searchIcon} sx={{opacity: '50%'}} />
+                  </div>
+                  
+                }
+                sx={{
+                    height: '20px',
+                    width: '500px',
+                    paddingLeft: '20px',
+                    '& input': {
+                      '&: focus': {
+                              border: '1px solid black'
+                      }
+                  }
+                }}
+                />
+            </div>
+      <div style={{height: 20}} />
       <Table
         verticalSpacing="xs"
         highlightOnHover={true}
@@ -190,17 +295,26 @@ function WorkflowLogsTable({ data, partnershipId, apis, userId}: TableSortProps)
             <Th
               sorted={sortBy === 'timestamp'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('timestamp', false)}
-              width={105}
+              onSort={() => setSorting('timestamp')}
+              width={100}
               sortable={true}
             >
               Timestamp
             </Th>
             <Th
+              sorted={sortBy === 'traceId'}
+              reversed={reverseSortDirection}
+              onSort={() => setSorting('traceId')}
+              width={100}
+              sortable={true}
+            >
+              TraceId
+            </Th>
+            <Th
               sorted={sortBy === 'level'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('level', false)}
-              width={200}
+              onSort={() => setSorting('level')}
+              width={100}
               sortable={true}
             >
               Level
@@ -208,8 +322,8 @@ function WorkflowLogsTable({ data, partnershipId, apis, userId}: TableSortProps)
             <Th
               sorted={sortBy === 'action'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('action', false)}
-              width={'50%'}
+              onSort={() => setSorting('action')}
+              width={100}
               sortable={true}
             >
               Action
@@ -217,7 +331,7 @@ function WorkflowLogsTable({ data, partnershipId, apis, userId}: TableSortProps)
             <Th
               sorted={sortBy === 'message'}
               reversed={reverseSortDirection}
-              onSort={() => setSorting('message', false)}
+              onSort={() => setSorting('message')}
               width={200}
               sortable={true}
             >

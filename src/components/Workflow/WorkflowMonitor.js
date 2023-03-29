@@ -10,7 +10,8 @@ import {
     Text,
     Image,
     Divider,
-    Center
+    Center,
+    Select
   } from '@mantine/core';
 
 const WorkflowMonitor = ({workflow}) => {
@@ -20,6 +21,8 @@ const WorkflowMonitor = ({workflow}) => {
     const edges = useStore(state => state.edges)
     const router = useRouter()
     const [workflowLogs, setWorkflowLogs] = useState(null)
+    const [workflowRuns, setWorkflowRuns] = useState(null)
+    const [errorRate, setErrorRate] = useState(null)
     const { pid, workflowId } = router.query
     console.log(workflowLogs)
 
@@ -44,15 +47,74 @@ const WorkflowMonitor = ({workflow}) => {
                 action: workflowLog.action,
                 level: workflowLog.level ? workflowLog.level : 'info',
                 timestamp: workflowLog.created_at,
-                message: workflowLog.message
+                message: workflowLog.message,
+                traceId: workflowLog.traceId
             }
         })
     }
 
+    function onlyUnique(value, index, self) {
+        return self.indexOf(value) === index;
+    }
+
+    const renderActionOptions = () => {
+        const actionOptions = []
+        actionOptions.push({label: 'All Actions', value: 'all'})
+        workflowLogs.forEach((workflowLog) => {
+            if(actionOptions.find((actionOption) => actionOption.value === workflowLog.action)) {
+                return
+            }
+
+            actionOptions.push({label: workflowLog.action, value: workflowLog.action})
+        })
+        var uniqueActionOptions = actionOptions.filter(onlyUnique)
+        return uniqueActionOptions
+    }
+
+    
+    useEffect(() => {
+        if (!workflowRuns && workflowLogs){ 
+            const workflowTraceIds = workflowLogs.map((workflowLog) => {
+                return workflowLog.traceId
+            })
+            setWorkflowRuns(workflowTraceIds.filter(onlyUnique))
+        }
+        if (workflowLogs && !errorRate) {
+            const errorLogs = workflowLogs.filter((workflowLog) => {
+                return workflowLog.level === 'error'
+            }
+            )
+            setErrorRate(errorLogs.length / workflowLogs.length)
+        }
+
+    }, [workflowLogs, workflowRuns])
+
+
     return workflowLogs ? (
-        <Center sx={{width: '100%'}}>
-            <WorkflowLogsTable data={formatWorkflowLogTableData()}/>
-        </Center>
+        <div style={{width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 50}}>
+            <div style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', width: '100%', marginTop: -10}}>
+                <div style={{width: 200, height: 140, backgroundColor: '#EAEAFF', borderRadius:30, padding: 20}}>
+                    <Text style={{fontFamily:'Visuelt', color: 'black', fontWeight: 400, fontSize: 16}}>Workflow Runs</Text>
+                    <div style={{height: 5}} />
+                    <Text style={{fontFamily:'Visuelt', color: 'black', fontWeight: 600, fontSize: 50}}>{workflowRuns ? workflowRuns.length : 0}</Text>
+                </div>
+                <div style={{width: 20}} />
+                <div style={{width: 200, height: 140, backgroundColor: '#EAEAFF', borderRadius:30, padding: 20}}>
+                    <Text style={{fontFamily:'Visuelt', color: 'black', fontWeight: 400, fontSize: 16}}>Error Rate</Text>
+                    <div style={{height: 5}} />
+                    <Text style={{fontFamily:'Visuelt', color: 'black', fontWeight: 600, fontSize: 50}}>{
+                        errorRate ? (errorRate * 100).toFixed(2) + '%' : '0%'
+                    }</Text>
+                </div>
+                <div style={{width: 20}} />
+            </div>
+            <div style={{height: 40}} />
+            <div style={{width: '100%', display: 'flex', flexDirection: 'row', paddingLeft: 10}}>
+                <Text style={{fontFamily:'Visuelt', color: 'black', fontWeight: 600, fontSize: 30}}>Execution Logs</Text>
+            </div>        
+            <div style={{height: 20}} />
+            <WorkflowLogsTable style={{width: '100%'}} actions={renderActionOptions()} data={formatWorkflowLogTableData()}/>
+        </div>
     ): (
         <div>
             <Text>Loading...</Text>
