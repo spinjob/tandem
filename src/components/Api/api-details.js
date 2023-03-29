@@ -7,8 +7,8 @@ const ApiMetadata = ({ metadata, securityScheme }) => {
 
     const [editingProduction, setEditingProduction] = useState(false)
     const [editingSandbox, setEditingSandbox] = useState(false)
-    const [production, setProduction] = useState(metadata.production_base_url)
-    const [sandbox, setSandbox] = useState(metadata.sandbox_base_url)
+    const [production, setProduction] = useState(metadata.production_server)
+    const [sandbox, setSandbox] = useState(metadata.sandbox_server)
     const [editingSecurityScheme, setEditingSecurityScheme] = useState(false)
     const [authenticationType, setAuthenticationType] = useState(null)
     const [authenticationFlowType, setAuthenticationFlowType] = useState(null)
@@ -20,19 +20,19 @@ const ApiMetadata = ({ metadata, securityScheme }) => {
     const environments = [
         {
             name: 'Production',
-            baseUrl: metadata.production_base_url
+            baseUrl: production
         }, 
         {
             name: 'Sandbox',
-            baseUrl: metadata.sandbox_base_url
+            baseUrl: sandbox
         }]
     
     const updateServers = (environment) => {
 
         var data = environment == 'Production' ? {
-            production_base_url: production
+            productionServer: production
         } : {
-            sandbox_base_url: sandbox
+            sandboxServer: sandbox
         }
 
         axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/' + metadata.uuid + "/servers", data).then((res) => {
@@ -168,9 +168,12 @@ const ApiMetadata = ({ metadata, securityScheme }) => {
                                             <TextInput value={environment.baseUrl}
                                             onChange={(e) => {
                                                 if(environment.name === 'Production') {
+                                                    console.log(e.target.value)
                                                     setProduction(e.target.value)
                                                 }
                                                 if(environment.name === 'Sandbox') {
+                                                    console.log(environment)
+                                                    console.log(e.target.value)
                                                     setSandbox(e.target.value)
                                                 }
                                             }}
@@ -189,16 +192,16 @@ const ApiMetadata = ({ metadata, securityScheme }) => {
                                 </div>
                                 <div style={{width: 10}}/>
                                 <Button onClick={() => {
-                                    
+                                    console.log(environment.name)
+                                    console.log(editingProduction)
                                     if(environment.name === 'Production') {
                                         if(editingProduction) {
-                                            updateServers()
+                                            updateServers(environment.name)
                                         }
                                         setEditingProduction(!editingProduction)
-                                    }
-                                    if(environment.name === 'Sandbox') {
-                                        if(editingProduction) {
-                                            updateServers()
+                                    } else {
+                                        if(editingSandbox) {
+                                            updateServers(environment.name)
                                         }
                                         setEditingSandbox(!editingSandbox)
                                     }
