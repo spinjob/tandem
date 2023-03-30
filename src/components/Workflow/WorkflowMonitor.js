@@ -5,6 +5,7 @@ import React, { useCallback, useState, useContext, useEffect, useRef} from 'reac
 import useStore from '../../context/store'
 import axios from 'axios'
 import WorkflowLogsTable from './workflowLogTable.tsx'
+import refreshIcon from '../../../public/icons/refresh-rotate.svg'
 import {
     Button,
     Text,
@@ -24,7 +25,6 @@ const WorkflowMonitor = ({workflow}) => {
     const [workflowRuns, setWorkflowRuns] = useState(null)
     const [errorRate, setErrorRate] = useState(null)
     const { pid, workflowId } = router.query
-    console.log(workflowLogs)
 
     const fetchWorkflowLogs = useCallback(() => {
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/workflows/' + workflowId + '/logs').then(res => {
@@ -90,7 +90,7 @@ const WorkflowMonitor = ({workflow}) => {
     }, [workflowLogs, workflowRuns])
 
 
-    return workflowLogs ? (
+    return (
         <div style={{width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 50}}>
             <div style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-start', width: '100%', marginTop: -10}}>
                 <div style={{width: 200, height: 140, backgroundColor: '#EAEAFF', borderRadius:30, padding: 20}}>
@@ -109,15 +109,42 @@ const WorkflowMonitor = ({workflow}) => {
                 <div style={{width: 20}} />
             </div>
             <div style={{height: 40}} />
-            <div style={{width: '100%', display: 'flex', flexDirection: 'row', paddingLeft: 10}}>
+            <div style={{width: '100%', display: 'flex', flexDirection: 'row', paddingLeft: 10, alignItems: 'center'}}>
                 <Text style={{fontFamily:'Visuelt', color: 'black', fontWeight: 600, fontSize: 30}}>Execution Logs</Text>
-            </div>        
+                <Button
+                    variant='subtle'
+                    leftIcon={<Image src={refreshIcon} width={20} height={20} />}
+                    style={{marginLeft: 20, borderRadius: 30}}
+                    
+                    sx={{
+                        ':hover': {
+                            backgroundColor: '#EAEAFF',
+                            borderRadius: 30
+                        }
+                    }}
+                    onClick={() => {
+                        setWorkflowLogs(null)
+                    }}
+                >
+                    <Text
+                        style={{fontFamily:'Visuelt', color: 'black', fontWeight: 400, fontSize: 16}}
+                    >
+                        Refresh Logs
+                    </Text>
+                </Button>
+            </div>
+                    
             <div style={{height: 20}} />
-            <WorkflowLogsTable style={{width: '100%'}} actions={renderActionOptions()} data={formatWorkflowLogTableData()}/>
-        </div>
-    ): (
-        <div>
-            <Text>Loading...</Text>
+            {
+                workflowLogs ? (
+                    <WorkflowLogsTable style={{width: '100%'}} actions={renderActionOptions()} data={formatWorkflowLogTableData()}/>
+                ) : (
+                    <div>
+                        <Text>Loading...</Text>
+                    </div>
+                )
+            }
+           
         </div>
     )
 }

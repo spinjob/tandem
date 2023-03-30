@@ -20,8 +20,7 @@ import {
     ScrollArea,
     Drawer,
     Modal,
-    Tooltip,
-    Box
+    Tooltip
   } from '@mantine/core';
 
 import ReactFlow, {
@@ -49,6 +48,8 @@ import {IoHelpBuoyOutline} from 'react-icons/io5'
 import {GrSchedulePlay, GrTrigger} from 'react-icons/gr'
 import studioIcon from '../../../../../public/icons/Programing, Data.5.svg'
 import blackLogoIcon from '../../../../../public/logos/SVG/Icon/Icon_Black.svg'
+import testWorkflowIcon from '../../../../../public/icons/list-test-lab-flask.svg'
+import scopingWorkflowIcon from '../../../../../public/icons/programming-code_1.svg'
 import 'reactflow/dist/style.css';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
@@ -61,6 +62,7 @@ import ActionMappingView from '../../../../components/Workflow/ActionMappingView
 import MappingModal from '../../../../components/Workflow/MappingModal';
 import WorkflowScope from '../../../../components/Workflow/WorkflowScope';
 import WorkflowMonitor from '../../../../components/Workflow/WorkflowMonitor';
+import WorkflowTestModal from '../../../../components/Workflow/WorkflowTestModal';
 
 import LoadingAnimation from '../../../../../public/animations/Loading_Animation.json'
 import WorkflowAnimation from '../../../../../public/animations/ValueProp_Section2.json'
@@ -1138,7 +1140,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
     )
 }
 
-const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownloadPdf, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen}) => {
+const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownloadPdf, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen, setTestWorkflowModalOpen}) => {
     const { classes } = useStyles()
     const router = useRouter();
     const [isNameFieldActive, setIsNameFieldActive] = useState(false);
@@ -1322,6 +1324,11 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
                         </Button>
                         ) : view === 'scope' ? (
                             <Button
+                                leftIcon= {
+                                    <div style={{height:25, width: 25}}>
+                                        <Image src={scopingWorkflowIcon} />
+                                    </div> 
+                                }
                                 sx={{
                                     centerLoader: {
                                         color: 'black',
@@ -1347,24 +1354,33 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
                             </Button>
                         ) : view === 'monitor' ? (
                             <Button
-                            sx={{
-                                centerLoader: {
-                                    color: 'black',
-                                },
-                                color: 'black',
-                                fontFamily: 'Vulf Sans',
-                                fontWeight: 300,
-                                fontSize: '16px',
-                                height: 40,
-                                borderRadius: 5,
-                                border: '1px solid #000000',
-                                backgroundColor: 'white',
-                                ':hover': {
-                                    backgroundColor: '#FBFAF9',
-                                    border: '1px solid #262626',
+                                onClick={() => {
+                                    setTestWorkflowModalOpen(true)
+                                }}
+                                leftIcon= {
+                                    <div style={{height:25, width: 25}}>
+                                        <Image src={testWorkflowIcon} />
+                                    </div> 
                                 }
-                            }}>
-                                Trigger Workflow
+                                sx={{
+                                    
+                                    centerLoader: {
+                                        color: 'black',
+                                    },
+                                    color: 'black',
+                                    fontFamily: 'Vulf Sans',
+                                    fontWeight: 300,
+                                    fontSize: '16px',
+                                    height: 40,
+                                    borderRadius: 5,
+                                    border: '1px solid #000000',
+                                    backgroundColor: 'white',
+                                    ':hover': {
+                                        backgroundColor: '#FBFAF9',
+                                        border: '1px solid #262626',
+                                    }
+                                }}>
+                                Test Workflow
                             </Button>
                         ) : null
                                 
@@ -1456,6 +1472,10 @@ const WorkflowStudio = () => {
     const [workflowSuggestionModalOpen, setWorkflowSuggestionModalOpen] = useState(false);
     const [areSuggestionsLoading, setAreSuggestionsLoading] = useState(false);
 
+
+    //Test Workflow Modal
+    const [testWorkflowModalOpen, setTestWorkflowModalOpen] = useState(false);
+    
     const generateOperationIdArray = (actions, apiIndex) => {
         const operationIdArray = []
         actions.forEach((action) => {
@@ -1871,6 +1891,18 @@ const WorkflowStudio = () => {
                 }
                
             </Modal>
+            <Modal
+                centered
+                opened={testWorkflowModalOpen}
+                onClose={() => setTestWorkflowModalOpen(false)}
+                overlayColor={'#000'}
+                overlayOpacity={0.50}
+                radius={'lg'}
+                size={1000}
+           
+            >
+                <WorkflowTestModal workflow={workflow[0]} />
+            </Modal>
             <Drawer lockScroll={false} size={610} style={{overflowY: 'scroll', zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
             <SchemaMappingDrawer partnership={partnership[0]} nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
             </Drawer>
@@ -1885,7 +1917,7 @@ const WorkflowStudio = () => {
                 backgroundColor: 'white',
                 zIndex: 1
             }}>
-                <WorkflowHeader view={view} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader view={view} setTestWorkflowModalOpen={setTestWorkflowModalOpen} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '92vh', marginTop: 90}}>
                 {
