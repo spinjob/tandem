@@ -1,12 +1,15 @@
 import axios from 'axios'
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router'
-import {Tabs, Text, TextInput, Loader, Breadcrumbs, Anchor, Card} from '@mantine/core'
+import {Tabs, Text, Image, TextInput, Button, Loader, Modal, Breadcrumbs, Anchor, Card} from '@mantine/core'
 import ApiSchemas from '../../components/Api/api-schemas'
 import ApiActions from '../../components/Api/api-actions';
 import ApiWebhooks from '../../components/Api/api-webhooks';
 import ApiSecurityScheme from '../../components/Api/api-security-schema';
 import ApiMetadata from '../../components/Api/api-details';
+import addIcon from '../../../public/icons/select-object-copy-plus-add.svg'
+import NewWebhookForm from '../../components/Api/newComponentModals/newWebhook'
+import ManageActionModal from '../../components/Api/editActionModal';
 
 const ViewApi = () => {
 
@@ -19,6 +22,10 @@ const ViewApi = () => {
     const [actions, setActions] = useState(null)
     const [webhooks, setWebhooks] = useState(null)
     const [parameters, setParameters] = useState(null)
+    const [modalOpen, setModalOpen] = useState(false)
+    const [modalType, setModalType] = useState(null)
+    const [viewModalOpen, setViewModalOpen] = useState(false)
+    const [selectedAction, setSelectedAction] = useState(null)
 
     const items = [
         { title: 'My APIs', href: '/myApis' },
@@ -40,6 +47,11 @@ const ViewApi = () => {
         }
           
       });
+
+      function setAction (action) {
+        setSelectedAction(action)
+        setViewModalOpen(true)
+        }
 
     const fetchApiDetails = useCallback(() => {
         setIsLoading(true)
@@ -144,41 +156,92 @@ const ViewApi = () => {
                 <Text style={{height: '40px',fontFamily:'apercu-regular-pro', fontSize: '25px'}}>{apiMetadata.version}</Text>
             </div>
             <Breadcrumbs separator="→">{items}</Breadcrumbs>
+            <Modal
+                opened={modalOpen}
+                onClose={() => setModalOpen(false)}
+                title={modalType == 'webhook' ? (
+                    <Text
+                        sx={{
+                            fontFamily: 'Visuelt',
+                            fontWeight: 650,
+                            fontSize: '28px'
+                        }}
+                    >
+                        New Webhook Definition
+                    </Text>
+                    ) : (<Text
+                        sx={{
+                            fontFamily: 'Visuelt',
+                            fontWeight: 650,
+                            fontSize: '28px'
+                        }}
+                    >
+                        New API Action Definition
+                    </Text>)}
+                centered
+                size={'xl'}
+            >
+                {
+                    modalType == 'webhook' ? (
+                        <NewWebhookForm apiId={interfaceId} />
+                    ) : (
+                        <div>
+
+                        </div>
+                    )
+                }
+            </Modal>
+            <Modal
+                opened={viewModalOpen}
+                onClose={() => setViewModalOpen(false)}
+                centered
+                size={1250}
+                title={selectedAction ? (
+                  <Text
+                    sx={{
+                        fontFamily: "Visuelt",
+                        fontWeight: 650,
+                        fontSize: "40px",
+                    }}
+
+                  >
+                    {selectedAction.name}
+                  </Text> 
+                ) : null}
+            >
+                <ManageActionModal action={selectedAction} />
+            </Modal>
             <div style={{height: 20}}></div>
             <div style={{display:'flex', paddingBottom: 40, paddingTop: 30}}>
-                    <Card style={{height: 180, width: 280, paddingTop: 38, paddingLeft: 50, backgroundColor: '#eaeaff'}}radius={'xl'}>
-                        <Card.Section>
-                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '18px'}}>Schemas</Text>
-                            <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '60px'}}>{schemas?.length}</Text>
-                        </Card.Section>
-                    </Card>
-                    <div style={{width: 30}}/>
+                <Card style={{height: 180, width: 280, paddingTop: 38, paddingLeft: 50, backgroundColor: '#eaeaff'}}radius={'xl'}>
+                    <Card.Section>
+                        <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '18px'}}>Schemas</Text>
+                        <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '60px'}}>{schemas?.length}</Text>
+                    </Card.Section>
+                </Card>
+                <div style={{width: 30}}/>
                     <Card style={{height: 180, width: 280, paddingTop: 38, paddingLeft: 50, backgroundColor: '#eaeaff'}}radius={'xl'}>
                         <Card.Section>
                             <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '20px'}}>Actions</Text>
                             <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '60px'}}>{actions?.length}</Text>
                         </Card.Section>
                     </Card>
-                    <div style={{width: 30}}/>
+                <div style={{width: 30}}/>
                     <Card style={{height: 180, width: 280, paddingTop: 38, paddingLeft: 50, backgroundColor: '#eaeaff'}}radius={'xl'}>
                         <Card.Section>
                             <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '20px'}}>Webhooks</Text>
                             <Text style={{paddingBottom: 10, fontFamily:'Visuelt', fontWeight: 650, fontSize: '60px'}}>{webhooks?.length}</Text>
                         </Card.Section>
                     </Card>
-                </div>
+                    <div style={{height: 5}}/>      
+            </div>
+            <div style={{height: 20}}></div>
             <Tabs radius={"sm"} color={'dark'} defaultValue="metadata">
                 <Tabs.List>
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="metadata">Details</Tabs.Tab>
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="actions">Actions</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="webhooks">Webhooks</Tabs.Tab>
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="schemas">Schemas</Tabs.Tab>
-                    {
-                        webhooks?.length > 0 ? (
-                            <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="webhooks">Webhooks</Tabs.Tab>
-                        ) : (
-                            <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} disabled value="webhooks">Webhooks</Tabs.Tab>
-                        )  
-                    }
                     {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="security">Authentication</Tabs.Tab>  */}
                     {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="parameters">Parameters</Tabs.Tab>          */}
                 </Tabs.List>
@@ -207,14 +270,116 @@ const ViewApi = () => {
                 </Tabs.Panel>
                 <Tabs.Panel value="actions" label="Actions">
                     {actions ? ( 
-                        <ApiActions actions={actions}/>
+                        <div>
+                            <div style={{height: 20}}></div>
+                            <div style={{display: 'flex', flexDirection:'row', justifyContent: 'space-between', alignItems:'center', padding: 20}}>
+                                <div style={{width: '70%'}}>
+                                    <Text
+                                        sx={{
+                                            fontFamily: 'Visuelt',
+                                            fontWeight: 400,
+                                            fontSize: '28px'
+
+                                        }}
+                                    >
+                                        API Actions
+                                    </Text>
+                                    <Text
+                                        sx={{
+                                            fontFamily: 'Visuelt',
+                                            fontWeight: 100,
+                                            fontSize: '13px',
+                                            color: '#3E3E3E'
+                                        }}
+                                    >
+                                        Actions are the methods that can be called on your API. They are the endpoints that your users will call with specified data.  The table below shows all the actions that are currently defined for this API and what data the documentation indicates they support.  Click on any action to view the details and edit if necessary.
+                                    </Text>
+                                </div>
+
+                                <Button
+                                    onClick={() => {
+                                        setModalOpen(true)
+                                        setModalType('webhook')
+                                    }}
+                                    disabled
+                                    sx={{
+                                        fontFamily: 'Visuelt',
+                                        fontSize: '16px',
+                                        fontWeight: 500,
+                                        backgroundColor: '#000000',
+                                        color: '#FFFFFF',
+                                        borderRadius: '10px',
+                                        height: '40px',
+                                        width: '200',
+                                        ':hover': {
+                                            backgroundColor: '#3E3E3E',
+                                            
+                                        }
+                                    }}>
+                                    Create an Action (Coming Soon)
+                                </Button>
+                            </div>
+                          <ApiActions setAction={setAction} actions={actions}/>
+                        </div>
+                       
                     ) : (
                         <Loader/>
                     )}
                 </Tabs.Panel>
                 <Tabs.Panel value="webhooks" label="Webhooks">
                     {webhooks ? ( 
-                        <ApiWebhooks actions={webhooks}/>
+                        <div>
+                            <div style={{height: 20}}></div>
+                            <div style={{display: 'flex', flexDirection:'row', justifyContent: 'space-between', alignItems:'center', padding: 20}}>
+                                <div style={{width: '70%'}}>
+                                    <Text
+                                        sx={{
+                                            fontFamily: 'Visuelt',
+                                            fontWeight: 400,
+                                            fontSize: '28px'
+
+                                        }}
+                                    >
+                                        Webhooks
+                                    </Text>
+                                    <Text
+                                        sx={{
+                                            fontFamily: 'Visuelt',
+                                            fontWeight: 100,
+                                            fontSize: '13px',
+                                            color: '#3E3E3E'
+                                        }}
+                                    >
+                                        Webhooks are used to notify Tandem when to run a workflow.  They are triggered by an event, such as a new record being created in a database.  If the API documentation is missing supported webhooks, create one using an example payload.
+                                    </Text>
+                                </div>
+
+                                <Button
+                                    onClick={() => {
+                                        setModalOpen(true)
+                                        setModalType('webhook')
+                                    }}
+                                    
+                                    sx={{
+                                        fontFamily: 'Visuelt',
+                                        fontSize: '16px',
+                                        fontWeight: 500,
+                                        backgroundColor: '#000000',
+                                        color: '#FFFFFF',
+                                        borderRadius: '10px',
+                                        height: '40px',
+                                        width: '200',
+                                        ':hover': {
+                                            backgroundColor: '#3E3E3E',
+                                            
+                                        }
+                                    }}>
+                                    Create a Webhook
+                                </Button>
+                            </div>
+                            <ApiWebhooks setAction={setAction} actions={webhooks}/>
+                        </div>
+                        
                     ) : (
                         <Loader/>
                     )}

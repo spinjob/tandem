@@ -1297,7 +1297,7 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
                         <Button
                             leftIcon={
                                 <div style={{height:15, width: 15}}>
-                                    <Image src={blackLogoIcon} />
+                                    <Image alt='logo' src={blackLogoIcon} />
                                 </div>
                             } variant="outline"  
                             onClick={() => {
@@ -1326,7 +1326,7 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
                             <Button
                                 leftIcon= {
                                     <div style={{height:25, width: 25}}>
-                                        <Image src={scopingWorkflowIcon} />
+                                        <Image alt='scopingView' src={scopingWorkflowIcon} />
                                     </div> 
                                 }
                                 sx={{
@@ -1359,7 +1359,7 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
                                 }}
                                 leftIcon= {
                                     <div style={{height:25, width: 25}}>
-                                        <Image src={testWorkflowIcon} />
+                                        <Image alt='testWorkflow' src={testWorkflowIcon} />
                                     </div> 
                                 }
                                 sx={{

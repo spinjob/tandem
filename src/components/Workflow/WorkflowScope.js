@@ -49,7 +49,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
             createPDF()
             setShouldDownloadPdf(false)
         }
-    }, [shouldDownloadPdf])
+    }, [shouldDownloadPdf,setShouldDownloadPdf])
 
     const renderAdaptionTable = (formulas, targetProperty, inputProperty, inputNodeId, outputNodeId) => {
         

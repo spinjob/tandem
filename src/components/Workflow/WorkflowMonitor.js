@@ -38,7 +38,7 @@ const WorkflowMonitor = ({workflow}) => {
        if (workflow && !workflowLogs) {
          fetchWorkflowLogs()
        }
-    }, [workflow, workflowLogs])
+    }, [workflow, workflowLogs,fetchWorkflowLogs])
 
     const formatWorkflowLogTableData = () => {
         return workflowLogs.map((workflowLog) => {
@@ -87,7 +87,7 @@ const WorkflowMonitor = ({workflow}) => {
             setErrorRate(errorLogs.length / workflowLogs.length)
         }
 
-    }, [workflowLogs, workflowRuns])
+    }, [workflowLogs, workflowRuns, errorRate])
 
 
     return (
@@ -113,7 +113,7 @@ const WorkflowMonitor = ({workflow}) => {
                 <Text style={{fontFamily:'Visuelt', color: 'black', fontWeight: 600, fontSize: 30}}>Execution Logs</Text>
                 <Button
                     variant='subtle'
-                    leftIcon={<Image src={refreshIcon} width={20} height={20} />}
+                    leftIcon={<Image alt="refresh" src={refreshIcon} width={20} height={20} />}
                     style={{marginLeft: 20, borderRadius: 30}}
                     
                     sx={{

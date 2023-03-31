@@ -4,8 +4,9 @@ import ActionsTable from './actions-table'
 import {VscSymbolArray} from 'react-icons/vsc'
 import {RxQuestionMarkCircled} from 'react-icons/rx'
 import SchemaTree from './schema-tree'
+import LargeActionsTable from './Actions/actions-table-large'
 
-const ApiActions = ({actions}) => {
+const ApiActions = ({actions, setAction}) => {
 
     const [selectedAction, setSelectedAction] = useState(null)
     const [schemaLoading, setSchemaLoading] = useState(false)
@@ -20,6 +21,26 @@ const ApiActions = ({actions}) => {
             }
         )
     })  
+
+    var newActionRows = actions.map((action, index) => {
+        var headerSchema = action.parameterSchema && action.parameterSchema.header ? action.parameterSchema.header : null
+        var pathSchema = action.parameterSchema && action.parameterSchema.path ? action.parameterSchema.path : null
+        var requestBodySchema = action.requestBody2 && action.requestBody2.schema ? action.requestBody2.schema : null
+        var responseBodySchema = action.responses && action.responses[0].schema ? action.responses[0].schema : null
+
+        return (
+            {
+                name: action.name,
+                method: action.method,
+                uuid: action.uuid,
+                path: action.path,
+                headerParameters: headerSchema ? 'true': 'false',
+                pathParameters: pathSchema ? 'true': 'false',
+                requestBodySchema: requestBodySchema ? 'true' : 'false',
+                responseBodySchema: responseBodySchema ? 'true' : 'false'
+            }
+        )
+    }) 
 
     const processSchemaPath = (path, schemaType) => {
         if(schemaType == 'requestBody') {
@@ -91,9 +112,10 @@ const ApiActions = ({actions}) => {
     }
 
     const setUUID = (event) => {
-        const uuid = event.currentTarget.value
-        const action = actions.find((action) => action.uuid === uuid)
+        const { id } = event.currentTarget.dataset;
+        const action = actions.find((action) => action.uuid === id)
         setSelectedAction(action)
+        setAction(action)
         setSchemaLoading(true)
         setSelectedSchemaProperty(null)
         setTimeout(() => {
@@ -102,7 +124,6 @@ const ApiActions = ({actions}) => {
 
     }
     
-
     const returnIcon = (method) => {
      
         switch (method) {
@@ -196,173 +217,177 @@ const ApiActions = ({actions}) => {
 
 
     return (
-        <div style={{paddingTop: 30}}>
-            <div style={{display:'flex', flexDirection:'row'}}>
-                <div style={{width: '25vw'}}>
-                     <ActionsTable tableType="actions"setUUID={setUUID} data={actionRows} />
-                </div>
-                <div style={{width: 100}}/>
-                <div style={{width: '40vw'}}>
-                    {selectedAction ? (
-                        <div style={{maxWidth: 720}}>
-                            <div style={{height: 20}}/>
-                            <Card shadow="sm"radius="md" withBorder style={{padding: 30}}>
-                                <Card.Section style={{padding: 30}}>
-                                    {returnIcon(selectedAction.method)}
-                                    <div style={{height: 15}}/>
-                                    <Text style={{fontFamily: 'apercu-regular-pro', fontSize: 20}}>{selectedAction.name}</Text>
-                                    <Text style={{fontFamily: 'apercu-regular-pro', fontSize: 15}}>{selectedAction.description}</Text>
-                                    <div style={{height: 15}}/>
-                                    <div style={{display: 'flex', flexDirection: 'row'}}>
-                                        <Text style={{fontFamily: 'apercu-regular-pro', fontSize: 15}}>{upperCaseMethod(selectedAction.method)}</Text>
-                                        <div style={{width: 10}}/>
-                                        <Text style={{fontFamily: 'apercu-regular-pro', fontSize: 15}}>{selectedAction.path}</Text>
-                                    </div>
-
-                                </Card.Section>
-                                
-                                <Card.Section style={{padding: 30}}>
-                                    <Tabs defaultValue={'header'}>
-                                        {renderActionTabs(selectedAction)}
-                                        <Tabs.Panel style={{paddingTop: 30}} label="header" value="header">
-                                             {
-                                                selectedAction.parameterSchema && selectedAction.parameterSchema.header ? (
-                                                    <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
-                                                    <div style={{width: '50%'}}>
-                                                        <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
-                                                            <SchemaTree schemaType={'header'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={processParameterSchema(selectedAction.parameterSchema.header)} actionUuid={selectedAction.uuid}/>
-                                                        </ScrollArea>
-                                                    </div>
-                                                    <div style={{width: '50%'}}>
-                                                        {
-                                                            selectedSchemaProperty ? (
-                                                                <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
-                                                                    <Card.Section>
-                                                                        <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
-                                                                        <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
-                                                                        <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
-                                                                    </Card.Section>
-                                                                </Card>
-                                                            ) : (
-                                                                <div>
-                                                                    
-                                                                </div>
-                                                            )
-                                                        }
-                                                    </div>
-                                                </div>
-                                                ) : (
-                                                    <div/>
-                                                )
-                                            }
-                                        </Tabs.Panel>
-                                        <Tabs.Panel style={{paddingTop: 30}} label="requestBody" value="requestBody">
-                                            {
-                                                selectedAction.requestBody2 && selectedAction.requestBody2.schema ? (
-                                                    <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
-                                                    <div style={{width: '50%'}}>
-                                                            <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
-                                                                <SchemaTree schemaType={'requestBody'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={selectedAction.requestBody2.schema} actionUuid={selectedAction.uuid}/>
-                                                            </ScrollArea>
-                                                        </div>
-                                                        <div style={{width: '50%'}}>
-                                                            {
-                                                                selectedSchemaProperty ? (
-                                                                    <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
-                                                                        <Card.Section>
-                                                                            <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
-                                                                            <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
-                                                                            <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
-                                                                        </Card.Section>
-                                                                    </Card>
-                                                                ) : (
-                                                                    <div>
-                                                                        
-                                                                    </div>
-                                                                )
-                                                            }
-                                                        </div>
-                                                    </div>
-
-                                                ) : (<div/>)
-                                            }
-                                        </Tabs.Panel>
-                                        <Tabs.Panel style={{paddingTop: 30}} label="path" value="path">
-                                        {
-                                                selectedAction.parameterSchema && selectedAction.parameterSchema.path ? (
-                                                    <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
-                                                    <div style={{width: '50%'}}>
-                                                        <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
-                                                            <SchemaTree schemaType={'path'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={processParameterSchema(selectedAction.parameterSchema.path)} actionUuid={selectedAction.uuid}/>
-                                                        </ScrollArea>
-                                                    </div>
-                                                    <div style={{width: '50%'}}>
-                                                        {
-                                                            selectedSchemaProperty ? (
-                                                                <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
-                                                                     <Card.Section>
-                                                                          <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
-                                                                          <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
-                                                                          <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
-                                                                     </Card.Section>
-                                                                </Card>
-                                                            ) : (
-                                                                <div>
-                                                                   
-                                                                </div>
-                                                            )
-                                                        }
-                                                    </div>
-                                                </div>
-                                                ) : (
-                                                    <div/>
-                                                )
-                                        }
-                                        </Tabs.Panel>
-                                        <Tabs.Panel label="responseBody" value="responseBody">
-                                        {
-                                                selectedAction.responses ? (
-                                                    <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
-                                                    <div style={{width: '50%'}}>
-                                                        <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
-                                                            <SchemaTree schemaType={'response'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={selectedAction.responses[0].schema} actionUuid={selectedAction.uuid}/>
-                                                        </ScrollArea>
-                                                    </div>
-                                                    <div style={{width: '50%'}}>
-                                                        {
-                                                            selectedSchemaProperty ? (
-                                                                <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
-                                                                     <Card.Section>
-                                                                          <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
-                                                                          <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
-                                                                          <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
-                                                                     </Card.Section>
-                                                                </Card>
-                                                            ) : (
-                                                                <div>
-                                                                  
-                                                                </div>
-                                                            )
-                                                        }
-                                                    </div>
-                                                </div>
-                                                ) : (
-                                                    <div/>
-                                                )
-                                        }
-                                        </Tabs.Panel>
-                                    </Tabs>                                    
-                                </Card.Section>
-                            </Card>
-                        </div>
-                    ) : (
-                        <div>
-                            <Text>Select a schema to view details</Text>
-                        </div>
-                    )}
-                </div>
-            </div>
+        <div>
+            <div style={{height: 20}}/>
+            <LargeActionsTable data={newActionRows} setUUID={setUUID} statusFilter={'None'} />
         </div>
+        // <div style={{paddingTop: 30}}>
+        //     <div style={{display:'flex', flexDirection:'row'}}>
+        //         <div style={{width: '25vw'}}>
+        //              <ActionsTable tableType="actions"setUUID={setUUID} data={actionRows} />
+        //         </div>
+        //         <div style={{width: 100}}/>
+        //         <div style={{width: '40vw'}}>
+        //             {selectedAction ? (
+        //                 <div style={{maxWidth: 720}}>
+        //                     <div style={{height: 20}}/>
+        //                     <Card shadow="sm"radius="md" withBorder style={{padding: 30}}>
+        //                         <Card.Section style={{padding: 30}}>
+        //                             {returnIcon(selectedAction.method)}
+        //                             <div style={{height: 15}}/>
+        //                             <Text style={{fontFamily: 'apercu-regular-pro', fontSize: 20}}>{selectedAction.name}</Text>
+        //                             <Text style={{fontFamily: 'apercu-regular-pro', fontSize: 15}}>{selectedAction.description}</Text>
+        //                             <div style={{height: 15}}/>
+        //                             <div style={{display: 'flex', flexDirection: 'row'}}>
+        //                                 <Text style={{fontFamily: 'apercu-regular-pro', fontSize: 15}}>{upperCaseMethod(selectedAction.method)}</Text>
+        //                                 <div style={{width: 10}}/>
+        //                                 <Text style={{fontFamily: 'apercu-regular-pro', fontSize: 15}}>{selectedAction.path}</Text>
+        //                             </div>
+
+        //                         </Card.Section>
+                                
+        //                         <Card.Section style={{padding: 30}}>
+        //                             <Tabs defaultValue={'header'}>
+        //                                 {renderActionTabs(selectedAction)}
+        //                                 <Tabs.Panel style={{paddingTop: 30}} label="header" value="header">
+        //                                      {
+        //                                         selectedAction.parameterSchema && selectedAction.parameterSchema.header ? (
+        //                                             <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
+        //                                             <div style={{width: '50%'}}>
+        //                                                 <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
+        //                                                     <SchemaTree schemaType={'header'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={processParameterSchema(selectedAction.parameterSchema.header)} actionUuid={selectedAction.uuid}/>
+        //                                                 </ScrollArea>
+        //                                             </div>
+        //                                             <div style={{width: '50%'}}>
+        //                                                 {
+        //                                                     selectedSchemaProperty ? (
+        //                                                         <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
+        //                                                             <Card.Section>
+        //                                                                 <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
+        //                                                                 <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
+        //                                                                 <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
+        //                                                             </Card.Section>
+        //                                                         </Card>
+        //                                                     ) : (
+        //                                                         <div>
+                                                                    
+        //                                                         </div>
+        //                                                     )
+        //                                                 }
+        //                                             </div>
+        //                                         </div>
+        //                                         ) : (
+        //                                             <div/>
+        //                                         )
+        //                                     }
+        //                                 </Tabs.Panel>
+        //                                 <Tabs.Panel style={{paddingTop: 30}} label="requestBody" value="requestBody">
+        //                                     {
+        //                                         selectedAction.requestBody2 && selectedAction.requestBody2.schema ? (
+        //                                             <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
+        //                                             <div style={{width: '50%'}}>
+        //                                                     <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
+        //                                                         <SchemaTree schemaType={'requestBody'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={selectedAction.requestBody2.schema} actionUuid={selectedAction.uuid}/>
+        //                                                     </ScrollArea>
+        //                                                 </div>
+        //                                                 <div style={{width: '50%'}}>
+        //                                                     {
+        //                                                         selectedSchemaProperty ? (
+        //                                                             <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
+        //                                                                 <Card.Section>
+        //                                                                     <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
+        //                                                                     <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
+        //                                                                     <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
+        //                                                                 </Card.Section>
+        //                                                             </Card>
+        //                                                         ) : (
+        //                                                             <div>
+                                                                        
+        //                                                             </div>
+        //                                                         )
+        //                                                     }
+        //                                                 </div>
+        //                                             </div>
+
+        //                                         ) : (<div/>)
+        //                                     }
+        //                                 </Tabs.Panel>
+        //                                 <Tabs.Panel style={{paddingTop: 30}} label="path" value="path">
+        //                                 {
+        //                                         selectedAction.parameterSchema && selectedAction.parameterSchema.path ? (
+        //                                             <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
+        //                                             <div style={{width: '50%'}}>
+        //                                                 <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
+        //                                                     <SchemaTree schemaType={'path'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={processParameterSchema(selectedAction.parameterSchema.path)} actionUuid={selectedAction.uuid}/>
+        //                                                 </ScrollArea>
+        //                                             </div>
+        //                                             <div style={{width: '50%'}}>
+        //                                                 {
+        //                                                     selectedSchemaProperty ? (
+        //                                                         <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
+        //                                                              <Card.Section>
+        //                                                                   <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
+        //                                                                   <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
+        //                                                                   <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
+        //                                                              </Card.Section>
+        //                                                         </Card>
+        //                                                     ) : (
+        //                                                         <div>
+                                                                   
+        //                                                         </div>
+        //                                                     )
+        //                                                 }
+        //                                             </div>
+        //                                         </div>
+        //                                         ) : (
+        //                                             <div/>
+        //                                         )
+        //                                 }
+        //                                 </Tabs.Panel>
+        //                                 <Tabs.Panel label="responseBody" value="responseBody">
+        //                                 {
+        //                                         selectedAction.responses ? (
+        //                                             <div style={{display:'flex', flexDirection:'row', width:'30vw'}}>
+        //                                             <div style={{width: '50%'}}>
+        //                                                 <ScrollArea scrollbarSize={2} type="scroll" style={{height: 700}}>
+        //                                                     <SchemaTree schemaType={'response'} setSelectedSchemaProperty={selectProperty} isLoading={schemaLoading} schema={selectedAction.responses[0].schema} actionUuid={selectedAction.uuid}/>
+        //                                                 </ScrollArea>
+        //                                             </div>
+        //                                             <div style={{width: '50%'}}>
+        //                                                 {
+        //                                                     selectedSchemaProperty ? (
+        //                                                         <Card shadow="sm"radius="md" withBorder style={{width: 280, padding: 30}}>
+        //                                                              <Card.Section>
+        //                                                                   <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.key}</Text>
+        //                                                                   <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.type}</Text>
+        //                                                                   <Text style={{fontFamily:'apercu-regular-pro', fontSize: '16px'}}>{selectedSchemaProperty.description}</Text>
+        //                                                              </Card.Section>
+        //                                                         </Card>
+        //                                                     ) : (
+        //                                                         <div>
+                                                                  
+        //                                                         </div>
+        //                                                     )
+        //                                                 }
+        //                                             </div>
+        //                                         </div>
+        //                                         ) : (
+        //                                             <div/>
+        //                                         )
+        //                                 }
+        //                                 </Tabs.Panel>
+        //                             </Tabs>                                    
+        //                         </Card.Section>
+        //                     </Card>
+        //                 </div>
+        //             ) : (
+        //                 <div>
+        //                     <Text>Select a schema to view details</Text>
+        //                 </div>
+        //             )}
+        //         </div>
+        //     </div>
+        // </div>
     )
 }
 

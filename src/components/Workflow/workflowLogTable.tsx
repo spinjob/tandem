@@ -13,6 +13,7 @@ import { keys } from '@mantine/utils';
 import { useRouter } from 'next/router';
 import {RxCaretSort} from 'react-icons/rx'
 import searchIcon from '../../../public/icons/programming-code-search copy 2.svg'
+import arrowDownIcon from '../../../public/icons/arrow-down.1.svg'
 
 
 const useStyles = createStyles((theme) => ({
@@ -268,7 +269,7 @@ function WorkflowLogsTable({ data, partnershipId, apis, userId, actions}: TableS
                 onChange={handleSearchChange}
                 icon={
                   <div style={{height: 20, width: 20}}>
-                    <Image src={searchIcon} sx={{opacity: '50%'}} />
+                    <Image alt="searchIcon" src={searchIcon} sx={{opacity: '50%'}} />
                   </div>
                   
                 }
