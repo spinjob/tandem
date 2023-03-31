@@ -88,7 +88,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 var fullFormula = inputProperty?.path + ' + ' + additionInput
 
                     if(index != 0 && formulas.length > 1){
-                        fullFormula = rows[index - 1][0] + ' + ' + additionInput
+                        fullFormula = rows[0][index - 1] + ' + ' + additionInput
                     }
                     var row = []
                     row.push(inputProperty?.path)
@@ -100,7 +100,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 var subtractionInput = formula.inputs['subtraction']              
                 var fullFormula = '-' + subtractionInput
                 if(index != 0){
-                    fullFormula = rows[index - 1][0] + ' - ' + subtractionInput
+                    fullFormula = rows[0][index - 1] + ' - ' + subtractionInput
                 }
                 var row = []
                 row.push(inputProperty?.path)
@@ -111,7 +111,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 var multiplicationInput = formula.inputs['multiplication']
                 var fullFormula = inputProperty?.path + ' * ' + multiplicationInput
                 if(index != 0){
-                    fullFormula = rows[index - 1][0] + ' * ' + multiplicationInput
+                    fullFormula = rows[0][index - 1] + ' * ' + multiplicationInput
                 }
                 var row = []
                 row.push(inputProperty?.path)
@@ -122,7 +122,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 var divisionInput = formula.inputs['division']
                 var fullFormula = inputProperty?.path + ' / ' + divisionInput
                 if(index != 0){
-                    fullFormula = rows[index - 1][0] + ' / ' + divisionInput
+                    fullFormula = rows[0][index - 1] + ' / ' + divisionInput
                 }
                 var row = []
                 row.push(inputProperty?.path)
@@ -133,7 +133,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 var concatenationInput = formula.inputs['concatenation']
                 var fullFormula = inputProperty?.path + ' + ' + concatenationInput
                 if(index != 0){
-                    fullFormula = rows[index - 1][0] + ' + ' + concatenationInput
+                    fullFormula = rows[0][index - 1] + ' + ' + concatenationInput
                 }
                 var row = []
                 row.push(inputProperty?.path)
@@ -144,7 +144,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 var appendInput = formula.inputs['append']
                 var fullFormula = inputProperty?.path + ' + ' + appendInput
                 if(index != 0){
-                    fullFormula = rows[index - 1][0] + ' + ' + appendInput
+                    fullFormula = rows[0][index - 1] + ' + ' + appendInput
                 }
                 var row = []
                 row.push(inputProperty?.path)
@@ -155,7 +155,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 var prependInput = formula.inputs['prepend']
                 var fullFormula = prependInput + ' + ' + inputProperty?.path
                 if(index != 0){
-                    fullFormula = prependInput + ' + ' + rows[index - 1][0]
+                    fullFormula = prependInput + ' + ' + rows[0][index - 1]
                 }
                 var row = []
                 row.push(inputProperty?.path)
@@ -168,7 +168,9 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 
                 var fullFormula = inputProperty?.path + '.substring(' + substringInput.startingIndex + ',' + substringInput.endingIndex + ')'
                 if(index != 0){
-                    fullFormula = rows[index - 1][0] + '.substring(' + substringInput + ')'
+                    console.log(rows)
+                    console.log(index)
+                    fullFormula = rows[0][index - 1] + '.substring(' + substringInput.startingIndex + ',' + substringInput.endingIndex + ')'
                 }
                 var row = []
                 row.push(inputProperty?.path)

@@ -40,6 +40,11 @@ const IfThenRecipeCard = ({updateFormula, recipe, sourceProperty, targetProperty
                     property: targetProperty,
                     condition: 'equals',
                     value: ''
+                },
+                else: {
+                    property: targetProperty,
+                    condition: 'equals',
+                    value: ''
                 }
             }])
         }
@@ -708,7 +713,143 @@ const IfThenRecipeCard = ({updateFormula, recipe, sourceProperty, targetProperty
                                     <div style={{display:'flex', flexDirection: 'row'}}>
                                         <div style={{paddingLeft: 10, width: 180, height: 20, borderRadius:4, display: 'flex', flexDirection: 'row', justifyContent:'left', alignItems:'center'}}/>
                                     </div>
-                                </div>
+                            </div>
+                            <div style={{width: 10}}/>
+                            <div style={{display:'flex', paddingTop: 10, paddingRight: 10, flexDirection: 'row', justifyContent:'space-between'}}>
+                                <Text style={{fontFamily:'Visuelt', fontWeight: 100, color: 'black'}}>
+                                    Else 
+                                </Text>
+                                <div style={{width: 10}}/>
+                            </div>
+                            <div>
+                                    <div style={{display:'flex', flexDirection: 'row'}}>
+                                        <div style={{paddingLeft: 10, width: 180, height: 35, border: '1px solid #EBEBEB', borderRadius:4, display: 'flex', flexDirection: 'row', justifyContent:'left', alignItems:'center'}}>
+                                            <Text style={{fontFamily:'Visuelt', fontWeight: 500, color: 'black'}}>
+                                                {condition?.else?.property?.key}
+                                            </Text>
+                                        </div>
+                                        <div style={{width: 10}}/>
+                                        <Select
+                                            key={condition.uuid+'-selectCondition-else'}
+                                            data={[
+                                                {label: 'is', value: 'equals'}
+                                            ]}
+                                            onChange={(value) => {
+                                                var updatedConditions = [...conditions]
+                                                updatedConditions.filter((conditionItem) => {
+                                                    if (conditionItem.uuid == condition.uuid) {
+                                                        conditionItem.else.condition = value
+                                                    }
+                                                })
+                                                setConditions(updatedConditions)
+                                            }}
+                                            value={condition?.else?.condition}
+                                            sx={{
+                                                width: 128,
+                                                '& input': {
+                                                    '&:focus':{
+                                                        borderColor: 'black'
+                                                    },
+                                                    fontFamily: 'Visuelt',
+                                                    fontSize: '16px',
+                                                    fontWeight: 100
+                                                }
+                                            }}/>
+                                        <div style={{width: 10}}/>
+                                        {
+                                            targetProperty?.type == 'string' && targetProperty?.enum ? (
+                                                // StringOptions(condition?.then?.property,index, 'then', conditions, setConditions, condition, condition.then?.value)
+                                                <Select
+                                                key={condition.uuid+'-selectOption-else'}
+                                                onChange={(value) => {
+                                                    var updatedConditions = [...conditions]
+                                                    updatedConditions.filter((conditionItem) => {
+                                                        if (conditionItem.uuid == condition.uuid) {
+                                                            conditionItem.else.value = value
+                                                        }
+                                                    }
+                                                    )
+                                                    setConditions(updatedConditions)
+                                                }}
+                                                value={condition.else?.value}
+                                                data={targetProperty?.enum?.map((enumItem) => {
+                                                    return {label: enumItem, value: enumItem}
+                                                }
+                                                )}
+                                                sx={{
+                                                    width: 380,
+                                                    '& input': {
+                                                        '&:focus':{
+                                                            borderColor: 'black'
+                                                        },
+                                                        fontFamily: 'Visuelt',
+                                                        fontSize: '16px',
+                                                        fontWeight: 100
+                                                    }
+                                                }}/>
+                                            ) : targetProperty?.type == 'string' ? (
+                                                <TextInput
+                                                    key={condition.uuid+'-input-else'}
+                                                    value={condition?.else?.value}
+                                                    onChange={(event) => {
+                                                        var updatedConditions = [...conditions]
+                                                        updatedConditions.filter((conditionItem) => {
+                                                            if (conditionItem.uuid == condition.uuid) {
+                                                                conditionItem.else.value = event.target.value
+                                                            }
+                                                        }
+                                                        )
+                                                        setConditions(updatedConditions)
+                                                    }}
+                                                    sx={{
+                                                        width: 380,
+                                                        '& input': {
+                                                            '&:focus':{
+                                                                borderColor: 'black'
+                                                            },
+                                                            fontFamily: 'Visuelt',
+                                                            fontSize: '16px',
+                                                            fontWeight: 100
+                                                        }
+                                                    }}/>
+                                            ) : targetProperty?.type == 'boolean' ? (
+                                                <Select
+                                                    key={condition.uuid+'-selectOption-else'}
+                                                    onChange={(value) => {
+                                                        var updatedConditions = [...conditions]
+                                                        updatedConditions.filter((conditionItem) => {
+                                                            if (conditionItem.uuid == condition.uuid) {
+                                                                conditionItem.else.value = value
+                                                            }
+                                                        }
+                                                        )
+                                                        setConditions(updatedConditions)
+                                                    }}
+                                                    value={condition.else?.value}
+                                                    data={[
+                                                        {label: 'true', value: true},
+                                                        {label: 'false', value: false}
+                                                    ]}
+                                                    sx={{
+                                                        width: 380,
+                                                        '& input': {
+                                                            '&:focus':{
+                                                                borderColor: 'black'
+                                                            },
+                                                            fontFamily: 'Visuelt',
+                                                            fontSize: '16px',
+                                                            fontWeight: 100
+                                                        }
+                                                    }}/>
+                                            ) : null
+                                            
+                                        }
+                                        <div style={{width: 10}}/>
+                                    </div>
+                                    <div style={{display:'flex', flexDirection: 'row'}}>
+                                        <div style={{paddingLeft: 10, width: 180, height: 20, borderRadius:4, display: 'flex', flexDirection: 'row', justifyContent:'left', alignItems:'center'}}/>
+                                    </div>
+                            </div>
                         </div>
                     )
                 })
