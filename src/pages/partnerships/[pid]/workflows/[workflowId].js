@@ -19,6 +19,7 @@ import {
     UnstyledButton,
     ScrollArea,
     Drawer,
+    Switch,
     Modal,
     Tooltip
   } from '@mantine/core';
@@ -639,8 +640,8 @@ function TriggerNode ({data}) {
                                                         }} 
                                                         value={new Date(selectedRunTime)}
                                                         format="12"
-                                                        amLabel="AM"
-                                                        pmLabel="PM"
+                                                        amLabel="am"
+                                                        pmLabel="pm"
                                                         withAsterisk
                                                         clearable={false}
                                                     />
@@ -1231,7 +1232,33 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
                         <Text onClick={() => setIsNameFieldActive(!isNameFieldActive)} style={{fontFamily:'Visuelt', fontWeight: 600, fontSize:'28px'}}>{workflowName}</Text>
                     )
                 }
-
+                <Switch 
+                    onChange={(event) => {
+                        // call api to update workflow status
+                    }}
+                    size='md'
+                    color='dark'
+                    disabled
+                    sx={{
+                        backgroundColor: 'white',
+                        borderRadius: 5
+                    }}
+                    value={workflow.status === 'Active' ? 'on' : 'inactive'}
+                    label={workflow.status === 'Active' ? 'ON' : 'OFF'}
+                    data={
+                        [
+                            {
+                                value: 'active',
+                                label: 'Active'
+                            },
+                            {
+                                value: 'inactive',
+                                label: 'Inactive'
+                            }
+                        ]
+                    }
+                    defaultValue='inactive'
+                    />
                 </Group>
                 <Group>
                     <SegmentedControl 
