@@ -4,6 +4,7 @@ import {
     createStyles,
     Menu,
     Loader,
+    Divider,
     Center,
     Header,
     Container,
@@ -41,8 +42,6 @@ import {AiOutlinePlusSquare, AiFillCheckCircle, AiFillMinusCircle, AiFillPlusCir
 import {FiChevronDown} from 'react-icons/fi'
 import {HiOutlineArrowLeft, HiOutlineTrash, HiOutlineDocumentDownload, HiOutlineDotsHorizontal} from 'react-icons/hi'
 import {HiOutlineCommandLine} from 'react-icons/hi2'
-import {VscWand} from 'react-icons/vsc'
-import {TiFlowSwitch} from 'react-icons/ti'
 import {BsViewList} from 'react-icons/bs'
 import {TbWebhook} from 'react-icons/tb'
 import {IoHelpBuoyOutline} from 'react-icons/io5'
@@ -51,6 +50,7 @@ import studioIcon from '../../../../../public/icons/Programing, Data.5.svg'
 import blackLogoIcon from '../../../../../public/logos/SVG/Icon/Icon_Black.svg'
 import testWorkflowIcon from '../../../../../public/icons/list-test-lab-flask.svg'
 import scopingWorkflowIcon from '../../../../../public/icons/programming-code_1.svg'
+import warningIcon from '../../../../../public/icons/warning.1.svg'
 import 'reactflow/dist/style.css';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
@@ -64,6 +64,7 @@ import MappingModal from '../../../../components/Workflow/MappingModal';
 import WorkflowScope from '../../../../components/Workflow/WorkflowScope';
 import WorkflowMonitor from '../../../../components/Workflow/WorkflowMonitor';
 import WorkflowTestModal from '../../../../components/Workflow/WorkflowTestModal';
+import WorkflowValidationDrawer from '../../../../components/Workflow/WorkflowValidationDrawer';
 
 import LoadingAnimation from '../../../../../public/animations/Loading_Animation.json'
 import WorkflowAnimation from '../../../../../public/animations/ValueProp_Section2.json'
@@ -1141,7 +1142,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
     )
 }
 
-const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownloadPdf, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen, setTestWorkflowModalOpen}) => {
+const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownloadPdf, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen, setTestWorkflowModalOpen, setActivateWorkflowModalOpen}) => {
     const { classes } = useStyles()
     const router = useRouter();
     const [isNameFieldActive, setIsNameFieldActive] = useState(false);
@@ -1232,33 +1233,58 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
                         <Text onClick={() => setIsNameFieldActive(!isNameFieldActive)} style={{fontFamily:'Visuelt', fontWeight: 600, fontSize:'28px'}}>{workflowName}</Text>
                     )
                 }
-                <Switch 
-                    onChange={(event) => {
-                        // call api to update workflow status
+                <Button
+                    onClick={() => {
+                        setActivateWorkflowModalOpen(true)
                     }}
-                    size='md'
-                    color='dark'
-                    disabled
                     sx={{
                         backgroundColor: 'white',
-                        borderRadius: 5
+                        borderRadius: 5,
+                        height: 50,
+                        width: 150,
+                        marginLeft: 20,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                   
+                        '&:hover': {
+                            backgroundColor: 'white',
+                           
+                        }
+
                     }}
-                    value={workflow.status === 'Active' ? 'on' : 'inactive'}
-                    label={workflow.status === 'Active' ? 'ON' : 'OFF'}
-                    data={
-                        [
-                            {
-                                value: 'active',
-                                label: 'Active'
-                            },
-                            {
-                                value: 'inactive',
-                                label: 'Inactive'
-                            }
-                        ]
-                    }
-                    defaultValue='inactive'
-                    />
+                >
+                    <Switch 
+                        onChange={(event) => {
+                            // call api to update workflow status
+                            
+                        }}
+                        size='md'
+                        color='dark'
+                        disabled
+                        sx={{
+                            backgroundColor: 'white',
+                            borderRadius: 5,
+                           
+                        }}
+                        checked={workflow.status === 'active' ? true : false}
+                        label={workflow.status === 'active' ? <Text sx={{fontFamily:'Visuelt', fontWeight: 100}}>Running</Text> : <Text sx={{fontFamily:'Visuelt', fontWeight: 100}}>Disabled</Text> }
+                        data={
+                            [
+                                {
+                                    value: 'active',
+                                    label: 'Active'
+                                },
+                                {
+                                    value: 'inactive',
+                                    label: 'Inactive'
+                                }
+                            ]
+                        }
+                        defaultValue='inactive'
+                        />
+                </Button>
+                
                 </Group>
                 <Group>
                     <SegmentedControl 
@@ -1485,6 +1511,7 @@ const WorkflowStudio = () => {
     const nodeActions = useStore((state) => state.nodeActions);
     const nodes = useStore((state) => state.nodes);
     const edges = useStore((state) => state.edges);
+    const mappings = useStore((state) => state.mappings);
     const [mappingModalOpen, setMappingModalOpen] = useState(false);
     const setNodeViews = useStore((state) => state.setNodeViews);
     const setSelectedEdge = useStore((state) => state.setSelectedEdge);
@@ -1499,10 +1526,14 @@ const WorkflowStudio = () => {
     const [workflowSuggestionModalOpen, setWorkflowSuggestionModalOpen] = useState(false);
     const [areSuggestionsLoading, setAreSuggestionsLoading] = useState(false);
 
-
     //Test Workflow Modal
     const [testWorkflowModalOpen, setTestWorkflowModalOpen] = useState(false);
-    
+
+    // Activate Workflow Modal
+    const [activateWorkflowModalOpen, setActivateWorkflowModalOpen] = useState(false);
+    const [shouldValidateWorkflow, setShouldValidateWorkflow] = useState(false);
+    const [nodeValidationResults, setNodeValidationResults] = useState(null)
+
     const generateOperationIdArray = (actions, apiIndex) => {
         const operationIdArray = []
         actions.forEach((action) => {
@@ -1542,7 +1573,6 @@ const WorkflowStudio = () => {
         
         return suggestedEdgesArray
     }
-
 
     const generateSuggestedNodes = (suggestions, api1Actions, api2Actions, webhooks) => {
     
@@ -1614,8 +1644,6 @@ const WorkflowStudio = () => {
         return suggestedNodeArray
     }
          
-
-
     function fetchWorkflowSuggestions() {
         setAreSuggestionsLoading(true)
         const promptPrefix = "INTEGRATION_NAME: " + workflow.name + "." + "  INTEGRATION DESCRIPTION: "+ workflowDescription
@@ -1661,8 +1689,7 @@ const WorkflowStudio = () => {
     
     }
 
-    const toggleMappingModal = () => {
-        
+    const toggleMappingModal = () => {  
         setMappingModalOpen(!mappingModalOpen)
     }
 
@@ -1824,6 +1851,129 @@ const WorkflowStudio = () => {
 
     }, [pid, workflowId, workflow, partnership, apis, setApis, setPartnership, workflowActions, setWorkflowActions, workflowWebhooks, setWorkflowWebhooks, setGlobalWorkflowState, setNodeAction, setMappings])
 
+    useEffect(() => {
+        // Should move this into a validateWorkflow function.
+        if (workflow && nodes && !nodeValidationResults || workflow && nodes && shouldValidateWorkflow) {
+            var actionNodes = nodes.filter(node => node.type == 'action')
+            var updatedNodeValidationResults = []
+            actionNodes.forEach(node => {
+                // Check if node has a selected action.
+                if(node.data.selectedAction){
+                    if(node.data.selectedAction.parameterSchema){
+                        if(node.data.selectedAction.parameterSchema.header){
+                            var requiredParameters = []
+                            var headerKeys = Object.keys(node.data.selectedAction.parameterSchema.header)
+                            
+                            //Check if node has a required header parameter.
+                            headerKeys.forEach(key => {
+                                if(node.data.selectedAction.parameterSchema.header[key].required){
+                                    requiredParameters.push({key: node.data.selectedAction.parameterSchema.header[key].name, in: 'header'})
+                                }
+                            })
+
+                            // Check if node has a mapping for the required header parameter. If not, add to nodeValidationResults.
+                            requiredParameters.forEach(parameter => {
+                                var actionNodeMappings = mappings[node.id]
+                                var mappingValues = actionNodeMappings ? Object.values(actionNodeMappings) : []
+
+                                if(!mappingValues.filter(mapping => mapping.targetNode == node.id && mapping.output.key == parameter.key && mapping.output.in == parameter.in).length){
+                                    updatedNodeValidationResults.push({
+                                        nodeId: node.id,
+                                        action: node.data.selectedAction.name, 
+                                        level: 'error',
+                                        type: 'missing-required-data',
+                                        message: 'Missing mapping for ' + parameter.key + ' in ' + 'header' + '.'
+                                    })
+                                }
+                            })
+
+                        }
+                        if(node.data.selectedAction.parameterSchema.path){
+                            var requiredParameters = []
+                            var pathKeys = Object.keys(node.data.selectedAction.parameterSchema.path)
+                            
+                            //Check if node has a required path parameter.
+                            pathKeys.forEach(key => {
+                                if(node.data.selectedAction.parameterSchema.path[key]){
+                                    requiredParameters.push({key: node.data.selectedAction.parameterSchema.path[key].name, in: 'path'})
+                                }
+                            })
+                            
+                            // Check if node has a mapping for the required path parameter. If not, add to nodeValidationResults.
+                            requiredParameters.forEach(parameter => {
+                                var actionNodeMappings = mappings[node.id]
+                                var mappingValues = actionNodeMappings ? Object.values(actionNodeMappings) : []
+
+                                if(!mappingValues.filter(mapping => mapping.targetNode == node.id && mapping.output.key == parameter.key && mapping.output.in == parameter.in).length){
+                                    updatedNodeValidationResults.push({
+                                        nodeId: node.id,
+                                        action: node.data.selectedAction.name,  
+                                        level: 'error',
+                                        type: 'missing-required-data',
+                                        message: 'Missing mapping for ' + parameter.key + ' in ' + 'path' + '.'
+                                    })
+                                }
+                            })
+                        }
+                    }
+                    
+                    if(node.data.selectedAction.requestBody2){
+                        if(node.data.selectedAction.requestBody2.required){
+                            var actionNodeMappings = mappings[node.id]
+                            var mappingValues = actionNodeMappings ? Object.values(actionNodeMappings) : []
+
+                            if(!mappingValues.filter(mapping => mapping.output.in == 'body').length){
+                                updatedNodeValidationResults.push({
+                                    nodeId: node.id,
+                                    action: node.data.selectedAction.name,  
+                                    level: 'error',
+                                    type: 'missing-required-data',
+                                    message: 'A request body is required for this action. Please map or configure data to populate the request body schema.'
+                                })
+                            }
+                           
+                        }
+                    }
+                } else {
+                    updatedNodeValidationResults.push({
+                        nodeId: node.id,
+                        action: null,
+                        level: 'error',
+                        type: 'missing-required-data',
+                        message: 'No action selected for action step ' + node.id.split('-')[1] + '.'
+                    })
+                }
+
+                // Check if partnership has authentication configured for both APIs.
+                if(partnership && partnership[0] && partnership[0].authentication){
+                    console.log('partnership', partnership)
+                    apis.forEach(api => {
+                        if(!partnership[0].authentication[api.uuid]){
+                            updatedNodeValidationResults.push({
+                                nodeId: null,
+                                action: 'Authentication',
+                                level: 'error',
+                                type: 'missing-api-authentication',
+                                message: 'No authentication configured for ' + api.name + '.'
+                            })
+                        }
+                    })
+                } else {
+                    updatedNodeValidationResults.push({
+                        nodeId: null,
+                        action: 'Authentication',
+                        level: 'error',
+                        type: 'missing-api-authentication',
+                        message: 'No authentication configured for either API.'
+                    })
+                }
+            })
+
+            setNodeValidationResults(updatedNodeValidationResults)
+            setShouldValidateWorkflow(false)
+        }
+    }, [workflow, nodes, nodeValidationResults, shouldValidateWorkflow, setShouldValidateWorkflow])
+
     return workflow && partnership && apis && workflowActions ? (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', marginLeft: -15}}>
             <Modal
@@ -1930,8 +2080,33 @@ const WorkflowStudio = () => {
             >
                 <WorkflowTestModal workflow={workflow[0]} />
             </Modal>
+            <Drawer
+                position={'bottom'}
+                opened={activateWorkflowModalOpen}
+                onClose={() => setActivateWorkflowModalOpen(false)}
+                overlayColor={'#000'}
+                overlayOpacity={0.50}
+                radius={'lg'}
+                size={800}
+                styles={{
+                    drawer: {
+                        borderTopLeftRadius: '20px',
+                        borderTopRightRadius: '20px',
+                        border: '1px solid #000000',
+                    }
+                }}
+                title={
+                    <div>
+                        <Text style={{paddingLeft:30, paddingTop: 50, fontFamily:'Visuelt', fontSize: '30px', fontWeight: 600}}>Workflow Validation</Text>
+                        <Text style={{paddingLeft:30, fontFamily:'Visuelt', fontSize: '20px', fontWeight: 100}}>Tandem validates your workflow actions and mappings against the requirements of their respective APIs.  Please fix the following errors before activating your workflow.</Text>
+                        <Divider style={{marginTop: 20, marginBottom: 20}}/>
+                    </div>
+                }
+            >   
+                <WorkflowValidationDrawer nodeValidationResults={nodeValidationResults} setNodeValidationResults={setNodeValidationResults} workflow={workflow[0]} />
+            </Drawer>
             <Drawer lockScroll={false} size={610} style={{overflowY: 'scroll', zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
-            <SchemaMappingDrawer partnership={partnership[0]} nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
+                <SchemaMappingDrawer partnership={partnership[0]} nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
             </Drawer>
             <div style={{
                 display: 'flex',
@@ -1944,9 +2119,9 @@ const WorkflowStudio = () => {
                 backgroundColor: 'white',
                 zIndex: 1
             }}>
-                <WorkflowHeader view={view} setTestWorkflowModalOpen={setTestWorkflowModalOpen} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader view={view} setActivateWorkflowModalOpen={setActivateWorkflowModalOpen} setTestWorkflowModalOpen={setTestWorkflowModalOpen} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '92vh', marginTop: 90}}>
+            <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: nodeValidationResults && nodeValidationResults.filter((nodeValidationResult) => nodeValidationResult.level === 'error').length > 0 ? '86vh': '96vh', marginTop: 90}}>
                 {
                     view == 'scope' && typeof window !== undefined ? (
                         <WorkflowScope setShouldDownloadPdf={setShouldDownloadPdf} shouldDownloadPdf={shouldDownloadPdf} style={{zIndex: 2}} partnership={partnership}/>
@@ -1959,6 +2134,38 @@ const WorkflowStudio = () => {
                     )
                 }
             </div>
+
+            {/* Workflow Validation Footer: Displays validation errors that prevent a workflow from activation. */}
+            {
+                nodeValidationResults && view == 'studio' && nodeValidationResults.filter(
+                    (nodeValidationResult) => nodeValidationResult.level === 'error'
+                ).length > 0 ? (
+                    <Button onClick={()=>{
+                        setActivateWorkflowModalOpen(true)
+                        setShouldValidateWorkflow(true)
+                        }} style={{display: 'flex', borderTopLeftRadius:20, borderTopRightRadius: 20, border: '1px solid black', borderBottom: '0px', backgroundColor:'white', flexDirection: 'row', width: '100vw', height: '5vh', minHeight: 34}}>
+                        <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100vw', height: '10vh', minHeight: 34}}>
+                            {
+                                nodeValidationResults && nodeValidationResults.length > 0 ? (
+                                    <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+                                        <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                                            <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+                                                <div style={{width: 30, height: 30}}>
+                                                    <Image src={warningIcon} sx={{filter: 'invert(56%) sepia(37%) saturate(621%) hue-rotate(314deg) brightness(126%) contrast(104%)'}} />
+                                                </div>
+                                                <div style={{width: 5}}/>
+                                                <Text sx={{fontFamily: 'apercu-regular-pro', fontSize: '20', color: 'black'}}>{nodeValidationResults.length} Validation Errors</Text>
+                                            </div>
+                                        </div>  
+                                    </div>
+                                ) : null
+                            }
+                        </div>
+                    </Button>
+
+                ): null
+            }
+
         </div>
        
     ) :  (

@@ -16,10 +16,6 @@ const PartnershipWorkflows = ({apis, pid }) => {
       switch (status) {
         case 'active':
           return "true"
-        case 'unpublished':
-          return "false"
-        case 'draft':
-          return "false"
         default: "false"
       }
     }
