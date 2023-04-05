@@ -192,6 +192,7 @@ const MappingModal = ({ apis, getSchemaFromPath, edge, nodes, sourceNode, target
     )}
 
     const renderPropertyCard = (property) => {
+        console.log("RENDERING PROPERTY CARD")
         console.log(property)
         return (
             <Card shadow="xs" p="lg" radius={15} withBorder>          

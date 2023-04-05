@@ -192,18 +192,20 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                         parent = child.items.properties
                         parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
                     } else {
-                        if(parentContext.length > 0){
-                            return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
-                        }
-                        return {...child.items, path: path, key: schemaLocationArray[i]}
+                        parent = child.items
+                        parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
+                        // if(parentContext.length > 0){
+                        //     return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
+                        // }
+                        // return {...child.items, path: path, key: schemaLocationArray[i]}
                     }
                 }
                 else {     
-                    var childKey = schemaLocationArray[i]
+                    var type = child?.type ? child.type : schemaLocationArray[i]
                     if(parentContext.length > 0){
-                        return {...child, path: path, key: schemaLocationArray[i], parentContext}
+                        return {...child, type: type, path: path, key: schemaLocationArray[i], parentContext}
                     }
-                    return {...child, key: childKey, path: path}
+                    return {...child, type: type, key: schemaLocationArray[i], path: path}
                 }
     
             }
@@ -274,8 +276,9 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                         setSelectedMapping({sourceProperty: {}})
                     }
                     else {
-       
                         setSelectedSourceProperty(items[0])
+                        console.log(items[0])
+                        console.log(getSchemaFromPath(items[0]))
                         setSelectedMapping({sourceProperty: getSchemaFromPath(items[0])})
                     }
 
@@ -298,6 +301,7 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                     else {
                        
                         setSelectedTargetProperty(items[0])
+                        console.log(items[0])
                         setSelectedMapping({targetProperty: getSchemaFromPath(items[0])})
                         
                     }

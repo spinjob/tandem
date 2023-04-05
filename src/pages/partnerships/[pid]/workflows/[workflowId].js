@@ -899,51 +899,51 @@ function TriggerNode ({data}) {
 }
 
 
-const NewNodeButtonMenu = () => {
-    return( 
-        <Menu transition="pop-top-right" position='right-start' width={220} withinPortal>
-            <Menu.Target>
-            <ActionIcon style={{height: 40, width: 40, background: 'white', borderColor: '#E7E7E7'}} variant="default" radius={10} >
-                <AiOutlinePlusSquare size={22} color="gray"/>
-            </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-            <Menu.Item
+// const NewNodeButtonMenu = () => {
+//     return( 
+//         <Menu transition="pop-top-right" position='right-start' width={220} withinPortal>
+//             <Menu.Target>
+//             <ActionIcon style={{height: 40, width: 40, background: 'white', borderColor: '#E7E7E7'}} variant="default" radius={10} >
+//                 <AiOutlinePlusSquare size={22} color="gray"/>
+//             </ActionIcon>
+//             </Menu.Target>
+//             <Menu.Dropdown>
+//             <Menu.Item
 
-            >
-                Add Workflow Variable
-            </Menu.Item>
-            <Menu.Item
-                rightSection={
-                <Text size="xs" transform="uppercase" weight={700} color="dimmed">
-                    Ctrl + T
-                </Text>
-                }
-            >
-                Task
-            </Menu.Item>
-            <Menu.Item
-                rightSection={
-                <Text size="xs" transform="uppercase" weight={700} color="dimmed">
-                    Ctrl + U
-                </Text>
-                }
-            >
-                Team
-            </Menu.Item>
-            <Menu.Item
-                rightSection={
-                <Text size="xs" transform="uppercase" weight={700} color="dimmed">
-                    Ctrl + E
-                </Text>
-                }
-            >
-                Event
-            </Menu.Item>
-            </Menu.Dropdown>
-        </Menu>
-    )
-}
+//             >
+//                 Add Workflow Variable
+//             </Menu.Item>
+//             <Menu.Item
+//                 rightSection={
+//                 <Text size="xs" transform="uppercase" weight={700} color="dimmed">
+//                     Ctrl + T
+//                 </Text>
+//                 }
+//             >
+//                 Task
+//             </Menu.Item>
+//             <Menu.Item
+//                 rightSection={
+//                 <Text size="xs" transform="uppercase" weight={700} color="dimmed">
+//                     Ctrl + U
+//                 </Text>
+//                 }
+//             >
+//                 Team
+//             </Menu.Item>
+//             <Menu.Item
+//                 rightSection={
+//                 <Text size="xs" transform="uppercase" weight={700} color="dimmed">
+//                     Ctrl + E
+//                 </Text>
+//                 }
+//             >
+//                 Event
+//             </Menu.Item>
+//             </Menu.Dropdown>
+//         </Menu>
+//     )
+// }
 
 function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, suggestedEdges}) {
     const router = useRouter();
@@ -1106,9 +1106,9 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
 
     return (
         <div style={{ height: '100%', width:'100%', backgroundColor:'#FBFAF9'}}>
-            <div style={{position:'absolute', padding: 40, zIndex: 1, height: 40, width: 220}}>
+            {/* <div style={{position:'absolute', padding: 40, zIndex: 1, height: 40, width: 220}}>
             <NewNodeButtonMenu />
-            </div>
+            </div> */}
             <div ref={reactFlowWrapper} style={{height: '100%'}}>
                 <ReactFlow
                     nodes={nodes}
@@ -1777,18 +1777,20 @@ const WorkflowStudio = () => {
                         parent = child.items.properties
                         parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
                     } else {
-                        if(parentContext.length > 0){
-                            return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
-                        }
-                        return {...child.items, path: path, key: schemaLocationArray[i]}
+                        parent = child.items
+                        parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
+                        // if(parentContext.length > 0){
+                        //     return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
+                        // }
+                        // return {...child.items, path: path, key: schemaLocationArray[i]}
                     }
                 }
                 else {     
-                    var childKey = schemaLocationArray[i]
+                    var type = child?.type ? child.type : schemaLocationArray[i]
                     if(parentContext.length > 0){
-                        return {...child, path: path, key: schemaLocationArray[i], parentContext}
+                        return {...child, type: type, path: path, key: schemaLocationArray[i], parentContext}
                     }
-                    return {...child, key: childKey, path: path}
+                    return {...child, type: type, key: schemaLocationArray[i], path: path}
                 }
     
             }

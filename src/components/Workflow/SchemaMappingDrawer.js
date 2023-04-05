@@ -31,8 +31,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     const nodeActions = useStore(state => state.nodeActions)
     const setMappings = useStore(state => state.setMappings)
 
-    console.log(mappings)
-    console.log(targetNode)
+    // console.log(selectedMapping)
 
     /// Functions related to the generation of GPT-3 prompts and handling the response.
 
@@ -121,7 +120,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                     if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
                         parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1]})
                     }
-                    }                        
+                }                        
 
                 else if(child?.items && i !== schemaLocationArray.length - 1){
                     if(child.items.properties) {
@@ -129,10 +128,8 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                         // parentContext = parentContext.contextType ? parentContext : {contextType: 'array', parentContextKey: schemaLocationArray[i], path: path}
                         parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
                     } else {
-                        if(parentContext.length > 0){
-                            return parentContext
-                        }
-                        return []
+                        //Array that has an inline schema (non-object)
+                        parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
                     }
                 } else if(child?.properties && i == schemaLocationArray.length - 1) {
                     
@@ -149,6 +146,13 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 } else {     
                     
                     if(parentContext.length > 0){
+                        if(schemaLocationArray[i] == 'string'){
+                            console.log("Schema")
+                            console.log(schemaLocationArray[i])
+                            console.log("Parent Context")
+                            console.log(parentContext)
+                        }
+                       
                         return parentContext
                     }
                     return []
@@ -170,6 +174,9 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             var parent = schema
             var parentContext = []
 
+            console.log("Schema")
+            console.log(schema)
+
             
             for (var i = 0; i < schemaLocationArray.length; i++) {
                 var child = parent[schemaLocationArray[i]]
@@ -186,18 +193,20 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                         parent = child.items.properties
                         parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
                     } else {
-                        if(parentContext.length > 0){
-                            return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
-                        }
-                        return {...child.items, path: path, key: schemaLocationArray[i]}
+                        parent = child.items
+                        parentContext.push({contextType: 'array', parentContextKey: schemaLocationArray[i], path: path})
+                        // if(parentContext.length > 0){
+                        //     return {...child.items, path: path, key: schemaLocationArray[i], parentContext}
+                        // }
+                        // return {...child.items, path: path, key: schemaLocationArray[i]}
                     }
                 }
-                else {     
-                    var childKey = schemaLocationArray[i]
+                else {    
+                    var type = child?.type ? child.type : schemaLocationArray[i]
                     if(parentContext.length > 0){
-                        return {...child, path: path, key: schemaLocationArray[i], parentContext}
+                        return {...child, type: type, path: path, key: schemaLocationArray[i], parentContext}
                     }
-                    return {...child, key: childKey, path: path}
+                    return {...child, type: type, key: schemaLocationArray[i], path: path}
                 }
     
             }
@@ -245,7 +254,13 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                         requiredNestedPropertyArray.push(...required)
                         optionalNestedPropertyArray.push(...optional)
                     } else {
+                        var inlineSchema = {
+                            key: property.items.type,
+                            path: property.path +"."+ property.items.type,
+                            type: property.items.type
+                        }
                         requiredNestedPropertyArray.push(property)
+                        requiredNestedPropertyArray.push(inlineSchema)
                     }
                 }
             } else {
@@ -258,9 +273,17 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                     if(property.items.properties){
                         var {required} = processNestedProperties(property.items.properties, property.path)
                         var {optional} = processNestedProperties(property.items.properties, property.path)
+                        optionalNestedPropertyArray.push(property)
                         optionalNestedPropertyArray.push(...required, ...optional)
                     } else {
+                        var inlineSchema = {
+                            key: property.items.type,
+                            path: property.path +"."+ property.items.type,
+                            type: property.items.type
+                        }
                         optionalNestedPropertyArray.push(property)
+                        optionalNestedPropertyArray.push(inlineSchema)
+                        
                     }
                 } else {
                     optionalNestedPropertyArray.push(property)
@@ -676,6 +699,8 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                             var mapping = mappings[targetNode?.id][property.path]
                                             setSelectedMapping({targetProperty: mapping.output, sourceProperty: mapping.input})
                                         } else {
+                                            console.log("Property Selected")
+                                            console.log(property)
                                             if(property.schema){
                                                 const targetProperty = {
                                                     ...property.schema,
