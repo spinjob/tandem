@@ -1142,7 +1142,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
     )
 }
 
-const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownloadPdf, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen, setTestWorkflowModalOpen, setActivateWorkflowModalOpen}) => {
+const WorkflowHeader = ({workflow, setView, view, apis, actions, canActivateWorkflow, setShouldDownloadPdf, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen, setTestWorkflowModalOpen, setActivateWorkflowModalOpen}) => {
     const { classes } = useStyles()
     const router = useRouter();
     const [isNameFieldActive, setIsNameFieldActive] = useState(false);
@@ -1155,6 +1155,8 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
     const setNodeAction = useStore((state) => state.setNodeAction);
     const [saveInProgress, setSaveInProgress] = useState(false);
+    const [checked, setChecked] = useState(false);
+    const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
     
     const { pid, workflowId } = router.query;
 
@@ -1181,6 +1183,43 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
         } )
     }
 
+    function activateWorkflow () {
+        setStatusUpdateLoading(true)
+        axios.put(process.env.NEXT_PUBLIC_API_BASE_URL +'/projects/' + workflow.parent_project_uuid + '/workflows/' + workflow.uuid + '/activate').then((response) => {
+            delay(1000).then(() => {
+                setStatusUpdateLoading(false)
+            })
+            return response.data
+        }).catch((error) => {
+            console.log(error)
+            delay(1000).then(() => {
+                setStatusUpdateLoading(false)
+            })
+            return error
+        })
+    }
+
+    function delay (t) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, t)
+        })
+    }
+
+    function deactivateWorkflow () {
+        axios.put(process.env.NEXT_PUBLIC_API_BASE_URL +'/projects/' + workflow.parent_project_uuid + '/workflows/' + workflow.uuid + '/deactivate').then((response) => {
+            delay(1000).then(() => {
+                setStatusUpdateLoading(false)
+            })
+            return response.data
+        }).catch((error) => {
+            delay(1000).then(() => {
+                setStatusUpdateLoading(false)
+            })
+            console.log(error)
+            return error
+        })
+    }
+
 
     useEffect(() => {
         if(workflowName.length > 0 && workflowName !== 'My Untitled Workflow') {
@@ -1189,6 +1228,16 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
             setWorkflowName('My Untitled Workflow')
         }
     }, [workflowName])
+
+    useEffect(() => {
+        if(workflow) {
+            if(workflow.status == 'active' && !checked) {
+                setChecked(true)
+            } else if (checked && workflow.status !== 'active') {
+                setChecked(false)
+            }
+        }
+    }, [workflow])
 
         return (
             <Header height={30} sx={{ backgroundColor: "transparent", borderBottom: 0 }} >
@@ -1233,58 +1282,34 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, setShouldDownlo
                         <Text onClick={() => setIsNameFieldActive(!isNameFieldActive)} style={{fontFamily:'Visuelt', fontWeight: 600, fontSize:'28px'}}>{workflowName}</Text>
                     )
                 }
-                <Button
-                    onClick={() => {
-                        setActivateWorkflowModalOpen(true)
-                    }}
-                    sx={{
-                        backgroundColor: 'white',
-                        borderRadius: 5,
-                        height: 50,
-                        width: 150,
-                        marginLeft: 20,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                   
-                        '&:hover': {
-                            backgroundColor: 'white',
-                           
-                        }
-
-                    }}
-                >
-                    <Switch 
-                        onChange={(event) => {
-                            // call api to update workflow status
-                            
+                <div style={{marginLeft: 20}}/>
+                {
+                    statusUpdateLoading ? (
+                        <Loader size='sm' color={'dark'} />
+                    ) : (
+                        <Switch 
+                        onChange={() => {
+                            setChecked(!checked)
+                            if(!checked) {
+                                activateWorkflow()
+                            } else {
+                                deactivateWorkflow()
+                            }
                         }}
                         size='md'
                         color='dark'
-                        disabled
+                        disabled={!canActivateWorkflow}
+                        checked={checked}
                         sx={{
                             backgroundColor: 'white',
-                            borderRadius: 5,
-                           
+                            borderRadius: 5
                         }}
-                        checked={workflow.status === 'active' ? true : false}
-                        label={workflow.status === 'active' ? <Text sx={{fontFamily:'Visuelt', fontWeight: 100}}>Running</Text> : <Text sx={{fontFamily:'Visuelt', fontWeight: 100}}>Disabled</Text> }
-                        data={
-                            [
-                                {
-                                    value: 'active',
-                                    label: 'Active'
-                                },
-                                {
-                                    value: 'inactive',
-                                    label: 'Inactive'
-                                }
-                            ]
-                        }
-                        defaultValue='inactive'
+                        // checked={workflowStatus === 'active' ? true : false}
+                        label={checked ? <Text sx={{fontFamily:'Visuelt', fontWeight: 100}}>Running</Text> : <Text sx={{fontFamily:'Visuelt', fontWeight: 100}}>Disabled</Text> }
                         />
-                </Button>
-                
+                    )
+                }
+                    
                 </Group>
                 <Group>
                     <SegmentedControl 
@@ -1533,6 +1558,7 @@ const WorkflowStudio = () => {
     const [activateWorkflowModalOpen, setActivateWorkflowModalOpen] = useState(false);
     const [shouldValidateWorkflow, setShouldValidateWorkflow] = useState(false);
     const [nodeValidationResults, setNodeValidationResults] = useState(null)
+    const [canActivateWorkflow, setCanActivateWorkflow] = useState(false);
 
     const generateOperationIdArray = (actions, apiIndex) => {
         const operationIdArray = []
@@ -1968,6 +1994,13 @@ const WorkflowStudio = () => {
                     })
                 }
             })
+            
+            if(updatedNodeValidationResults.filter(result => result.level == 'error').length){
+                setCanActivateWorkflow(false)
+               
+            } else {
+                setCanActivateWorkflow(true)
+            }
 
             setNodeValidationResults(updatedNodeValidationResults)
             setShouldValidateWorkflow(false)
@@ -2119,7 +2152,7 @@ const WorkflowStudio = () => {
                 backgroundColor: 'white',
                 zIndex: 1
             }}>
-                <WorkflowHeader view={view} setActivateWorkflowModalOpen={setActivateWorkflowModalOpen} setTestWorkflowModalOpen={setTestWorkflowModalOpen} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader view={view} canActivateWorkflow={canActivateWorkflow} setActivateWorkflowModalOpen={setActivateWorkflowModalOpen} setTestWorkflowModalOpen={setTestWorkflowModalOpen} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: nodeValidationResults && nodeValidationResults.filter((nodeValidationResult) => nodeValidationResult.level === 'error').length > 0 ? '86vh': '96vh', marginTop: 90}}>
                 {

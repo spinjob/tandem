@@ -52,6 +52,7 @@ const useStyles = createStyles((theme) => ({
 }));
 
 import useStore from '../../context/store';
+import { toLower } from 'lodash';
 
 interface RowData {
   id: string;
@@ -202,6 +203,10 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
     })
   }
 
+  const toLowerCase = (str: string) => {
+    return str.toLowerCase();
+  }
+
   const rows = statusFilter != "None" ? sortedData.filter((row) => row.status === statusFilter).map((row) => (
     <tr style={{cursor:'pointer'}} data-id={row.id} key={row.id}>
       <td data-id={row.id} style={{display:'flex', flexDirection:'row', alignItems:'center', justifyContent:'center'}}>{
@@ -226,9 +231,11 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
           height: '100%',
           borderRadius: 20,
           width: 90,
-          backgroundColor: row.status === 'Draft' ? '#E0E0E0' : row.status === 'Active' ? '#B4F481' : '#FFA39E',
+          backgroundColor: row.status == 'Draft' ? '#E0E0E0' : row.status == 'active' ? '#B4F481' : '#FFA39E',
         }}>
-          {row.status}
+          <Text sx={{fontFamily: 'apercu-regular-pro'}}>
+            {toLowerCase(row.status) == 'active' ? 'Active' : toLowerCase(row.status) == 'inactive' ? 'Inactive' : row.status}
+          </Text>
         </div>
       </td>
       <td onClick={(e) =>{handleRowClick(e)}} data-id={row.id}>{row.updated}</td>
@@ -283,9 +290,11 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
           height: '100%',
           borderRadius: 20,
           width: 90,
-          backgroundColor: row.status === 'Draft' ? '#E0E0E0' : row.status === 'Active' ? '#B4F481' : '#FFBD9A',
+          backgroundColor: row.status === 'Draft' ? '#E0E0E0' : row.status === 'active' ? '#B4F481' : '#FFA39E',
         }}>
-          {row.status}
+          <Text sx={{fontFamily: 'apercu-regular-pro'}}>
+            {toLowerCase(row.status) == 'active' ? 'Active' : toLowerCase(row.status) == 'inactive' ? 'Inactive' : row.status}
+          </Text>
         </div>
       </td>
       <td onClick={(e) =>{handleRowClick(e)}} data-id={row.id}>{row.updated}</td>
@@ -324,11 +333,12 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
         <div style={{paddingBottom: 10,paddingLeft: 10, paddingTop: 30, display:'flex'}}>
                 <Button onClick={() => {setStatusFilter("None")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: 'black', color: 'white'}}> All </Button>
                 <div style={{width: 10}}/>
-                <Button onClick={() => {setStatusFilter("Active")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#b4f481', color: 'black', fontWeight: 4}}>Active</Button>
-                <div style={{width: 10}}/>
-                <Button onClick={() => {setStatusFilter("Unpublished")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#FFBD9A', color: 'black', fontWeight: 4}}> Unpublished </Button>
-                <div style={{width: 10}}/>
                 <Button onClick={() => {setStatusFilter("Draft")}} style={{fontFamily: 'apercu-regular-pro',  borderRadius: 30, height: 18, backgroundColor: '#e7e7e7', color: 'black', fontWeight: 4}}> Draft </Button>
+                <div style={{width: 10}}/>
+                <Button onClick={() => {setStatusFilter("INACTIVE")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#FFA39E', color: 'black', fontWeight: 4}}> Inactive </Button>
+                <div style={{width: 10}}/>
+                <Button onClick={() => {setStatusFilter("active")}} style={{fontFamily: 'apercu-regular-pro', borderRadius: 30, height: 18, backgroundColor: '#b4f481', color: 'black', fontWeight: 4}}>Active</Button>
+
         </div>
         <div style={{display: 'flex', flexDirection:'row', width: '100%',maxWidth:1250, height: 35, justifyContent: 'right'}}>
             {/* <TextInput

@@ -106,7 +106,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
     // Function that retreives a properties parent context (i.e. if the property is nested in an array or dictionary)
     const getParentContext = (path, schema) => {
         var schemaLocationArray = path.split('.')
-
         if(schemaLocationArray.length == 1) {
             return []
         } else {
@@ -118,10 +117,10 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
 
                 if(child?.properties && i !== schemaLocationArray.length - 1){
                     parent = child.properties
-                        if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
-                            // parentContext = parentContext.len ? parentContext: {contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1]}
-                            parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1]})
-                        }
+
+                    if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
+                        parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1]})
+                    }
                     }                        
 
                 else if(child?.items && i !== schemaLocationArray.length - 1){
@@ -135,8 +134,19 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                         }
                         return []
                     }
-                }
-                else {     
+                } else if(child?.properties && i == schemaLocationArray.length - 1) {
+                    
+                    if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
+                        console.log("Dictionary Key Found")
+                        console.log(schemaLocationArray[i])
+                        parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1]})
+                        return parentContext
+                    }
+                    if(parentContext.length > 0){
+                        return parentContext
+                    }
+                    return []
+                } else {     
                     
                     if(parentContext.length > 0){
                         return parentContext
@@ -264,7 +274,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 parentContext: getParentContext(property.path, action.requestBody2.schema)
             }
         }).filter((property) => {
-            return property.type !== 'array' && property.type !== 'object'
+            return property.type !== 'array' || property.type !== 'object' && !property.key.includes('{{') && !property.key.includes('}}')
         })
 
 
@@ -274,7 +284,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 parentContext: getParentContext(property.path, action.requestBody2.schema)
             }
         }).filter((property) => {
-            return property.type !== 'array' && property.type !== 'object'
+            return property.type !== 'array' || property.type !== 'object' && !property.key.includes('{{') && !property.key.includes('}}')
         })
         
         return {required: requiredNestedPropertyArrayWithParentContext, optional: optionalNestedPropertyArrayWithParentContext}
@@ -349,25 +359,25 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             })
             if(requiredPropertyObjects && requiredPropertyObjects.length > 0){
                 var filteredPropertyObjects = requiredPropertyArray.filter((property) => {
-                    return property.type !== 'array' && property.type !== 'object'
+                    return property.type !== 'array' || property.type !== 'object' && !property.key.includes('{{') && !property.key.includes('}}')
                 })
                 
                 setRequiredPropertyObjects(requiredPropertyObjects, ...filteredPropertyObjects)
             } else {
                 var filteredPropertyObjects = requiredPropertyArray.filter((property) => {
-                    return property.type !== 'array' && property.type !== 'object'
+                    return property.type !== 'array' || property.type !== 'object' && !property.key.includes('{{') && !property.key.includes('}}')
                 })
                 setRequiredPropertyObjects(filteredPropertyObjects)
             }
             if(optionalPropertyObjects && optionalPropertyObjects.length > 0){
                 var filteredPropertyObjects = optionalPropertyArray.filter((property) => {
-                    return property.type !== 'array' && property.type !== 'object'
+                    return property.type !== 'array' || property.type !== 'object' && !property.key.includes('{{') && !property.key.includes('}}')
                 })
                 
                 setOptionalPropertyObjects(optionalPropertyObjects, ...filteredPropertyObjects)
             } else {
                 var filteredPropertyObjects = optionalPropertyArray.filter((property) => {
-                    return property.type !== 'array' && property.type !== 'object'
+                    return property.type !== 'array' || property.type !== 'object' && !property.key.includes('{{') && !property.key.includes('}}')
                 })
                 
                 setOptionalPropertyObjects(filteredPropertyObjects)
