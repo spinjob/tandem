@@ -183,6 +183,8 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                 if(child?.properties && i !== schemaLocationArray.length - 1){
                     parent = child.properties
                         if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
+                            console.log("Dictionary Key")
+                            console.log(schemaLocationArray[i])
                             parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1], path: path})
                         }
                     }                        
@@ -200,7 +202,14 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                         // return {...child.items, path: path, key: schemaLocationArray[i]}
                     }
                 }
-                else {     
+                else if(child?.properties && i == schemaLocationArray.length - 1){
+                    if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
+                        console.log("Dictionary Key")
+                        console.log(schemaLocationArray[i])
+                        parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1], path: path})
+                        return {...child, path: path, key: schemaLocationArray[i], parentContext}
+                    }
+                } else {     
                     var type = child?.type ? child.type : schemaLocationArray[i]
                     if(parentContext.length > 0){
                         return {...child, type: type, path: path, key: schemaLocationArray[i], parentContext}

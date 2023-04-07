@@ -346,7 +346,9 @@ function ActionNode ({id, data}) {
                                      <Text style={{fontFamily:'Visuelt', fontSize:'12px', width: 270, color: 'grey'}}>Choose an API request to perform.</Text>
                                  </div>
                                  <div style={{backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center'}}>
-                                     <SegmentedControl value={selectedApi} onChange={setSelectedApi} style={{fontFamily: 'Visuelt', backgroundColor: 'white', width: '90%', border:'.5px solid #E7E7E7',borderRadius: 8}} color='dark' radius='md' data={[{label:data.apis[0]?.name, value:data.apis[0]?.uuid}, {label:data.apis[1]?.name, value:data.apis[1]?.uuid}]}/>
+                                     <SegmentedControl value={selectedApi} onChange={setSelectedApi} style={{fontFamily: 'Visuelt', backgroundColor: 'white', width: '90%', border:'.5px solid #E7E7E7',borderRadius: 8}} color='dark' radius='md' data={
+                                        data.apis.length == 1 ? [{label:data.apis[0]?.name, value:data.apis[0]?.uuid}] :
+                                        [{label:data.apis[0]?.name, value:data.apis[0]?.uuid}, {label:data.apis[1]?.name, value:data.apis[1]?.uuid}]}/>
                                  </div> 
                                  <div style={{paddingTop: 15,backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center'}}>
                                      <Menu
@@ -518,7 +520,9 @@ function TriggerNode ({data}) {
                                     </div>
                                     <div style={{height: 5}}/>
                                     <div style={{backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center'}}>
-                                        <SegmentedControl value={selectedApi} onChange={setSelectedApi} style={{fontFamily: 'Visuelt', backgroundColor: 'white', width: '90%', border:'.5px solid #E7E7E7',borderRadius: 8}} color='dark' radius='md' data={[{label:data.apis[0].name, value:data.apis[0].uuid}, {label:data.apis[1].name, value:data.apis[1].uuid}]}/>
+                                        <SegmentedControl value={selectedApi} onChange={setSelectedApi} style={{fontFamily: 'Visuelt', backgroundColor: 'white', width: '90%', border:'.5px solid #E7E7E7',borderRadius: 8}} color='dark' radius='md' data={
+                                            data.apis.length == 1 ? [{label:data.apis[0].name, value:data.apis[0].uuid}] : [{label:data.apis[0].name, value:data.apis[0].uuid}, {label:data.apis[1].name, value:data.apis[1].uuid}]
+                                            }/>
                                     </div> 
                                     <div style={{paddingTop: 15,backgroundColor:'white', display:'flex', flexDirection:'column', alignItems:'center'}}>
                                         <Menu
@@ -1995,6 +1999,39 @@ const WorkflowStudio = () => {
                         message: 'No authentication configured for either API.'
                     })
                 }
+
+                // Check if any mappings require that a dictionaryKey is mapped.  If so, confirm the specified key is mapped. If not, add to nodeValidationResults.
+                if(mappings[node.id] && Object.values(mappings[node.id]).filter(mapping => mapping.output.in == 'body').length){
+                   var mappingValues = Object.values(mappings[node.id])
+                   var mappedDictionaryProperties = []
+                   var mappedKeys = []
+                    
+                    {mappingValues.forEach(mapping => { 
+                    if(mapping.output.parentContext && mapping.output.parentContext.length > 0){
+                        mapping.output.parentContext.forEach( (context, index) => {
+                            if(context.contextType == 'dictionary')
+                            
+                            {
+                                mappedDictionaryProperties.push({dictionaryKey: context.dictionaryKey, propertyKey: mapping.output.key, parentContextKey: context.parentContextKey})
+                                if(context.dictionaryKey == mapping.output.key){
+                                    mappedKeys.push(mapping.output.key)
+                                }
+                            }
+                        })
+                    }
+                    })}
+                    mappedDictionaryProperties.forEach(key => {
+                        if(mappedKeys.filter(mappedKey => mappedKey == key.dictionaryKey).length == 0){
+                            updatedNodeValidationResults.push({
+                                nodeId: node.id,
+                                action: node.data.selectedAction.name,  
+                                level: 'error',
+                                type: 'missing-required-data',
+                                message: 'You have mapped ' + key.propertyKey + ', which is in a dictionary (' + key.parentContextKey + ') but the key for the dictionary (' + key.dictionaryKey + ') is not mapped. Please map the key for the dictionary.'
+                            })
+                        }
+                    })
+                }
             })
             
             if(updatedNodeValidationResults.filter(result => result.level == 'error').length){
@@ -2007,6 +2044,7 @@ const WorkflowStudio = () => {
             setNodeValidationResults(updatedNodeValidationResults)
             setShouldValidateWorkflow(false)
         }
+
     }, [workflow, nodes, nodeValidationResults, shouldValidateWorkflow, setShouldValidateWorkflow])
 
     return workflow && partnership && apis && workflowActions ? (
