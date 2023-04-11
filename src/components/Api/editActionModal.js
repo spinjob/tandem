@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {Text, Button, TextInput, JsonInput, Icon, Select, Textarea, Card, Table, Badge} from '@mantine/core';
+import {Text, Button, TextInput, JsonInput, Icon, Select, Textarea, Card, Table, Badge, Divider} from '@mantine/core';
 
 import SchemaTree from './schema-tree'
 
@@ -7,6 +7,8 @@ const ManageActionModal = ({ action, isOpen, toggle, updateAction }) => {
     const [selectedSchemaProperty, setSelectedSchemaProperty] = useState(null)
     const [groupBeingEdited, setGroupBeingEdited] = useState(null)
     const [editedAction, setEditedAction] = useState(action)
+    const [isInputValid, setIsInputValid] = useState(false)
+    const [actionSchemaExample, setActionSchemaExample] = useState('')
 
     function toUppercase (str) {
         return str.toUpperCase()
@@ -77,6 +79,7 @@ const ManageActionModal = ({ action, isOpen, toggle, updateAction }) => {
     
     const selectProperty = (propertyPath, schemaType) => {
         setSelectedSchemaProperty(processSchemaPath(propertyPath[0], schemaType))
+        console.log(processSchemaPath(propertyPath[0], schemaType))
         return
     }
 
@@ -566,25 +569,115 @@ const ManageActionModal = ({ action, isOpen, toggle, updateAction }) => {
             }
 
             {
-                action.requestBody2 && action.requestBody2.schema ? (
-                    <div>
-                        <div>
-                            <Text
-                                sx={{
-                                    fontSize: '20px',
-                                    color: 'black',
-                                    display: 'block',
-                                    fontFamily: 'Visuelt',
-                                    fontWeight: 400
-                                }}
-                            >
-                                Request Body
-                            </Text>
-                            <div style={{height: '10px'}}/>
-                            <SchemaTree schema={action.requestBody2.schema} setSelectedSchemaProperty={selectProperty} schemaType='requestBody' actionUuid={action.uuid}/>
+                action.requestBody2 && action.requestBody2.schema && groupBeingEdited != 'requestBody' ? (
+                    <div style={{display:'flex', flexDirection:'column', paddingTop: 30}}>
+                        <Text
+                            sx={{
+                                fontSize: '24px',
+                                color: 'black',
+                                display: 'block',
+                                fontFamily: 'Visuelt',
+                                fontWeight: 400
+                            }}
+                        >
+                            Request Body Schema
+                        </Text>
+                        <div style={{height: '10px'}}/>
+                        <div style={{display: 'flex', flexDirection: 'row', width: '100%'}}>
+                            <div style={{width: '50%', padding: 20}}>
+                                <Text
+                                    sx={{
+                                        fontSize: '20px',
+                                        color: 'black',
+                                        fontFamily: 'Visuelt',
+                                        fontWeight: 400
+                                    }}
+                                >
+                                    Schema Tree
+                                </Text>
+                                <Text
+                                    sx={{
+                                        fontSize: '16px',
+                                        color: 'black',
+                                        fontFamily: 'Visuelt',
+                                        fontWeight: 100
+                                    }}
+                                >
+                                    Click on a property to see more details
+                                </Text>
+                                <SchemaTree schema={action.requestBody2.schema} setSelectedSchemaProperty={selectProperty} schemaType='requestBody' actionUuid={action.uuid}/>
+                            </div>
+                            <Divider orientation='vertical'/>
+                       
+                            <div style={{width: '50%', padding: 20}}>
+                                <Text
+                                    sx={{
+                                        fontSize: '20px',
+                                        color: 'black',
+                                        fontFamily: 'Visuelt',
+                                        fontWeight: 400
+                                    }}
+                                >
+                                    View Property
+                                </Text>
+                                <Card>
+                                    <Card.Section
+                                        sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'flex-start',
+                                            
+                                        }}
+                                    >
+                                        <TextInput
+                                            value={selectedSchemaProperty ? selectedSchemaProperty.key : ''}
+                                            disabled
+                                        
+                                            label='Key'
+                                            sx = {{
+                                                fontFamily: 'Visuelt',
+                                                fontWeight: 400,
+                                                fontSize: '20px',
+                                                width: '30%'
+                                            }}
+                                        />
+                                        <TextInput
+                                            value={selectedSchemaProperty ? selectedSchemaProperty.type : ''}
+                                            disabled
+                                            label='Type'
+                                            sx = {{
+                                                fontFamily: 'Visuelt',
+                                                fontWeight: 400,
+                                                fontSize: '16px',
+                                                width: '30%'
+                                            }}
+                                        />
+                                        <Textarea
+                                            value={selectedSchemaProperty ? selectedSchemaProperty.description : ''}
+                                            label='Description'
+                                            disabled
+                                        
+                                            sx = {{
+                                                fontFamily: 'Visuelt',
+                                                fontWeight: 400,
+                                                fontSize: '16px',
+                                                width: '70%'
+                                            }}
+                                        />
+                                    </Card.Section>
+                                </Card>
+
+
+
+                            </div>
                         </div>
                     </div>
-                ) : null 
+                ) :  action.requestBody2 && action.requestBody2.schema && groupBeingEdited == 'requestBody' ? (
+                    <div>
+
+                    </div>
+                ) : null
             }
 
 {

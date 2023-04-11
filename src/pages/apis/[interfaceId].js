@@ -183,7 +183,7 @@ const ViewApi = () => {
             >
                 {
                     modalType == 'webhook' ? (
-                        <NewWebhookForm apiId={interfaceId} />
+                        <NewWebhookForm setModalOpen={setModalOpen} apiId={interfaceId} />
                     ) : (
                         <div>
 
@@ -209,7 +209,7 @@ const ViewApi = () => {
                   </Text> 
                 ) : null}
             >
-                <ManageActionModal action={selectedAction} />
+                <ManageActionModal setViewModalOpen={setViewModalOpen} action={selectedAction} />
             </Modal>
             <div style={{height: 20}}></div>
             <div style={{display:'flex', paddingBottom: 40, paddingTop: 30}}>

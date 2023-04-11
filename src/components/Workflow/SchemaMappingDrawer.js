@@ -468,6 +468,7 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             })
 
             propertyObjects.forEach((property) => {
+                
                 if(property.required) {
                         if(property.properties){
                             var {required} = processNestedProperties(property.properties, property.key)
@@ -677,6 +678,9 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 </div>
             ) : (
                 propertyObjects.map((property, index) => {
+                    if(property.type == 'object' && !property.key.includes("{{") && !property.key.includes("}}") || property.type == 'array'){
+                        return null
+                    } 
                     return (
                         <div key={property.path} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent:'center',paddingTop: 12}}>
                             <Container className={selectedMapping?.targetProperty?.path == property.path ? 'active' : ''} sx={{

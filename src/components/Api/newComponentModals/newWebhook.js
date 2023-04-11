@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {Text, Button, TextInput, JsonInput} from '@mantine/core';
 import axios from 'axios';
 
-const NewWebhookForm = ({ apiId }) => {
+const NewWebhookForm = ({ apiId, setModalOpen}) => {
     const [webhookSchemaExample, setWebhookSchemaExample] = useState('')
     const [isInputValid, setIsInputValid] = useState(false)
     const [webhookName, setWebhookName] = useState('')
@@ -189,6 +189,7 @@ const NewWebhookForm = ({ apiId }) => {
                 onClick={() => {
                     setLoading(true)
                     generateWebhookSchema()
+                    setModalOpen(false)
                 }}
                 sx={{
                     marginTop: '10px',
