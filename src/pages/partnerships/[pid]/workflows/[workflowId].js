@@ -151,6 +151,7 @@ function ActionNode ({id, data}) {
     const nodeActions = useStore((state) => state.nodeActions)
     const nodeViews = useStore((state) => state.nodeViews)
     const selectedEdge = useStore((state) => state.selectedEdge)
+    const globalWorkflowState = useStore((state) => state.workflow)
     const [sharedEdgeTargetNodes, setSharedEdgeTargetNodes] = useState([])
 
     const globalEdgeState = useStore((state) => state.edges)
@@ -186,7 +187,7 @@ function ActionNode ({id, data}) {
         }
       };
 
-    const filteredActions = data.actions.filter((action) => {
+    const filteredActions = globalWorkflowState.actions.filter((action) => {
         return action.parent_interface_uuid == selectedApi
     })
 
@@ -405,7 +406,6 @@ function TriggerNode ({data}) {
     
     const triggerTypeOptions = data.webhooks.length > 0 ? [{label: 'Scheduled', value: 'scheduled'}, {label: 'Webhook', value: 'webhook'}] : [{label: 'Scheduled', value: 'scheduled'}]
 
-
     //Scheduled Trigger State
     const [selectedCadence, setSelectedCadence] = useState(globalWorkflowState?.trigger?.cadence ? {label: globalWorkflowState?.trigger?.cadence, value: globalWorkflowState?.trigger?.cadence, type:'scheduled' } : {label:'Daily', value:'Daily', type:'scheduled'})
     const [selectedRunTime, setSelectedRunTime] = useState(globalWorkflowState?.trigger?.time ? globalWorkflowState?.trigger?.time : null)
@@ -444,7 +444,7 @@ function TriggerNode ({data}) {
         globalWorkflowState?.trigger?.selectedWebhook ? globalWorkflowState?.trigger?.selectedWebhook : null
     )
     const [webhookOpened, setWebhookOpened] = useState(false);
-    const filteredWebhooks = data.webhooks.filter((webhook) => {    
+    const filteredWebhooks = globalWorkflowState.webhooks.filter((webhook) => {    
         return webhook.parent_interface_uuid == selectedApi
     })
 
