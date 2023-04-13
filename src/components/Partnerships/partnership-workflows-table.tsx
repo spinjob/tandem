@@ -266,7 +266,7 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
         </Menu>
       </td>
     </tr>
-  )) : sortedData.map((row) => (
+  )) : sortedData.filter((row) => row.status !== 'Archived').map((row) => (
     <tr style={{cursor:'pointer'}} data-id={row.id} key={row.id}>
         <td data-id={row.id} style={{display:'flex', flexDirection:'row',alignItems:'center', justifyContent:'center'}}>{
           row.active ? (
@@ -327,7 +327,7 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
     </tr>
   ))
 
-
+console.log(rows)
   return  (
     <div style={{width: '100%', maxWidth:1250}}>
         <div style={{paddingBottom: 10,paddingLeft: 10, paddingTop: 30, display:'flex'}}>
