@@ -178,7 +178,6 @@ const Partnership = () => {
               </ActionIcon>
               </div>
           </div>
-          
       </div>
       <div style={{height:50}}/>
       <Tabs color="gray" defaultValue="workflows">
