@@ -1978,7 +1978,6 @@ const WorkflowStudio = () => {
 
                 // Check if partnership has authentication configured for both APIs.
                 if(partnership && partnership[0] && partnership[0].authentication){
-                    console.log('partnership', partnership)
                     apis?.forEach(api => {
                         if(!partnership[0].authentication[api.uuid]){
                             updatedNodeValidationResults.push({

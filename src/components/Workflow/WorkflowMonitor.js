@@ -137,7 +137,7 @@ const WorkflowMonitor = ({workflow}) => {
             <div style={{height: 20}} />
             {
                 workflowLogs ? (
-                    <WorkflowLogsTable style={{width: '100%'}} actions={renderActionOptions()} data={formatWorkflowLogTableData()}/>
+                    <WorkflowLogsTable style={{width: '100%'}} actions={renderActionOptions()} data={formatWorkflowLogTableData()} setWorkflowLogs={setWorkflowLogs}/>
                 ) : (
                     <div>
                         <Text>Loading...</Text>

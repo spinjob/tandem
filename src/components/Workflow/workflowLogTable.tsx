@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   createStyles,
   Table,
@@ -7,7 +7,8 @@ import {
   Text,
   TextInput,
   Select,
-  Image
+  Image,
+  Pagination
 } from '@mantine/core';
 import { keys } from '@mantine/utils';
 import { useRouter } from 'next/router';
@@ -129,7 +130,8 @@ function WorkflowLogsTable({ data, partnershipId, apis, userId, actions}: TableS
   const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
   const [reverseSortDirection, setReverseSortDirection] = useState(false);
 
-  const router  = useRouter();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
 
   const [sortedData, setSortedData] = useState(data);
 
@@ -161,7 +163,7 @@ function WorkflowLogsTable({ data, partnershipId, apis, userId, actions}: TableS
       <td data-id={row.id}>{row.action ? row.action : 'No Action'}</td>
       <td data-id={row.id}>{row.message}</td>
     </tr>
-  )) : actionFilter == 'all' && levelFilter != 'all' ? 
+  )): actionFilter == 'all' && levelFilter != 'all' ? 
   (
     sortedData.filter((row) => row.level === levelFilter).map((row) => (
       <tr style={{cursor:'pointer'}} data-id={row.id} key={row.id}>
@@ -183,7 +185,7 @@ function WorkflowLogsTable({ data, partnershipId, apis, userId, actions}: TableS
         <td style={{overflow: 'hidden'}} data-id={row.id}>{row.message}</td>
       </tr>
     ))
-  ) : sortedData.map((row) => (
+  ): sortedData.map((row) => (
     <tr style={{cursor:'pointer'}} data-id={row.id} key={row.id}>
       <td data-id={row.id}>{row.timestamp}</td>
       <td data-id={row.id}>{row.traceId}</td>
@@ -191,7 +193,7 @@ function WorkflowLogsTable({ data, partnershipId, apis, userId, actions}: TableS
       <td data-id={row.id}>{row.action ? row.action : 'No Action'}</td>
       <td data-id={row.id}>{row.message}</td>
     </tr>
-  ))
+  )) 
 
 
   return  (
@@ -355,6 +357,12 @@ function WorkflowLogsTable({ data, partnershipId, apis, userId, actions}: TableS
           )}
         </tbody>
       </Table>
+      {/* <Pagination
+         total={10}
+         onChange={(page) => {
+            setPage(page);
+         }}
+       /> */}
     </div>
   );
 }
