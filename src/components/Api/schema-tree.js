@@ -111,7 +111,6 @@ function generateTreeData (schema, parent) {
         }
         treeItems[path] = childNode
     })
-    console.log(treeItems)
     return treeItems
 }
 
@@ -154,7 +153,7 @@ const returnIcon = (type) => {
 }
 
 
-const SchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, schemaType}) => {
+const SchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, schemaType, schemaTreeWidth}) => {
 
     const renderItemTitle = (title, item) => {
         var propertyName = title?.split('.').pop()
@@ -175,7 +174,7 @@ const SchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, schemaType})
         </Center>
     )
     : (
-        <div style={{width: 200}}>
+        <div style={{width: schemaTreeWidth ? schemaTreeWidth : 200}}>
             <UncontrolledTreeEnvironment
             dataProvider={new StaticTreeDataProvider(generateTreeData(schema, "root"), (item, newName) => ({ ...item, data: newName }))}
             getItemTitle={item => item.data}

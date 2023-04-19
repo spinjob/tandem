@@ -9,6 +9,7 @@ import ApiSecurityScheme from '../../components/Api/api-security-schema';
 import ApiMetadata from '../../components/Api/api-details';
 import addIcon from '../../../public/icons/select-object-copy-plus-add.svg'
 import NewWebhookForm from '../../components/Api/newComponentModals/newWebhook'
+import NewActionForm from '../../components/Api/newComponentModals/newAction'
 import ManageActionModal from '../../components/Api/editActionModal';
 
 const ViewApi = () => {
@@ -179,15 +180,13 @@ const ViewApi = () => {
                         New API Action Definition
                     </Text>)}
                 centered
-                size={'xl'}
+                size={modalType== 'webhook' ? 'xl' : 1200}
             >
                 {
                     modalType == 'webhook' ? (
                         <NewWebhookForm setModalOpen={setModalOpen} apiId={interfaceId} />
                     ) : (
-                        <div>
-
-                        </div>
+                        <NewActionForm setModalOpen={setModalOpen} apiId={interfaceId} />
                     )
                 }
             </Modal>
@@ -299,9 +298,9 @@ const ViewApi = () => {
                                 <Button
                                     onClick={() => {
                                         setModalOpen(true)
-                                        setModalType('webhook')
+                                        setModalType('action')
                                     }}
-                                    disabled
+                                    
                                     sx={{
                                         fontFamily: 'Visuelt',
                                         fontSize: '16px',
@@ -316,7 +315,7 @@ const ViewApi = () => {
                                             
                                         }
                                     }}>
-                                    Create an Action (Coming Soon)
+                                    Create an Action
                                 </Button>
                             </div>
                           <ApiActions setAction={setAction} actions={actions}/>

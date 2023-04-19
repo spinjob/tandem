@@ -1146,7 +1146,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
     )
 }
 
-const WorkflowHeader = ({workflow, setView, view, apis, actions, canActivateWorkflow, setShouldDownloadPdf, setSuggestedEdges, setSuggestedNodes, webhooks, setWorkflowSuggestionModalOpen, setTestWorkflowModalOpen, setActivateWorkflowModalOpen}) => {
+const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShouldDownloadPdf, validateWorkflow, setWorkflowSuggestionModalOpen, setTestWorkflowModalOpen}) => {
     const { classes } = useStyles()
     const router = useRouter();
     const [isNameFieldActive, setIsNameFieldActive] = useState(false);
@@ -1470,7 +1470,10 @@ const WorkflowHeader = ({workflow, setView, view, apis, actions, canActivateWork
                     
                     <Button
                     loading={saveInProgress}
-                    onClick={() => processWorkflowSave()} 
+                    onClick={() => {
+                        validateWorkflow()    
+                        processWorkflowSave()
+                    }} 
                     sx={{
                         backgroundColor: '#000000',
                         color: '#FFFFFF',
@@ -1883,10 +1886,157 @@ const WorkflowStudio = () => {
 
     }, [pid, workflowId, workflow, partnership, apis, setApis, setPartnership, workflowActions, setWorkflowActions, workflowWebhooks, setWorkflowWebhooks, setGlobalWorkflowState, setNodeAction, setMappings])
 
-    useEffect(() => {
-        // Should move this into a validateWorkflow function.
-        if (workflow && nodes && !nodeValidationResults || workflow && nodes && shouldValidateWorkflow) {
-            var actionNodes = nodes.filter(node => node.type == 'action')
+    function validateWorkflow () {
+        var actionNodes = nodes.filter(node => node.type == 'action')
+         
+        var updatedNodeValidationResults = []
+
+        actionNodes.forEach(node => {
+            // Check if node has a selected action.
+            if(node.data.selectedAction){
+                if(node.data.selectedAction.parameterSchema){
+                    if(node.data.selectedAction.parameterSchema.header){
+                        var requiredParameters = []
+                        var headerKeys = Object.keys(node.data.selectedAction.parameterSchema.header)
+                        
+                        //Check if node has a required header parameter.
+                        headerKeys.forEach(key => {
+                            if(node.data.selectedAction.parameterSchema.header[key].required){
+                                requiredParameters.push({key: node.data.selectedAction.parameterSchema.header[key].name, in: 'header'})
+                            }
+                        })
+
+                        // Check if node has a mapping for the required header parameter. If not, add to nodeValidationResults.
+                        requiredParameters.forEach(parameter => {
+                            var actionNodeMappings = mappings[node.id]
+                            var mappingValues = actionNodeMappings ? Object.values(actionNodeMappings) : []
+
+                            if(!mappingValues.filter(mapping => mapping.targetNode == node.id && mapping.output.key == parameter.key && mapping.output.in == parameter.in).length){
+                                updatedNodeValidationResults.push({
+                                    nodeId: node.id,
+                                    action: node.data.selectedAction.name, 
+                                    level: 'error',
+                                    type: 'missing-required-data',
+                                    message: 'Missing mapping for ' + parameter.key + ' in ' + 'header' + '.'
+                                })
+                            }
+                        })
+
+                    }
+                    if(node.data.selectedAction.parameterSchema.path){
+                        var requiredParameters = []
+                        var pathKeys = Object.keys(node.data.selectedAction.parameterSchema.path)
+                        
+                        //Check if node has a required path parameter.
+                        pathKeys.forEach(key => {
+                            if(node.data.selectedAction.parameterSchema.path[key]){
+                                requiredParameters.push({key: node.data.selectedAction.parameterSchema.path[key].name, in: 'path'})
+                            }
+                        })
+                        
+                        // Check if node has a mapping for the required path parameter. If not, add to nodeValidationResults.
+                        requiredParameters.forEach(parameter => {
+                            var actionNodeMappings = mappings[node.id]
+                            var mappingValues = actionNodeMappings ? Object.values(actionNodeMappings) : []
+
+                            if(!mappingValues.filter(mapping => mapping.targetNode == node.id && mapping.output.key == parameter.key && mapping.output.in == parameter.in).length){
+                                updatedNodeValidationResults.push({
+                                    nodeId: node.id,
+                                    action: node.data.selectedAction.name,  
+                                    level: 'error',
+                                    type: 'missing-required-data',
+                                    message: 'Missing mapping for ' + parameter.key + ' in ' + 'path' + '.'
+                                })
+                            }
+                        })
+                    }
+                }
+                
+                if(node.data.selectedAction.requestBody2){
+                    if(node.data.selectedAction.requestBody2.required){
+                        var actionNodeMappings = mappings[node.id]
+                        var mappingValues = actionNodeMappings ? Object.values(actionNodeMappings) : []
+
+                        if(!mappingValues.filter(mapping => mapping.output.in == 'body').length){
+                            updatedNodeValidationResults.push({
+                                nodeId: node.id,
+                                action: node.data.selectedAction.name,  
+                                level: 'error',
+                                type: 'missing-required-data',
+                                message: 'A request body is required for this action. Please map or configure data to populate the request body schema.'
+                            })
+                        }
+                        
+                    }
+                }
+            } else {
+                updatedNodeValidationResults.push({
+                    nodeId: node.id,
+                    action: null,
+                    level: 'error',
+                    type: 'missing-required-data',
+                    message: 'No action selected for action step ' + node.id.split('-')[1] + '.'
+                })
+            }
+
+            // Check if partnership has authentication configured for both APIs.
+            if(partnership && partnership[0] && partnership[0].authentication){
+                apis?.forEach(api => {
+                    if(!partnership[0].authentication[api.uuid]){
+                        updatedNodeValidationResults.push({
+                            nodeId: null,
+                            action: 'Authentication',
+                            level: 'error',
+                            type: 'missing-api-authentication',
+                            message: 'No authentication configured for ' + api.name + '.'
+                        })
+                    }
+                })
+            } else {
+                updatedNodeValidationResults.push({
+                    nodeId: null,
+                    action: 'Authentication',
+                    level: 'error',
+                    type: 'missing-api-authentication',
+                    message: 'No authentication configured for either API.'
+                })
+            }
+
+            // Check if any mappings require that a dictionaryKey is mapped.  If so, confirm the specified key is mapped. If not, add to nodeValidationResults.
+            if(mappings[node.id] && Object.values(mappings[node.id]).filter(mapping => mapping.output.in == 'body').length){
+                var mappingValues = Object.values(mappings[node.id])
+                var mappedDictionaryProperties = []
+                var mappedKeys = []
+                
+                {mappingValues.forEach(mapping => { 
+                if(mapping.output.parentContext && mapping.output.parentContext.length > 0){
+                    mapping.output.parentContext.forEach( (context, index) => {
+                        if(context.contextType == 'dictionary')
+                        
+                        {
+                            mappedDictionaryProperties.push({dictionaryKey: context.dictionaryKey, propertyKey: mapping.output.key, parentContextKey: context.parentContextKey})
+                            if(context.dictionaryKey == mapping.output.key){
+                                mappedKeys.push(mapping.output.key)
+                            }
+                        }
+                    })
+                }
+                })}
+                mappedDictionaryProperties.forEach(key => {
+                    if(mappedKeys.filter(mappedKey => mappedKey == key.dictionaryKey).length == 0){
+                        updatedNodeValidationResults.push({
+                            nodeId: node.id,
+                            action: node.data.selectedAction.name,  
+                            level: 'error',
+                            type: 'missing-required-data',
+                            message: 'You have mapped ' + key.propertyKey + ', which is in a dictionary (' + key.parentContextKey + ') but the key for the dictionary (' + key.dictionaryKey + ') is not mapped. Please map the key for the dictionary.'
+                        })
+                    }
+                })
+            }
+        })
+
+        var actionNodes = nodes.filter(node => node.type == 'action')
             var updatedNodeValidationResults = []
             actionNodes.forEach(node => {
                 // Check if node has a selected action.
@@ -2042,9 +2192,14 @@ const WorkflowStudio = () => {
 
             setNodeValidationResults(updatedNodeValidationResults)
             setShouldValidateWorkflow(false)
+    }
+
+    useEffect(() => {
+        if (workflow && nodes && !nodeValidationResults || workflow && nodes && shouldValidateWorkflow) {
+            validateWorkflow()
         }
 
-    }, [workflow, nodes, nodeValidationResults, shouldValidateWorkflow, setShouldValidateWorkflow])
+    }, [workflow, nodes, nodeValidationResults, shouldValidateWorkflow])
 
     return workflow && partnership && apis && workflowActions ? (
         <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', marginLeft: -15}}>
@@ -2191,7 +2346,7 @@ const WorkflowStudio = () => {
                 backgroundColor: 'white',
                 zIndex: 1
             }}>
-                <WorkflowHeader view={view} canActivateWorkflow={canActivateWorkflow} setActivateWorkflowModalOpen={setActivateWorkflowModalOpen} setTestWorkflowModalOpen={setTestWorkflowModalOpen} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader validateWorkflow={validateWorkflow} view={view} canActivateWorkflow={canActivateWorkflow} setActivateWorkflowModalOpen={setActivateWorkflowModalOpen} setTestWorkflowModalOpen={setTestWorkflowModalOpen} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: nodeValidationResults && nodeValidationResults.filter((nodeValidationResult) => nodeValidationResult.level === 'error').length > 0 ? '86vh': '96vh', marginTop: 90}}>
                 {

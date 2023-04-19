@@ -103,6 +103,63 @@ const ManageActionModal = ({ action, isOpen, toggle, updateAction }) => {
         return parameterSchema    
     }
 
+    function processSchemaProperties (schema) {
+        const properties = {}
+        const propertyKeys = Object.keys(schema) ? Object.keys(schema) : []
+        propertyKeys.forEach(key => {
+            properties[key] = {
+                type: Array.isArray(schema[key]) ? 'array' : typeof schema[key],
+                example: JSON.stringify(schema[key]),
+                required: false
+            }
+            if(typeof schema[key] == 'object' && Array.isArray(schema[key]) == false) {
+                properties[key].properties = processSchemaProperties(schema[key])
+            }
+
+            if(Array.isArray(schema[key]) == true && schema[key].length > 0) {
+                properties[key].items = {
+                   type: 'object',
+                   required: [],
+                   properties: processSchemaProperties(schema[key][0])
+                }
+            }
+        })
+        
+        return properties
+    }
+    
+
+   function schemaFromExample() {
+        const schema = {}
+        const exampleObj = JSON.parse(webhookSchemaExample)
+        
+        Object.keys(exampleObj).forEach(key => {
+            schema[key] = {
+                type: Array.isArray(exampleObj[key]) ? 'array' : typeof exampleObj[key],
+                example: JSON.stringify(exampleObj[key]),
+                required: false
+            }
+            
+            if(typeof exampleObj[key] == 'object' && !Array.isArray(exampleObj[key])) {
+               
+                schema[key].properties = processSchemaProperties(exampleObj[key])
+                
+            }
+
+            if(Array.isArray(exampleObj[key]) && exampleObj[key].length > 0) {
+               
+                schema[key].items = {
+                    type: 'object',
+                    required: [],
+                    properties: processSchemaProperties(exampleObj[key][0])
+                }
+            }
+
+        })
+
+        return schema
+   }
+
 
     return (
         <div>
@@ -607,9 +664,9 @@ const ManageActionModal = ({ action, isOpen, toggle, updateAction }) => {
                                 </Text>
                                 <SchemaTree schema={action.requestBody2.schema} setSelectedSchemaProperty={selectProperty} schemaType='requestBody' actionUuid={action.uuid}/>
                             </div>
-                            <Divider orientation='vertical'/>
+                            {/* <Divider orientation='vertical'/> */}
                        
-                            <div style={{width: '50%', padding: 20}}>
+                            {/* <div style={{width: '50%', padding: 20}}>
                                 <Text
                                     sx={{
                                         fontSize: '20px',
@@ -670,7 +727,7 @@ const ManageActionModal = ({ action, isOpen, toggle, updateAction }) => {
 
 
 
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 ) :  action.requestBody2 && action.requestBody2.schema && groupBeingEdited == 'requestBody' ? (
@@ -681,7 +738,7 @@ const ManageActionModal = ({ action, isOpen, toggle, updateAction }) => {
             }
 
 {
-                action.responses.length > 0 && action.responses[0].schema ? (
+                action.responses.length > 0 && !Array.isArray(action.responses[0].schema) ? (
                     <div>
                         <div style={{height: '20px'}}/>
                         <div>

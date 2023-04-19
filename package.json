@@ -42,6 +42,7 @@
     "lodash": "^4.17.21",
     "next": "13.1.6",
     "node-auth0": "^1.0.0",
+    "parse-curl": "^0.2.6",
     "qs": "^6.11.1",
     "react": "18.2.0",
     "react-beautiful-dnd": "^13.1.1",
