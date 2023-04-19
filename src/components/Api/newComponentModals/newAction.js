@@ -564,7 +564,7 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
                                                 Object.keys(newAction?.parameterSchema?.path).map((path, index) => {
                                                     return (
                                                         <>
-                                                            <div style={{height: '20px'}}></div>
+                                                            <div key={index} style={{height: '20px'}}></div>
                                                             <Text
                                                                 sx={{
                                                                     fontSize: '18px',
@@ -1030,7 +1030,7 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
                                     newAction?.parameterSchema && newAction?.parameterSchema?.header ? (
                                         Object.keys(newAction?.parameterSchema?.header).map((header, index) => {
                                             return (
-                                                <Card.Section  sx={{paddingLeft:20}}>
+                                                <Card.Section key={index} sx={{paddingLeft:20}}>
                                                     <div style={{height: '20px'}}></div>
                                                     <Text
                                                         sx={{
@@ -1068,7 +1068,7 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
                                     newAction?.parameterSchema && newAction?.parameterSchema?.path ? (
                                         Object.keys(newAction?.parameterSchema?.path).map((path, index) => {
                                             return (
-                                                <Card.Section  sx={{paddingLeft:20}}>
+                                                <Card.Section key={index} sx={{paddingLeft:20}}>
                                                     <div style={{height: '20px'}}></div>
                                                     <Text
                                                         sx={{
