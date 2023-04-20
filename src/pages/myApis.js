@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import {Modal, Button,Text, Loader, ScrollArea, Grid, Container, Badge, Progress} from '@mantine/core'
+import {Modal, Button,Text, Loader, ScrollArea, Grid, Container, Badge, Tabs, TextInput, Textarea, Progress} from '@mantine/core'
 import {GrAddCircle} from 'react-icons/gr'
 import {VscTypeHierarchy} from 'react-icons/vsc'
 import {AiOutlineCheckCircle} from 'react-icons/ai'
@@ -22,27 +22,34 @@ const MyApis = () => {
    const [isUploading, setIsUploading] = useState(false)
    const [uploadProgress, setUploadProgress] = useState(0)
    const [uploadJob, setUploadJob] = useState(null)
+   const [newApiView, setNewApiView] = useState('upload')
+   const [newApiName, setNewApiName] = useState('')
+   const [newApiDescription, setNewApiDescription] = useState('')
+   const [newApiVersion, setNewApiVersion] = useState('')
+   const [isCreationLoading, setIsCreationLoading] = useState(false)
+
    const router  = useRouter();
 
    const delay = (ms) => new Promise((res) => setTimeout(res, ms));
-  useEffect(() => {
-    if(user?.email && !dbUser){
-        console.log('refetching user')
-        axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email})
-        .then((res) => {
-            setDbUser(res.data)
-            if(res.data.organization){
-              console.log("Organization Found for User")
-              setOrganization(res.data.organization)
-            }
-        })
-        .catch((err) => {
-            // console.log(err)
-        })
-    } else {
+   
+    useEffect(() => {
+        if(user?.email && !dbUser){
+            console.log('refetching user')
+            axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/users/find',{email: user.email})
+            .then((res) => {
+                setDbUser(res.data)
+                if(res.data.organization){
+                console.log("Organization Found for User")
+                setOrganization(res.data.organization)
+                }
+            })
+            .catch((err) => {
+                // console.log(err)
+            })
+        } else {
 
-    }
-}, [user, dbUser, setOrganization, setDbUser])
+        }
+    }, [user, dbUser, setOrganization, setDbUser])
 
    const fetchApis = useCallback(() => {
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + organization)
@@ -170,6 +177,27 @@ const MyApis = () => {
         })
     }
 
+    function generateAPI () { 
+        setIsCreationLoading(true)
+        var newInterface = {
+            name: newApiName,
+            version: newApiVersion,
+            description: newApiDescription,
+            organizationId: organization
+        }
+
+        axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces', newInterface).then((res) => {
+            router.push('/apis/' + res.data.uuid)
+            setIsCreationLoading(false)
+            return res.data
+        }).catch((err) => {
+            console.log(err)
+            setIsCreationLoading(false)
+            return null
+        })
+
+    }
+
 
     return apis ? (
         <div style={{display: 'block'}}>
@@ -188,119 +216,230 @@ const MyApis = () => {
                         <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontSize: '30px', paddingLeft: 10,paddingTop: 10}}>We have processed your API spec</Text>                 
 
                     ) : (
-                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontSize: '30px', paddingLeft: 10,paddingTop: 10}}>Upload API Spec</Text>                 
-
+                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontSize: '30px', paddingLeft: 10,paddingTop: 10}}>New API Spec</Text>                 
                     )     
                 }
             >
-               
-                {
-                    isUploading && uploadProgress < 100 ? (
-                        <div>
-                            <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F6F3', padding: 30 }}>
-                                <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '20px', color: '#3E3E3E'}}>{uploadProgress}%</Text>
-                                <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'center'}}>
-                                    <Text style={{fontFamily: 'Visuelt', fontSize: '20px', color: '#3E3E3E'}}></Text>
-                                    <div style={{height: 60}}/>
-                                    <Progress animate striped color={'#9595FF'} style={{width: 300, height: 10, backgroundColor: '#EAEAFF', borderRadius: 10}} value={uploadProgress} />
-                                </div>
-                            </div>
-                        </div>
-                        
-                    ) : uploadProgress == 100 ? (
+               <Tabs color="dark" defaultValue={"upload"}>
+                    <Tabs.List>
+                        <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="upload">Open API Import</Tabs.Tab>
+                        <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="manual">Create from Scratch</Tabs.Tab>
+                    </Tabs.List>
+                    <Tabs.Panel value="upload" label="Upload">
+                        {
+                            isUploading && uploadProgress < 100 ? (
+                                    <div>
+                                        <div style={{height: '20px'}}/>
+                                        <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F6F3', padding: 30 }}>
+                                            <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '20px', color: '#3E3E3E'}}>{uploadProgress}%</Text>
+                                            <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'center'}}>
+                                                <Text style={{fontFamily: 'Visuelt', fontSize: '20px', color: '#3E3E3E'}}></Text>
+                                                <div style={{height: 60}}/>
+                                                <Progress animate striped color={'#9595FF'} style={{width: 300, height: 10, backgroundColor: '#EAEAFF', borderRadius: 10}} value={uploadProgress} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                            ) : uploadProgress == 100 ? (
+                                <>
+                                <div style={{height: '20px'}}/>
+                                    <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F6F3', padding: 30 }}>
+                                        <div style={{display:'flex', flexDirection:'column', width:"100%"}}>
+                                            <div style={{display:'flex', flexDirection:'row', alignItems:'center', }}>
+                                                <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                                <div style={{width: 10}}/>
+                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.schema?.count} Schemas</Text> 
+                                            </div>
+                                            <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                                <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                                <div style={{width: 10}}/>
+                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.actions?.count} Actions</Text> 
+                                            </div>
+                                            <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                                <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                                <div style={{width: 10}}/>
+                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.parameters?.count} Parameters</Text> 
+                                            </div>
+                                            <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                                <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                                <div style={{width: 10}}/>
+                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.webhooks?.count} Webhooks</Text> 
+                                            </div>
+                                            <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                                <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                                <div style={{width: 10}}/>
+                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.securitySchemes?.count} Security Schemes</Text> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'white', paddingTop: 30}}>
+                                        <Button
+                                            onClick={() => {
+                                                setModalOpened(false)
+                                                setUploadJob(null)
+                                                setUploadProgress(0)
+                                                setIsUploading(false)
+                                            }}
+                                            sx={{
+                                                backgroundColor: 'white',
+                                                color: 'black',
+                                                '&:hover': {
+                                                    backgroundColor: 'white',
+                                                    color: 'black',
+                                                    border: '1px solid #3E3E3E',
+                                                    
+                                                },
+                                                fontFamily: 'Visuelt',
+                                                border: '1px solid #3E3E3E',
+                                                fontSize: '18px',
+                                                fontWeight: 400,
+                                                width: 120,
+                                                height: 50,
+                                                borderRadius: 10,
+                                            }}
+                                        >Close</Button>
+                                        <Button
+                                            onClick={() => {
+                                                
+                                                router.push(`/apis/${uploadJob?.metadata?.interface}`)
+
+                                            }}
+                                            sx={{
+                                                backgroundColor: 'black',
+                                                color: 'white',
+                                                '&:hover': {
+                                                    backgroundColor: '#3E3E3E',
+                                                
+                                                },
+                                                fontFamily: 'Visuelt',
+                                                border: '1px solid #eaeaff',
+                                                fontSize: '18px',
+                                                fontWeight: 400,
+                                                
+                                                height: 50,
+                                                borderRadius: 10,
+                                            }}
+                                    >View API Spec</Button>
+                                    </div>
+                                </>
+                            
+                            ) :  (
+                                <>
+                                    <div style={{height: '20px'}}/>
+                                    <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', paddingBottom: 10}}>
+                                        <Text style={{ fontFamily: 'Visuelt', fontSize: '15px', paddingLeft: 10, color: '#3E3E3E'}}>Supported Open API Versions:</Text> 
+                                        <Badge>v2.X</Badge>
+                                        <Badge>v3.X</Badge>
+                                    </div>
+                                    <ImportApiDropzone setUploadJob={setInitialJob} organizationId={organization} userId={user?.sub}/>
+                                </>
+                            ) 
+                        }
+                    </Tabs.Panel>
+                    <Tabs.Panel value="manual" label="Manual">
                         <>
-                            <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F6F3', padding: 30 }}>
-                                <div style={{display:'flex', flexDirection:'column', width:"100%"}}>
-                                    <div style={{display:'flex', flexDirection:'row', alignItems:'center', }}>
-                                        <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
-                                        <div style={{width: 10}}/>
-                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.schema?.count} Schemas</Text> 
-                                    </div>
-                                    <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                        <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
-                                        <div style={{width: 10}}/>
-                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.actions?.count} Actions</Text> 
-                                    </div>
-                                    <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                        <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
-                                        <div style={{width: 10}}/>
-                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.parameters?.count} Parameters</Text> 
-                                    </div>
-                                    <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                        <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
-                                        <div style={{width: 10}}/>
-                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.webhooks?.count} Webhooks</Text> 
-                                    </div>
-                                    <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
-                                        <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
-                                        <div style={{width: 10}}/>
-                                        <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.securitySchemes?.count} Security Schemes</Text> 
-                                    </div>
-                                </div>
-                            </div>
-                            <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'white', paddingTop: 30}}>
-                                <Button
-                                    onClick={() => {
-                                        setModalOpened(false)
-                                        setUploadJob(null)
-                                        setUploadProgress(0)
-                                        setIsUploading(false)
+                            <div style={{height: '20px'}}/>
+                            <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', paddingBottom: 10}}>
+                                <TextInput
+                                    withAsterisk
+                                    label="API Name"
+                                    value= {newApiName}
+                                    onChange={(e) => {
+                                        setNewApiName(e.target.value)
                                     }}
                                     sx={{
-                                        backgroundColor: 'white',
-                                        color: 'black',
-                                        '&:hover': {
-                                            backgroundColor: 'white',
-                                            color: 'black',
+                                        width: '100%',
+                                        height: 50,
+                                        borderRadius: 10,
+                                        fontFamily: 'Visuelt',
+                                        fontSize: '18px',
+                                        fontWeight: 400,
+                                        paddingLeft: 10,
+                                        '&:focus': {
                                             border: '1px solid #3E3E3E',
-                                            
-                                        },
-                                        fontFamily: 'Visuelt',
-                                        border: '1px solid #3E3E3E',
-                                        fontSize: '18px',
-                                        fontWeight: 400,
-                                        width: 120,
-                                        height: 50,
-                                        borderRadius: 10,
+                                        }
                                     }}
-                                >Close</Button>
-                                <Button
-                                    onClick={() => {
-                                        
-                                        router.push(`/apis/${uploadJob?.metadata?.interface}`)
+                                    placeholder="e.g. My API"
+                                />
+                                <div style={{height: '20px'}}/>
+                                <TextInput
+                                    withAsterisk
+                                    label="API Version"
+                                    value= {newApiVersion}
+                                    onChange={(e) => {
+                                        setNewApiVersion(e.target.value)
+                                    }}
 
-                                    }}
                                     sx={{
-                                        backgroundColor: 'black',
-                                        color: 'white',
-                                        '&:hover': {
-                                            backgroundColor: '#3E3E3E',
-                                         
-                                        },
-                                        fontFamily: 'Visuelt',
-                                        border: '1px solid #eaeaff',
-                                        fontSize: '18px',
-                                        fontWeight: 400,
-                                        
+                                        width: '100%',
                                         height: 50,
                                         borderRadius: 10,
+                                        fontFamily: 'Visuelt',
+                                        fontSize: '18px',
+                                        fontWeight: 400,
+                                        paddingLeft: 10,
+                                        '&:focus': {
+                                            border: '1px solid #3E3E3E',
+                                        }
                                     }}
-                               >View API Spec</Button>
-                            </div>
-                        </>
-                       
-                    ) : (
-                        <>
-                         <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', paddingBottom: 10}}>
-                            <Text style={{ fontFamily: 'Visuelt', fontSize: '15px', paddingLeft: 10, color: '#3E3E3E'}}>Supported Open API Versions:</Text> 
-                            <Badge>v2.X</Badge>
-                            <Badge>v3.X</Badge>
-                        </div>
-                        <ImportApiDropzone setUploadJob={setInitialJob} organizationId={organization} userId={user?.sub}/>
+                                    placeholder="e.g. My API"
+                                />
+                                <div style={{height: '20px'}}/>
+                                <Textarea
+                                    label="API Description"
+                                    value= {newApiDescription}
+                                    onChange={(e) => {
+                                        setNewApiDescription(e.target.value)
+                                    }}
 
+                                    sx={{
+                                        width: '100%',
+                                        height: 50,
+                                        borderRadius: 10,
+                                        fontFamily: 'Visuelt',
+                                        fontSize: '18px',
+                                        fontWeight: 400,
+                                        paddingLeft: 10,
+                                        '&:focus': {
+                                            border: '1px solid #3E3E3E',
+                                        }
+                                    }}
+                                    placeholder="e.g. My API"
+                                />
+                            </div>
+                            <div style={{height: '60px'}}/>
+                            <Button
+                               disabled = {newApiName === '' || newApiVersion === ''}
+                               loading={isCreationLoading}
+                               onClick={() => {
+                                    setIsCreationLoading(true)
+                                    var api = generateAPI()
+                                    if(api){
+                                        
+                                        setModalOpened(false)
+                                    }
+                               }}
+                                sx={{
+                                    backgroundColor: 'black',
+                                    color: 'white',
+                                    '&:hover': {
+                                        backgroundColor: '#3E3E3E',
+                                    
+                                    },
+                                    fontFamily: 'Visuelt',
+                                    border: '1px solid #eaeaff',
+                                    fontSize: '18px',
+                                    fontWeight: 400,
+                                    
+                                    height: 50,
+                                    borderRadius: 10,
+                                }}
+                            >Create API</Button>
+                                
                         </>
-                    )
-                }
+                    </Tabs.Panel>
+               </Tabs>
+
             </Modal>
             <div style={{height: '100vh', width: '45vw',padding:30, display:'flex', flexDirection:'column'}}>
                 <Text style={{paddingLeft: 20,paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>Imported APIs</Text>
@@ -317,7 +456,7 @@ const MyApis = () => {
                             style={{height: 180, width: 280, backgroundColor: '#f8f6f3', borderRadius: 20}}>
                                 <div style={{display:'flex', flexDirection:'column', alignItems: 'center'}}>
                                 <GrAddCircle style={{height: 35, width: 35, color: '#c4c4c4'}} />
-                                <Text style={{paddingTop: 10,fontFamily:'Visuelt', fontWeight: 100, fontSize: '20px', color:'#000000'}}>Upload API Spec</Text>
+                                <Text style={{paddingTop: 10,fontFamily:'Visuelt', fontWeight: 100, fontSize: '20px', color:'#000000'}}>Add API Spec</Text>
                                 </div>
                             </Button>
                         </Grid.Col>    

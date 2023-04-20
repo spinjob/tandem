@@ -11,8 +11,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 function generateTreeData (schema, parent) {
 
-    const schemaKeys = Object.keys(schema)
-    const schemaValues = Object.values(schema)
+    const schemaKeys = schema ? Object.keys(schema) : []
+    const schemaValues = schema ? Object.values(schema) : []
 
     var treeItems = {}
 
