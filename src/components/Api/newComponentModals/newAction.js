@@ -68,7 +68,9 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
     }
 
     function processCurlRequest(){
-        var cURL = inputCurl
+        // Replace any invalid apostrophe or quote characters
+        var cURL = inputCurl.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"')
+
         var updatedAction = newAction ? newAction : {}
         if(inputCurl.includes('--data-raw')){
             cURL = inputCurl.replace('--data-raw', '--data')
@@ -76,6 +78,7 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
         try {
             const parsed = parseCurl(cURL)
             if(isJson(JSON.stringify(parsed))){
+                console.log('parsed', parsed)
                 setParsedCurl(parsed)
 
                 // Confirm the method exists
