@@ -327,7 +327,6 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
     </tr>
   ))
 
-console.log(rows)
   return  (
     <div style={{width: '100%', maxWidth:1250}}>
         <div style={{paddingBottom: 10,paddingLeft: 10, paddingTop: 30, display:'flex'}}>

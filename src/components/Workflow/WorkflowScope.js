@@ -164,12 +164,9 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 rows.push(row)
             } else if (formula.formula == 'substring'){
                 var substringInput = formula.inputs['substring']
-                console.log(substringInput)
                 
                 var fullFormula = inputProperty?.path + '.substring(' + substringInput.startingIndex + ',' + substringInput.endingIndex + ')'
                 if(index != 0){
-                    console.log(rows)
-                    console.log(index)
                     fullFormula = rows[0][index - 1] + '.substring(' + substringInput.startingIndex + ',' + substringInput.endingIndex + ')'
                 }
                 var row = []
@@ -392,8 +389,6 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
         }
 
     }
-
-    console.log(edges)
     return typeof window !== 'undefined' ? (
         <>
             <div ref={printRef} style={{ display: 'flex', flexDirection: 'column', width: '100%', padding: 60}}>
@@ -449,9 +444,6 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                     {
                         edges.map((edge) => 
                            {
-
-                            console.log(edge)
-
                                 return mappings[edge.target] ? (
                                 
                                 <div key={edge.id}>

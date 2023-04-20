@@ -286,8 +286,6 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                     }
                     else {
                         setSelectedSourceProperty(items[0])
-                        console.log(items[0])
-                        console.log(getSchemaFromPath(items[0]))
                         setSelectedMapping({sourceProperty: getSchemaFromPath(items[0])})
                     }
 
@@ -310,7 +308,6 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                     else {
                        
                         setSelectedTargetProperty(items[0])
-                        console.log(items[0])
                         setSelectedMapping({targetProperty: getSchemaFromPath(items[0])})
                         
                     }

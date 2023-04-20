@@ -79,7 +79,6 @@ const ManageActionModal = ({ action, isOpen, toggle, updateAction }) => {
     
     const selectProperty = (propertyPath, schemaType) => {
         setSelectedSchemaProperty(processSchemaPath(propertyPath[0], schemaType))
-        console.log(processSchemaPath(propertyPath[0], schemaType))
         return
     }
 

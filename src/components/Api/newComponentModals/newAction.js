@@ -222,7 +222,11 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
 
     function processSchemaProperties (schema) {
         const properties = {}
+        if(!schema) {
+            return properties
+        }
         const propertyKeys = Object.keys(schema) ? Object.keys(schema) : []
+
         propertyKeys.forEach(key => {
             properties[key] = {
                 type: Array.isArray(schema[key]) ? 'array' : typeof schema[key],
@@ -254,14 +258,17 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
     }
 
    function schemaFromExample(json) {
-        const schema = {}
+        console.log('json', json)
+        const schema = {} 
+        const isArray = Array.isArray(JSON.parse(json))
+        console.log('isArray', Array.isArray(JSON.parse(json)))
         try {
             JSON.parse(json)
         } catch (error) {
             console.log(error)
             return null
         }
-        const exampleObj = JSON.parse(json)
+        const exampleObj = isArray ? JSON.parse(json)[0] : JSON.parse(json)
 
         Object.keys(exampleObj).forEach(key => {
         
@@ -325,10 +332,28 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
 
         })
 
-        return schema
+        if (isArray) {
+            return {
+                "[array]": {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        required: [],
+                        properties: schema
+                    }
+                }
+            }
+        } else {
+            return schema
+        }
+
+
    }
 
    function hasDynamicKeys(obj) {
+        if(!obj){
+            return false;
+        }
         const keys = Object.keys(obj);
         if (keys.length === 0) {
         return true; // empty object has static keys with same properties
