@@ -83,8 +83,9 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
 
                 // Confirm the method exists
                 if(parsed.method){
+
                     if(newAction){
-                        newAction.method = toLowercase(parsed.method)
+                        newAction.method = toLowercase(parsed.method)          
                         setNewAction(newAction)
                     } else {
                         setNewAction({
@@ -131,7 +132,7 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
                     var headerKeys = Object.keys(parsed.header)
 
                     headerKeys.forEach(key => {
-                        if(key ==  'Content-Type' || key == 'Authorization'){
+                        if(key ==  'Content-Type' || key == 'Authorization' || key == 'Accept' || key == 'Cookie'){
                         } else {
                             headerObject[key] = {}
                             headerObject[key].in = 'header'
@@ -378,7 +379,7 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
         const action = newAction 
         action.name = actionName
         action.parent_interface_uuid = apiId
-        action.method = toLowercase(actionMethod)
+        action.method = toLowercase(parsedCurl.method)
 
         setNewActionLoading(true)
         saveNewAction(action)
@@ -840,6 +841,7 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
                                         if (responseSchema) {
                                             processActionResponseBodySchema(responseSchema, "2XX")
                                             setActive(3)
+
                                         } else {
 
                                         }
@@ -924,7 +926,6 @@ const NewActionForm = ({ apiId, setModalOpen}) => {
                                         
                                         var responseSchema = schemaFromExample(actionResponseExample)
                                         if (responseSchema) {
-                                            setActionResponseBodySchema(responseSchema)
                                             setActive(4)
                                         } else {
 

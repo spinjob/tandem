@@ -14,6 +14,40 @@ const ManageActionModal = ({ action, isOpen, toggle, updateAction }) => {
         return str.toUpperCase()
     }
 
+// function generateExampleJson(schema) {
+//     const example = {};
+//     for (const key in schema) {
+//       const property = schema[key];
+//       if (property.type) {
+//         switch (property.type) {
+//           case "object":
+//             example[key] = generateExampleJson(property.properties);
+//             break;
+//           case "array":
+//             example[key] = [generateExampleJson(property.items.properties)];
+//             break;
+//           case "string":
+//             example[key] = property.example || "";
+//             break;
+//           case "number":
+//             example[key] = property.example || 0;
+//             break;
+//           case "integer":
+//             example[key] = property.example || 0;
+//             break;
+//           case "boolean":
+//             example[key] = property.example || false;
+//             break;
+//         }
+//       } else {
+//         example[key] = generateExampleJson(property.properties);
+//       }
+//     }
+//     console.log(example)
+//     return example;
+//   }
+  
+
     const processSchemaPath = (path, schemaType) => {
         if(schemaType == 'requestBody') {
             var pathArray = path.split('.')
@@ -188,6 +222,23 @@ const ManageActionModal = ({ action, isOpen, toggle, updateAction }) => {
                 >
                     {action.path}
                 </Text>
+            </div>
+            <div>
+                {/* <Button
+                    onClick={() => generateExampleJson(action.requestBody2.schema)}
+                >
+                    <Text
+                        sx={{
+                            fontSize: '20px',
+                            color: 'black',
+                            display: 'block',
+                            fontFamily: 'Visuelt',
+                            fontWeight: 400
+                        }}
+                    >
+                        Generate Example from Schema
+                    </Text>
+                </Button> */}
             </div>
             {
                 action.parameterSchema && action.parameterSchema?.header && groupBeingEdited != 'header' ? (
