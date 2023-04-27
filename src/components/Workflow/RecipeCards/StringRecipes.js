@@ -128,7 +128,7 @@ const PrependCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourcePro
                         }}
                         value={selectedProperty}
                         onChange={(e)=>{
-                            updateFormula(recipe.uuid, {append: e})
+                            updateFormula(recipe.uuid, {prepend: e})
                             setInputs(e)
                             setSelectedProperty(e)
                         }}
@@ -142,7 +142,7 @@ const PrependCard = ({ updateFormula, recipe, index, onEdit, onDelete, sourcePro
                         }/>
                     ) : (
                         <TextInput
-                        placeholder="String to append"
+                        placeholder="String to prepend"
                         
                         onChange={(e)=>{
                             updateFormula(recipe.uuid, {prepend: e.currentTarget.value})

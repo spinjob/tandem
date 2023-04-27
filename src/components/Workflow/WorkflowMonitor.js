@@ -132,6 +132,7 @@ const WorkflowMonitor = ({workflow}) => {
                         Refresh Logs
                     </Text>
                 </Button>
+
             </div>
                     
             <div style={{height: 20}} />

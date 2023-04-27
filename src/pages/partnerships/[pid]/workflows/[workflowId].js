@@ -1155,13 +1155,14 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
     const globalNodeState = useStore((state) => state.nodes);
     const globalEdgeState = useStore((state) => state.edges);
     const mappings = useStore((state) => state.mappings);
+    const functions = useStore((state) => state.functions);
     const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
     const setNodeAction = useStore((state) => state.setNodeAction);
     const [saveInProgress, setSaveInProgress] = useState(false);
     const [checked, setChecked] = useState(false);
     const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
-    
+
     const { pid, workflowId } = router.query;
 
     const processWorkflowSave = () => {
@@ -1176,7 +1177,8 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
             updated_at: new Date(),
             parent_project_uuid: workflow.parent_project_uuid,
             definition: {
-                mappings: mappings
+                mappings: mappings,
+                functions: functions
             }
         }).then((response) => {
             setSaveInProgress(false)
@@ -1544,6 +1546,8 @@ const WorkflowStudio = () => {
     const nodes = useStore((state) => state.nodes);
     const edges = useStore((state) => state.edges);
     const mappings = useStore((state) => state.mappings);
+    const functions = useStore((state) => state.functions);
+    const setFunctions = useStore((state) => state.setFunctions);
     const [mappingModalOpen, setMappingModalOpen] = useState(false);
     const setNodeViews = useStore((state) => state.setNodeViews);
     const setSelectedEdge = useStore((state) => state.setSelectedEdge);
@@ -1819,6 +1823,10 @@ const WorkflowStudio = () => {
 
                 if(res.data[0].definition?.mappings){
                     setMappings(res.data[0].definition?.mappings)
+                }
+
+                if(res.data[0].definition?.functions){
+                    setFunctions(res.data[0].definition?.functions)
                 }
 
                 if(res.data[0].nodes.length > 0) {

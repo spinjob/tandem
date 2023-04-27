@@ -7,8 +7,7 @@ import {
     Divider
   } from '@mantine/core';
 
-//   import ReactJson from 'react-json-view';
-
+import { CodeBlock } from '@atlaskit/code';
 import axios from 'axios';
 import useStore from '../../context/store'
 import {Player } from '@lottiefiles/react-lottie-player';
@@ -21,27 +20,41 @@ import html2canvas from "html2canvas";
 
 
 const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) => {
-    
+
     const workflow = useStore(state => state.workflow)
     const nodeActions = useStore(state => state.nodeActions)
     const mappings = useStore(state => state.mappings)
+    const functions = useStore(state => state.functions)
+    const setFunctions = useStore(state => state.setFunctions)
     const nodes = useStore(state => state.nodes)
     const edges = useStore(state => state.edges)
     const printRef = React.useRef();
     const router = useRouter()
+    const [workflowStepCode, setWorkflowStepCode] = useState(functions ? functions : {})
+    const [workflowStepCodeLoading, setWorkflowStepCodeLoading] = useState(false)
     const { pid, workflowId } = router.query
 
     const createPDF = async () => {
         const element = printRef.current;
-        const canvas = await html2canvas(element);
-        const data = canvas.toDataURL('image/png');
-
-        const pdf = new jsPDF("portrait", "pt", "a4");
-        const imgProperties = pdf.getImageProperties(data);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
-        pdf.addImage(data, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save("print.pdf");
+        html2canvas(element).then((canvas) => {
+            const imgData = canvas.toDataURL('image/png');
+            
+            const doc = new jsPDF("portrait", "pt", "a4");
+            const imgWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+            doc.addImage(imgData, "PNG", 10, 0, imgWidth, imgHeight + 25);
+            heightLeft -= pageHeight;
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                doc.addPage();
+                doc.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight + 25);
+                heightLeft -= pageHeight;
+            }
+            doc.save("print.pdf");
+        })
     }
 
     useEffect(() => {
@@ -51,13 +64,94 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
         }
     }, [shouldDownloadPdf,setShouldDownloadPdf])
 
+    const fetchWorkflowStepCode = useCallback((mappings, action, actionId) => {
+        var request = {
+            model: "gpt-4",
+            messages: [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that generates Javascript that accepts input data, translates the input data into the components of an HTTP request and implements the ability to execute that request. In order to generate this Python, I will provide you a JSON object with an endpoint, a request method, and three dictionaries that define the output data: {endpoint: '', method: '', output: { header: {}, path:{}, requestBody: {}}}.  Each output dictionary will contain keyed properties of a component of an HTTPS request you will need to implement the execution of.  The output[header] dictionary will have keys that represents the name of the header parameter and the value of each key will represent either a static value, a dot-notation to a property in the input data object that contains the value, and/or a formula that produces the value. The output[path] dictionary will have keys that represent a placeholder that's identified in the path URL (e.g. /v1/api/orders/{{orderId}}) and the values will either be a static value, a dot-notation to a property in the input data object that contains the value, and/or a formula that produces the value. The output[requestBody] dictionary will have keys that are dot-notation representations of a property in an output object and the values will either be a static value, a dot-notation to a property in the input data object that contains the value, and/or a formula that produces the value.  Only return valid Javascript that can be successfully executed."
+                }
+            ]
+        }
+       var outputObject = {
+              endpoint: action.path, 
+              method: action.method,
+              output: {
+                    header:{},
+                    path: {},
+                    requestBody: {}
+              }
+       }
+
+       Object.keys(mappings).forEach((mappingKey) => {
+            var mapping = mappings[mappingKey]
+
+            var componentKey = mapping.output.in == 'header' ? 'header' : mapping.output.in == 'path' ? 'path' : 'requestBody'
+            
+            if(mapping.input.formulas && mapping.input.formulas.length > 0){
+                var formulaDictionary = {};
+
+                mapping.input.formulas.forEach((formula) => {
+                    var formulaInputValues = Object.values(formula.inputs)
+
+                    Object.keys(formula.inputs).forEach((key, index) => {
+    
+                        formulaDictionary[key] = formulaInputValues[index]
+                        
+                    })
+                })
+                
+                outputObject.output[componentKey][mapping.output.path] = formulaDictionary
+
+            } else {
+                outputObject.output[componentKey][mapping.output.path] = mapping.input.path
+            }
+           
+       })
+       var userMessage = {
+              role: 'user', 
+             content: JSON.stringify(outputObject)
+       }
+       
+       request.messages.push(userMessage)
+       generateWorkflowStepCode(request, actionId)
+       
+    })
+
+    const generateWorkflowStepCode = useCallback((requestBody, actionId) => {
+        setWorkflowStepCodeLoading(true)
+        console.log("Generating workflow step code")
+        console.log(requestBody)
+        console.log(actionId)
+
+        axios.post(process.env.NEXT_PUBLIC_OPEN_AI_CHAT_API_URL, requestBody,{
+            headers: {
+                "Authorization": "Bearer " + process.env.NEXT_PUBLIC_OPEN_AI_CHAT_API_KEY,
+        }}).then((response) => {
+            console.log(response.data)
+            setWorkflowStepCodeLoading(false)
+            var returnedMessage = response.data.choices[0].message.content
+
+            var javascript = returnedMessage.split('```')[1].split('javascript')[1]
+
+            setWorkflowStepCode({[actionId]: javascript, ...workflowStepCode})
+            var updatedWorkflowStepCode = {[actionId]: javascript, ...workflowStepCode}
+            setFunctions(updatedWorkflowStepCode)
+
+        }).catch((error) => {
+            setWorkflowStepCodeLoading(false)
+            console.log(error)
+        })
+
+    })
+
+
     const renderAdaptionTable = (formulas, targetProperty, inputProperty, inputNodeId, outputNodeId) => {
         
         var rows = []
         //Specifying all of the mappings action IDs so we can filter out any previously mapped properties from other actions.
-        console.log(formulas)
-        console.log(targetProperty)
-        console.log(inputProperty)
+        var formulaArray = []
 
         formulas?.forEach((formula, index) => {
             if (formula.formula == 'ifthen'){
@@ -80,7 +174,9 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 var fullFormula = ifObject?.property?.path + ' ' + ifCondition + ' ' + ifValue + orFormula + ' ? ' + thenField + ' = ' + thenValue
                 var row = []
                 row.push(inputProperty?.path)
-                row.push(fullFormula)
+                formulaArray.push(fullFormula)
+                var combinedFormulas = formulaArray.join(' : ')
+                row.push(combinedFormulas)
                 row.push(thenField)
                 rows.push(row)
             } else if (formula.formula == 'addition'){
@@ -92,7 +188,10 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                     }
                     var row = []
                     row.push(inputProperty?.path)
-                    row.push(fullFormula)
+
+                    formulaArray.push(fullFormula)
+                    var combinedFormulas = formulaArray.join(' : ')
+                    row.push(combinedFormulas)
                     row.push(targetProperty?.path)
                     rows.push(row)
                     
@@ -104,7 +203,9 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 }
                 var row = []
                 row.push(inputProperty?.path)
-                row.push(fullFormula)
+                formulaArray.push(fullFormula)
+                var combinedFormulas = formulaArray.join(' : ')
+                row.push(combinedFormulas)
                 row.push(targetProperty?.path)
                 rows.push(row)
             } else if (formula.formula == 'multiplication'){
@@ -115,7 +216,9 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 }
                 var row = []
                 row.push(inputProperty?.path)
-                row.push(fullFormula)
+                formulaArray.push(fullFormula)
+                var combinedFormulas = formulaArray.join(' : ')
+                row.push(combinedFormulas)
                 row.push(targetProperty?.path)
                 rows.push(row)
             } else if (formula.formula == 'division'){
@@ -126,7 +229,9 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 }
                 var row = []
                 row.push(inputProperty?.path)
-                row.push(fullFormula)
+                formulaArray.push(fullFormula)
+                var combinedFormulas = formulaArray.join(' : ')
+                row.push(combinedFormulas)
                 row.push(targetProperty?.path)
                 rows.push(row)
             } else if (formula.formula == 'concatenation'){
@@ -137,7 +242,9 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 }
                 var row = []
                 row.push(inputProperty?.path)
-                row.push(fullFormula)
+                formulaArray.push(fullFormula)
+                var combinedFormulas = formulaArray.join(' : ')
+                row.push(combinedFormulas)
                 row.push(targetProperty?.path)
                 rows.push(row)
             } else if (formula.formula == 'append'){
@@ -148,7 +255,9 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 }
                 var row = []
                 row.push(inputProperty?.path)
-                row.push(fullFormula)
+                formulaArray.push(fullFormula)
+                var combinedFormulas = formulaArray.join(' : ')
+                row.push(combinedFormulas)
                 row.push(targetProperty?.path)
                 rows.push(row)
             } else if (formula.formula == 'prepend'){
@@ -159,7 +268,9 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 }
                 var row = []
                 row.push(inputProperty?.path)
-                row.push(fullFormula)
+                formulaArray.push(fullFormula)
+                var combinedFormulas = formulaArray.join(' : ')
+                row.push(combinedFormulas)
                 row.push(targetProperty?.path)
                 rows.push(row)
             } else if (formula.formula == 'substring'){
@@ -171,10 +282,26 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 }
                 var row = []
                 row.push(inputProperty?.path)
-                row.push(fullFormula)
+                formulaArray.push(fullFormula)
+                var combinedFormulas = formulaArray.join(' : ')
+                row.push(combinedFormulas)
                 row.push(targetProperty?.path)
                 rows.push(row)
             } else if (formula.formula == 'replace'){
+                console.log('replace')
+                console.log(formula)
+                var replaceInput = formula.inputs['replace']
+                var fullFormula = inputProperty?.path + '.replace(' + replaceInput.toReplace + ',' + replaceInput.replaceWith + ')'
+                if(index != 0){
+                    fullFormula = rows[0][index - 1] + '.replace(' + replaceInput.toReplace + ',' + replaceInput.replaceWith + ')'
+                }
+                var row = []
+                row.push(inputProperty?.path)
+                formulaArray.push(fullFormula)
+                var combinedFormulas = formulaArray.join(' : ')
+                row.push(combinedFormulas)
+                row.push(targetProperty?.path)
+                rows.push(row)
 
 
             }
@@ -211,15 +338,25 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
     const renderTriggerContent = () => {
 
         var trigger = workflow?.trigger
-        var action1 = nodeActions['action-1-'+workflowId]
+        var triggerApi = workflow?.apis.filter(api => api.uuid == trigger.selectedWebhook?.parent_interface_uuid)[0]
 
         if(trigger.type == 'webhook'){
             return(
                 <div>
                     <div>
+                        <Text   
+                            sx={{
+                                fontFamily: 'Vulf Sans',
+                                fontSize: '24px',
+                                fontWeight: 500,
+                                color: '#5a5a5a'
+                            }}
+                        >
+                            {triggerApi.name}
+                        </Text>
                         <Text
                             sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
-                            Webhook Trigger
+                             Webhook Trigger
                         </Text>
                         <div style={{height: 20}}/>
                          <Divider size={'xs'} sx={{width: '40%'}}/>
@@ -391,7 +528,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
     }
     return typeof window !== 'undefined' ? (
         <>
-            <div ref={printRef} style={{ display: 'flex', flexDirection: 'column', width: '100%', padding: 60}}>
+            <div ref={printRef} style={{ pageBreakAfter:'always', display: 'flex', flexDirection: 'column', width: '100%', padding: 60}}>
                 
                 <div style={{display: 'flex', flexDirection: 'row',justifyContent: 'space-between',alignItems: 'center', width: '100%', paddingRight: 180}}>
                     <div style={{ display: 'flex',  flexDirection: 'row', alignItems: 'center' }}>
@@ -444,9 +581,10 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                     {
                         edges.map((edge) => 
                            {
+                                var nodeActionApi = workflow?.apis.filter(api => api.uuid == nodeActions[edge.target].parent_interface_uuid)[0]
                                 return mappings[edge.target] ? (
                                 
-                                <div key={edge.id}>
+                                <div style={{paddingTop: 30}} key={edge.id}>
                                      {
                                             Object.values(mappings[edge?.target]).filter((mapping)=> {
                                                 return mapping.output?.in == 'configuration'
@@ -543,6 +681,23 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                                             ) : null
                                         }
                                     <div>
+                                        {
+                                            nodeActionApi ? (
+                                                <Text
+                                                sx={{
+                                                    fontFamily: 'Vulf Sans',
+                                                    fontSize: '24px',
+                                                    fontWeight: 500,
+                                                    color: '#5a5a5a'
+                                                }}
+    
+                                            >
+    
+                                                {nodeActionApi.name}
+                                            </Text>
+                                            ) : null
+                                        }
+                                       
                                         <Text sx={{fontFamily: 'Vulf Sans', fontSize: '40px', color: '#000000'}}>
                                            {edge.target.split('-')[1]}. {nodeActions[edge.target]?.method.toUpperCase()} {nodeActions[edge.target]?.path}
                                         </Text>
@@ -586,6 +741,47 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                                         </div>
                                         <div style={{height: 20}}/>
                                     </div>
+                                    
+                                    {
+                                            workflowStepCode[edge.target] ? (
+                                                <CodeBlock language='javascript' showLineNumbers={true} text={workflowStepCode[edge.target]}/>
+                                            ): (
+                                                <Button
+                                                    variant='subtle'
+                                                    loading={workflowStepCodeLoading}
+                                                    style={{marginLeft: 0, borderRadius: 30}}
+                                                    
+                                                    sx={{
+                                                        backgroundColor: '#EAEAFF',
+                                                        ':hover': {
+                                                            backgroundColor: '#FFFFFF',
+                                                            borderRadius: 30
+                                                        }
+                                                    }}
+                                                    onClick={() => { 
+                                                        console.log(edge.target)
+                                                        fetchWorkflowStepCode(mappings[edge.target],nodeActions[edge.target], edge.target)
+                                                    }}
+                                                >
+                                                    {
+                                                        workflowStepCodeLoading ? (
+                                                            <Text
+                                                                style={{fontFamily:'Visuelt', color: 'black', fontWeight: 400, fontSize: 16}}
+                                                            >
+                                                                Generating Code
+                                                            </Text>
+                                                        ) : (
+                                                            <Text
+                                                                style={{fontFamily:'Visuelt', color: 'black', fontWeight: 400, fontSize: 16}}
+                                                            >
+                                                                Generate Code
+                                                            </Text>
+                                                        )
+                                                    }
+  
+                                                </Button>
+                                            )
+                                    }
                                     <div style={{height: 20}}/>
                                         {
                                             Object.values(mappings[edge?.target]).filter((mapping)=> {
@@ -642,8 +838,10 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                                                                         
                                                                         mappings[edge.target] ? (
                                                                             Object.keys(mappings[edge.target]).map((targetKey, index) => {
+                                                            
                                                                                 var mappingValues = Object.values(mappings[edge.target])[index]
-                                                                                if (mappingValues?.input?.actionId == nodeActions[edge.source]?.uuid && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'header'){
+
+                                                                                if (mappingValues?.input?.actionId == nodeActions[edge.source]?.uuid && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'header' || mappingValues?.input?.actionId == "configuration" && mappingValues?.output?.actionId == nodeActions[edge.target]?.uuid && mappingValues?.output?.in == 'header'){
                                                                                     const inputFormulas = mappingValues?.input?.formulas
                                                                                     var cleanedRows = renderAdaptionTable(inputFormulas, mappingValues?.output, mappingValues?.input,edge.source, edge.target)
                                                                                     return cleanedRows.map(
