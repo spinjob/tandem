@@ -7,10 +7,17 @@ import ApiActions from '../../components/Api/api-actions';
 import ApiWebhooks from '../../components/Api/api-webhooks';
 import ApiSecurityScheme from '../../components/Api/api-security-schema';
 import ApiMetadata from '../../components/Api/api-details';
-import addIcon from '../../../public/icons/select-object-copy-plus-add.svg'
 import NewWebhookForm from '../../components/Api/newComponentModals/newWebhook'
 import NewActionForm from '../../components/Api/newComponentModals/newAction'
 import ManageActionModal from '../../components/Api/editActionModal';
+
+import schemaIcon from '../../../public/icons/schemaIcon.svg'
+import recipeIcon from '../../../public/icons/book-recipe-chef-gear-hat.svg'
+import actionIcon from '../../../public/icons/chat-message-programming-code.svg'
+
+import {TbWebhook} from 'react-icons/tb'
+import addIcon from '../../../public/icons/select-object-copy-plus-add.svg'
+
 
 const ViewApi = () => {
 
@@ -238,9 +245,24 @@ const ViewApi = () => {
             <Tabs radius={"sm"} color={'dark'} defaultValue="metadata">
                 <Tabs.List>
                     <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="metadata">Details</Tabs.Tab>
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="actions">Actions</Tabs.Tab>
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="webhooks">Webhooks</Tabs.Tab>
-                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="schemas">Schemas</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="actions" icon={
+                        <div style={{width: 20, height: 20}}>
+                            <Image alt="actions" src={actionIcon}/>
+                        </div>
+                    }>Actions</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="webhooks" icon={
+                        <TbWebhook size={20}/>
+                    }>Webhooks</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="schemas" icon={
+                        <div style={{width: 20, height: 20}}>
+                            <Image alt="schemas" src={schemaIcon}/>
+                        </div>
+                    }>Schemas</Tabs.Tab>
+                    <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} icon={
+                        <div style={{width: 20, height: 20}}>
+                            <Image alt="recipes" src={recipeIcon}/>
+                        </div>
+                    } disabled value="recipes">Recipes (Coming soon)</Tabs.Tab>
                     {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="security">Authentication</Tabs.Tab>  */}
                     {/* <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '18px', fontWeight: 200}} value="parameters">Parameters</Tabs.Tab>          */}
                 </Tabs.List>
@@ -396,6 +418,11 @@ const ViewApi = () => {
                     })) : (
                         <Loader/>
                     )}
+                </Tabs.Panel>
+                <Tabs.Panel value="recipes" label="Recipes">
+                    <Button onClick={() => {
+                        router.push(`/apis/${interfaceId}/recipes/new`)
+                    }}>Create a Recipe</Button>
                 </Tabs.Panel>
             </Tabs>
         </div>

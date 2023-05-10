@@ -1,14 +1,17 @@
 import { useState, useCallback, useEffect } from 'react';
 import {Modal, Button,Text, Loader, ScrollArea, Grid, Container, Badge, Tabs, TextInput, Textarea, Progress} from '@mantine/core'
+
 import {GrAddCircle} from 'react-icons/gr'
 import {VscTypeHierarchy} from 'react-icons/vsc'
 import {AiOutlineCheckCircle} from 'react-icons/ai'
+
 import ImportApiDropzone from '../components/import-api.tsx'
 import { useUser } from '@auth0/nextjs-auth0/client';
 import {useContext} from 'react'
 import AppContext from '../context/AppContext';
 import axios from 'axios';
 import { useRouter } from 'next/router'
+
 
 const MyApis = () => {
 
@@ -442,7 +445,7 @@ const MyApis = () => {
 
             </Modal>
             <div style={{height: '100vh', width: '45vw',padding:30, display:'flex', flexDirection:'column'}}>
-                <Text style={{paddingLeft: 20,paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>Imported APIs</Text>
+                <Text style={{paddingLeft: 20,paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>My APIs</Text>
                 <Container style={{width: '100vw', height: '100vh'}}>
                     <Grid grow={false}>
                         <Grid.Col xs={4}>

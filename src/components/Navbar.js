@@ -2,10 +2,6 @@ import { Navbar, createStyles, Group, Code, Tooltip, Image,Text, Avatar, Button}
 import { useState, useCallback, useContext, useEffect } from "react";
 import {useRouter} from 'next/router'
 import { useUser } from "@auth0/nextjs-auth0/client";
-import {MdConnectWithoutContact} from 'react-icons/md'
-import {CgListTree} from 'react-icons/cg'
-import {BiBuildings} from 'react-icons/bi'
-import {TbLayoutSidebarLeftCollapse, TbLayoutSidebarRightCollapse} from 'react-icons/tb'
 import AppContext from "../context/AppContext"
 import axios from "axios";
 import primaryLockupBlack from '../../public/logos/SVG/Primary Lockup_Black.svg'

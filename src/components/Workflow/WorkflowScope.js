@@ -121,15 +121,11 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
 
     const generateWorkflowStepCode = useCallback((requestBody, actionId) => {
         setWorkflowStepCodeLoading(true)
-        console.log("Generating workflow step code")
-        console.log(requestBody)
-        console.log(actionId)
 
         axios.post(process.env.NEXT_PUBLIC_OPEN_AI_CHAT_API_URL, requestBody,{
             headers: {
                 "Authorization": "Bearer " + process.env.NEXT_PUBLIC_OPEN_AI_CHAT_API_KEY,
         }}).then((response) => {
-            console.log(response.data)
             setWorkflowStepCodeLoading(false)
             var returnedMessage = response.data.choices[0].message.content
 
@@ -288,8 +284,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                 row.push(targetProperty?.path)
                 rows.push(row)
             } else if (formula.formula == 'replace'){
-                console.log('replace')
-                console.log(formula)
+
                 var replaceInput = formula.inputs['replace']
                 var fullFormula = inputProperty?.path + '.replace(' + replaceInput.toReplace + ',' + replaceInput.replaceWith + ')'
                 if(index != 0){
@@ -759,7 +754,6 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                                                         }
                                                     }}
                                                     onClick={() => { 
-                                                        console.log(edge.target)
                                                         fetchWorkflowStepCode(mappings[edge.target],nodeActions[edge.target], edge.target)
                                                     }}
                                                 >

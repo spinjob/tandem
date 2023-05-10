@@ -50,6 +50,8 @@ import studioIcon from '../../../../../public/icons/Programing, Data.5.svg'
 import blackLogoIcon from '../../../../../public/logos/SVG/Icon/Icon_Black.svg'
 import testWorkflowIcon from '../../../../../public/icons/list-test-lab-flask.svg'
 import scopingWorkflowIcon from '../../../../../public/icons/programming-code_1.svg'
+import actionIteratorIcon from '../../../../../public/icons/Play, Repeat, Circle.svg'
+import booleanConditionIcon from '../../../../../public/icons/checkbox-checkmark-cross.svg'
 import warningIcon from '../../../../../public/icons/warning.1.svg'
 import 'reactflow/dist/style.css';
 import axios from 'axios';
@@ -357,6 +359,7 @@ function ActionNode ({id, data}) {
                                          onClose={() => setActionMenuOpened(false)}
                                          radius="md"
                                          style={{width: '90%'}}
+                                         position="right"
                                          >
                                          <Menu.Target>
                                          <UnstyledButton className={classes.control}>
@@ -903,51 +906,38 @@ function TriggerNode ({data}) {
 }
 
 
-// const NewNodeButtonMenu = () => {
-//     return( 
-//         <Menu transition="pop-top-right" position='right-start' width={220} withinPortal>
-//             <Menu.Target>
-//             <ActionIcon style={{height: 40, width: 40, background: 'white', borderColor: '#E7E7E7'}} variant="default" radius={10} >
-//                 <AiOutlinePlusSquare size={22} color="gray"/>
-//             </ActionIcon>
-//             </Menu.Target>
-//             <Menu.Dropdown>
-//             <Menu.Item
-
-//             >
-//                 Add Workflow Variable
-//             </Menu.Item>
-//             <Menu.Item
-//                 rightSection={
-//                 <Text size="xs" transform="uppercase" weight={700} color="dimmed">
-//                     Ctrl + T
-//                 </Text>
-//                 }
-//             >
-//                 Task
-//             </Menu.Item>
-//             <Menu.Item
-//                 rightSection={
-//                 <Text size="xs" transform="uppercase" weight={700} color="dimmed">
-//                     Ctrl + U
-//                 </Text>
-//                 }
-//             >
-//                 Team
-//             </Menu.Item>
-//             <Menu.Item
-//                 rightSection={
-//                 <Text size="xs" transform="uppercase" weight={700} color="dimmed">
-//                     Ctrl + E
-//                 </Text>
-//                 }
-//             >
-//                 Event
-//             </Menu.Item>
-//             </Menu.Dropdown>
-//         </Menu>
-//     )
-// }
+const NewNodeButtonMenu = () => {
+    return( 
+        <Menu transition="pop-top-right" position='right-start' width={220} withinPortal>
+            <Menu.Target>
+            <ActionIcon style={{height: 40, width: 40, background: 'white', borderColor: '#E7E7E7'}} variant="default" radius={10} >
+                <AiOutlinePlusSquare size={22} color="gray"/>
+            </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+            <Menu.Label>Add Workflow Logic</Menu.Label>
+            <Menu.Item
+                icon={
+                    <div style={{width: 20, height: 20}}>
+                        <Image src={actionIteratorIcon} alt="Action Iterator" width={20} height={20}/>
+                    </div>
+                }
+            >
+                Action Iterator
+            </Menu.Item>
+            <Menu.Item
+                icon={
+                    <div style={{width: 20, height: 20}}>
+                        <Image src={booleanConditionIcon} alt="Action Iterator" width={20} height={20}/>
+                    </div>
+                }
+            >
+                Boolean Condition
+            </Menu.Item>
+            </Menu.Dropdown>
+        </Menu>
+    )
+}
 
 function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, suggestedEdges}) {
     const router = useRouter();
@@ -1110,9 +1100,9 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
 
     return (
         <div style={{ height: '100%', width:'100%', backgroundColor:'#FBFAF9'}}>
-            {/* <div style={{position:'absolute', padding: 40, zIndex: 1, height: 40, width: 220}}>
+            <div style={{position:'absolute', padding: 40, zIndex: 1, height: 40, width: 220}}>
             <NewNodeButtonMenu />
-            </div> */}
+            </div>
             <div ref={reactFlowWrapper} style={{height: '100%'}}>
                 <ReactFlow
                     nodes={nodes}
