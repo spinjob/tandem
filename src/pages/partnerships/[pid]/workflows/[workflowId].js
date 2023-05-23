@@ -359,7 +359,6 @@ function ActionNode ({id, data}) {
                                          onClose={() => setActionMenuOpened(false)}
                                          radius="md"
                                          style={{width: '90%'}}
-                                         position="right"
                                          >
                                          <Menu.Target>
                                          <UnstyledButton className={classes.control}>
@@ -1110,7 +1109,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
                     onNodesChange={onNodesChange}
                     onNodesDelete={(nodes) => {
                         deleteNodeAction(nodes[0].id)
-                        
+
                     }}
                     onEdgesChange={onEdgesChange}
                     onConnectStart={onConnectStart}
