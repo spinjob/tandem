@@ -22,12 +22,12 @@ const handler = async (req: Request): Promise<Response> => {
   messages.push(...body?.messages)
 
   const payload: OpenAIStreamPayload = {
-    model: 'gpt-4',
+    model: 'gpt-3.5-turbo',
     messages: messages,
-    temperature: process.env.AI_TEMP ? parseFloat(process.env.AI_TEMP) : 0.7,
+    temperature: process.env.AI_TEMP ? parseFloat(process.env.AI_TEMP) : 0,
     max_tokens: process.env.AI_MAX_TOKENS
       ? parseInt(process.env.AI_MAX_TOKENS)
-      : 100,
+      : 500,
     top_p: 1,
     frequency_penalty: 0,
     presence_penalty: 0,

@@ -63,10 +63,10 @@ const ViewApi = () => {
           
       });
 
-      function setAction (action) {
-        setSelectedAction(action)
-        setViewModalOpen(true)
-        }
+    function setAction (action) {
+    setSelectedAction(action)
+    setViewModalOpen(true)
+    }
 
     async function indexApiDocumentation () {
         setIndexingLoading(true)
@@ -311,7 +311,7 @@ const ViewApi = () => {
                             <div style={{height: 20}}/>
                             <div style={{display: 'flex', flexDirection:'row', alignItems:'center', paddingLeft: 50}}>
                                 <div style={{display: 'flex', flexDirection:'row', alignItems:'center'}}>
-                                    <CopyButton  value={process.env.NEXT_PUBLIC_API_BASE_URL+'/apis/'+interfaceId+'/chat/'+uuidv4()}timeout={2000}>
+                                    <CopyButton  value={process.env.NEXT_PUBLIC_APP_BASE_URL+'/apis/'+interfaceId+'/chat/'+uuidv4()}timeout={2000}>
                                             {({ copied, copy }) => (
                                                 <Tooltip label={copied ? 'Copied' : 'Copy URL'} withArrow position="right">
                                                     <ActionIcon  color={copied ? 'teal' : 'gray'} onClick={copy}>
