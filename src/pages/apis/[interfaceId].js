@@ -1,7 +1,9 @@
 import axios from 'axios'
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef} from 'react';
 import { useRouter } from 'next/router'
 import {Tabs, Text, Image, TextInput, Button, Loader, Modal, Breadcrumbs, Anchor, Card, CopyButton, Tooltip, ActionIcon, Center} from '@mantine/core'
+import { Editor } from '@tinymce/tinymce-react';
+
 import ApiSchemas from '../../components/Api/api-schemas'
 import ApiActions from '../../components/Api/api-actions';
 import ApiWebhooks from '../../components/Api/api-webhooks';
@@ -22,7 +24,7 @@ import checkmarkIcon from '../../../public/icons/checkmark-medium.svg'
 import {TbWebhook} from 'react-icons/tb'
 import addIcon from '../../../public/icons/select-object-copy-plus-add.svg'
 import {v4 as uuidv4} from 'uuid'
-
+import { set } from 'lodash';
 
 const ViewApi = () => {
 
@@ -30,6 +32,10 @@ const ViewApi = () => {
     const { interfaceId } = router.query
     const [isLoading, setIsLoading] = useState(false)
     const [apiMetadata, setApiMetadata] = useState(null)
+    const [opsDocumentation, setOpsDocumentation] = useState({})
+    const [canTrainOnDocumentation, setCanTrainOnDocumentation] = useState(false)
+    const [updatedOpsDocumentation, setUpdatedOpsDocumentation] = useState({})
+
     const [indexed, setIndexed] = useState(false)
     const [indexingLoading, setIndexingLoading] = useState(false)
     const [securitySchemas, setSecuritySchemas] = useState(null)
@@ -41,6 +47,12 @@ const ViewApi = () => {
     const [modalType, setModalType] = useState(null)
     const [viewModalOpen, setViewModalOpen] = useState(false)
     const [selectedAction, setSelectedAction] = useState(null)
+    const [newDocumentationGroupName, setNewDocumentationGroupName] = useState('')
+    const [addingNewDocumentationGroup, setAddingNewDocumentationGroup] = useState(false)
+    const [selectedDocGroupTab, setSelectedDocGroupTab] = useState('')
+    const [savingDocumentation, setSavingDocumentation] = useState(false)
+    
+    const editorRef = useRef(null);
 
     const items = [
         { title: 'My APIs', href: '/myApis' },
@@ -63,9 +75,41 @@ const ViewApi = () => {
           
       });
 
+    const saveDocumentation = () => {
+        setSavingDocumentation(true)
+        var contentToSave = editorRef.current.getContent({format : 'text'});
+        var newOpsDocumentation = {...updatedOpsDocumentation}
+        newOpsDocumentation[selectedDocGroupTab]['text'] = contentToSave
+    
+        //Save the updatedOpsDocumentation DB
+        axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/' + interfaceId + '/documentation', {"documentation": newOpsDocumentation}).then((response) => {
+            console.log(response)
+            setOpsDocumentation(newOpsDocumentation)
+            setSavingDocumentation(false)
+            setCanTrainOnDocumentation(true)
+        }).catch((error) => {
+            setSavingDocumentation(false)
+            console.log(error)
+        })
+
+    };
+
     function setAction (action) {
         setSelectedAction(action)
         setViewModalOpen(true)
+    }
+
+    async function updateOpsDocumentationContext (group, text){
+        //Save changes to the updatedOpsDocumentation context
+        let newOpsDocumentation = {...updatedOpsDocumentation}
+        if(!newOpsDocumentation[group]){
+            newOpsDocumentation[group] = {'text': text}
+        } else {
+            newOpsDocumentation[group]['text'] = text
+        }
+        setUpdatedOpsDocumentation(newOpsDocumentation)
+
+        return newOpsDocumentation
     }
 
     async function indexApiDocumentation () {
@@ -92,6 +136,12 @@ const ViewApi = () => {
                           setIndexed(true)
                     } else {
                          setIndexed(false)
+                    }
+
+                    if(res.data.documentation && Object.keys(res.data.documentation).length>0){
+                        setOpsDocumentation(res.data.documentation)
+                        setUpdatedOpsDocumentation(res.data.documentation)
+                        setSelectedDocGroupTab(Object.keys(res.data.documentation)[0])
                     }
                 })
                 .catch((err) => {
@@ -181,7 +231,7 @@ const ViewApi = () => {
             flexDirection: 'column',
             padding: 30,
         }}>
-                        <Modal
+            <Modal
                 opened={modalOpen}
                 onClose={() => setModalOpen(false)}
                 title={modalType == 'webhook' ? (
@@ -233,6 +283,98 @@ const ViewApi = () => {
                 ) : null}
             >
                 <ManageActionModal setViewModalOpen={setViewModalOpen} action={selectedAction} />
+            </Modal>
+            <Modal
+                opened={addingNewDocumentationGroup}
+                onClose={() => setAddingNewDocumentationGroup(false)}
+                centered
+                size={800}
+                title={<Text
+                    sx={{
+                        fontFamily: "Visuelt",
+                        fontWeight: 650,
+                        fontSize: "40px",
+                        paddingTop:20,
+                        paddingLeft: 20
+                    }}
+
+                  >
+                    New Documentation Group
+                  </Text>}
+                >
+                    <div style={{paddingLeft:20, paddingRight: 20, paddingBottom: 20}}>
+                        <Text
+                            style={{
+                                fontFamily: 'Visuelt',
+                                fontSize: '18px',
+                                fontWeight: 100,
+                                color: '#000000'
+                            }}
+                        >
+                            The name of this group will be used to categorize your documentation.  Choose this carefully as Tandem will use this category to query for relevant information when providing support.
+                        </Text>
+                        <div style={{height: 20}}/>
+                        <TextInput
+                            label={
+                                <Text
+                                    style={{
+                                        fontFamily: 'Visuelt',
+                                        fontSize: '18px',
+                                        fontWeight: 500,
+                                        color: '#000000'
+                                    }}
+                                >
+                                    Group Name
+                                </Text>}
+                            value={newDocumentationGroupName}
+                            style={{width: 400}}
+                            onChange={(e) => setNewDocumentationGroupName(e.target.value)}
+                        />
+                        <div style={{height: 20}}/>
+                        <div style={{display: 'flex', flexDirection: 'row'}}>
+                            <Button
+                                style={{
+                                    fontFamily: 'Visuelt',
+                                    fontSize: '16px',
+                                    fontWeight: 500,
+                                    backgroundColor: '#000000',
+                                    color: '#FFFFFF',
+                                    borderRadius: '10px',
+                                    height: '40px',
+                                    width: '200'
+                                }}
+                                onClick={() => {
+                                    var formattedNewDocumentationGroupName = newDocumentationGroupName.replace(/\s+/g, '_').toLowerCase()
+                                    updateOpsDocumentationContext(formattedNewDocumentationGroupName, '').then(() => {
+                                        setAddingNewDocumentationGroup(false)
+                                        setNewDocumentationGroupName('')
+                                        setSelectedDocGroupTab(formattedNewDocumentationGroupName)
+                                    })
+                                }}
+                            >
+                                Create Group
+                            </Button>
+                            <div style={{height: 20}}/>
+                            <Button
+                                style={{
+                                    fontFamily: 'Visuelt',
+                                    fontSize: '16px',
+                                    fontWeight: 500,
+                                    backgroundColor: '#FFFFFF',
+                                    color: '#000000',
+                                    borderRadius: '10px',
+                                    height: '40px',
+                                    width: '200'
+                                }}
+                                onClick={() => {
+                                    setAddingNewDocumentationGroup(false)
+                                    setNewDocumentationGroupName('')
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    </div>
             </Modal>
             <div style={{display: 'flex', flexDirection: 'row', paddingBottom: 10, alignItems: 'baseline'}}>
                 <Text style={{height: '40px', fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>{apiMetadata.name}</Text>
@@ -433,7 +575,7 @@ const ViewApi = () => {
             </div>
             <div style={{height: 20}}/>
             <div style={{border: '1px solid #EAEAFF', padding: 30, display:'flex', flexDirection:'column', borderRadius: 10}}>
-            <div style={{display: 'flex', flexDirection: 'row'}}>
+                <div style={{display: 'flex', flexDirection: 'row'}}>
                     <div
                         style={{
                             
@@ -672,7 +814,202 @@ const ViewApi = () => {
                     </Tabs.Panel>
                 </Tabs>
             </div>
-            
+            <div style={{height: 20}}/>
+            <div style={{border: '1px solid #EAEAFF', padding: 30, display:'flex', flexDirection:'column', borderRadius: 10}}>
+                <div style={{display: 'flex', flexDirection: 'row'}}>
+                    <>
+                        <div
+                            style={{
+                                
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                width: 40,
+                                height: 40,
+                                borderRadius: 50
+                            }}
+                            >
+                            <Image 
+                                src={apiBreakdownIcon}
+                                alt="chat"
+                            />
+                        </div>
+                        <div style={{width: 10}}/>
+                        <Text
+                            style={{
+                                fontFamily: 'Visuelt',
+                                fontWeight: 650,
+                                fontSize: '28px'
+
+                            }}
+                        >
+                            Categorized Documentation
+                        </Text>
+                    </>
+                    <>
+                        <Button 
+                            disabled = {!canTrainOnDocumentation}
+                            loading={indexingLoading}
+                            sx={{
+                                marginLeft: 'auto',
+                                marginRight: 0,
+                                backgroundColor: '#000000',
+                                color: '#FFFFFF',
+                                borderRadius: '10px',
+                                height: '40px',
+                                width: '200'
+                            }}
+                            onClick={() => {
+                                indexApiDocumentation()
+                            }}
+                            >
+                                Train on Documentation
+                            </Button>
+                    </>
+                    
+                </div>
+                <div style={{height: 10}}/>
+                <Text
+                    style={{
+                        fontFamily: 'Visuelt',
+                        fontSize: '18px',
+                        fontWeight: 100
+                    }}
+                >
+                    Add additional documentation grouped by functional area that will provide context to the API Assistant when answering questions.
+                </Text>
+                <div style={{height: 20}}/>
+                {
+                    Object.keys(updatedOpsDocumentation).length > 0 ? (
+                        <Tabs value={selectedDocGroupTab} onTabChange={setSelectedDocGroupTab} radius={"sm"} color={'dark'} defaultValue="metadata">
+                            <Tabs.List>
+                                {
+                                    Object.keys(updatedOpsDocumentation).map((key, index) => {
+                                        
+                                        return (
+                                        <Tabs.Tab key={key} style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value={key}>
+                                            <Text style={{fontFamily: 'Visuelt', fontSize: '20px'}}>
+                                                {key.replace(/_/g, ' ').replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); })}
+                                            </Text>
+                                        </Tabs.Tab>
+                                        )
+                                    })
+                                }
+                                <Tabs.Tab onClick={() => {
+                                    setAddingNewDocumentationGroup(true)
+                                }} key={'new'} value={'new'}>
+                                        <Text
+                                            sx={{
+                                                fontFamily: 'Visuelt', 
+                                                fontSize: '20px',
+                                                color:'#BABABA',
+                                                fontWeight: 500
+                                            }}
+                                        >
+                                            + New Group
+                                        </Text>
+                                
+                                </Tabs.Tab>
+                            </Tabs.List>
+
+                            {
+                                Object.keys(updatedOpsDocumentation).map((key, index) => {
+                                    return (
+                                        <Tabs.Panel key={key} value={key}>
+                                            <div style={{height: 20}}/>
+                                            <Editor
+                                                apiKey='w08ojy3xmc3wgrerv67mjjt7l7ivhosg1obj6gin6ngjc4gn'
+                                                onInit={(evt, editor) => editorRef.current = editor}
+                                                initialValue={"<p>"+updatedOpsDocumentation[key].text+"</p>"}
+                                                init={{
+                                                height: 500,
+                                                menubar: false,
+                                                plugins: [
+                                                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                                                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                                                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                                                ],
+                                                toolbar: 'undo redo | blocks | code |' +
+                                                    'bold italic forecolor | alignleft aligncenter ' +
+                                                    'alignright alignjustify | bullist numlist outdent indent | ' +
+                                                    'removeformat | help',
+                                                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                                                }}
+                                            />  
+                                            <div style={{height: 20}}/>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'row',
+                                                    justifyContent: 'flex-start',
+                                                }}
+                                            >
+                                                <Button 
+                                                    style={{
+                                                        fontFamily: 'Visuelt',
+                                                        fontSize: '16px',
+                                                        fontWeight: 500,
+                                                        backgroundColor: '#000000',
+                                                        color: '#FFFFFF',
+                                                        borderRadius: '10px',
+                                                        height: '40px',
+                                                        width: '200',
+                                                        loading: savingDocumentation
+                                                    }} onClick={()=>{
+                                                        saveDocumentation()
+                                                    }}>
+                                                    Save Changes
+                                                </Button>  
+                                            
+                                                {/* <Button 
+                                                    style={{
+                                                        fontFamily: 'Visuelt',
+                                                        fontSize: '16px',
+                                                        fontWeight: 500,
+                                                        backgroundColor: 'white',
+                                                        color: '#000000',
+                                                        border: '1px solid #000000',
+                                                        borderRadius: '10px',
+                                                        height: '40px',
+                                                        width: '200',
+                                                        marginLeft: 20
+                                                    }}
+                                                onClick={() => {
+                                                                                                    }}
+                                                >
+                                                    Cancel Changes
+                                                </Button> */}
+                                            </div>
+                                            
+                                        </Tabs.Panel>
+                                    )
+                                })
+                            }
+                        
+                        </Tabs>
+                    ) : (
+                        <div>
+                            <Button
+                                onClick={() => {
+                                    setAddingNewDocumentationGroup(true)
+                                }}
+                                style={{
+                                    fontFamily: 'Visuelt',
+                                    fontSize: '16px',
+                                    fontWeight: 500,
+                                    backgroundColor: '#000000',
+                                    color: '#FFFFFF',
+                                    borderRadius: '10px',
+                                    height: '40px',
+                                    width: '200'
+                                }}
+                            >
+                                Create a Documentation Group
+                            </Button>
+                        </div>
+                    )
+                }
+                    
+            </div>
         </div>
     ) : (
         <Loader/>

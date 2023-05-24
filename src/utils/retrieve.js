@@ -79,7 +79,7 @@ export default retrieve (async (req,res) => {
             );
 
         //Create Prompt for OpenAI
-        // Create Prompt for OpenAI
+
         async function createContextQuery(contexts) {
 
             let prompt;
