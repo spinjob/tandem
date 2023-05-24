@@ -64,8 +64,8 @@ const ViewApi = () => {
       });
 
     function setAction (action) {
-    setSelectedAction(action)
-    setViewModalOpen(true)
+        setSelectedAction(action)
+        setViewModalOpen(true)
     }
 
     async function indexApiDocumentation () {
