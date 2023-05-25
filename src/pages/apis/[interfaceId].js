@@ -75,24 +75,6 @@ const ViewApi = () => {
           
       });
 
-    const saveDocumentation = () => {
-        setSavingDocumentation(true)
-        var contentToSave = editorRef.current.getContent({format : 'text'});
-        var newOpsDocumentation = {...updatedOpsDocumentation}
-        newOpsDocumentation[selectedDocGroupTab]['text'] = contentToSave
-    
-        //Save the updatedOpsDocumentation DB
-        axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/' + interfaceId + '/documentation', {"documentation": newOpsDocumentation}).then((response) => {
-            console.log(response)
-            setOpsDocumentation(newOpsDocumentation)
-            setSavingDocumentation(false)
-            setCanTrainOnDocumentation(true)
-        }).catch((error) => {
-            setSavingDocumentation(false)
-            console.log(error)
-        })
-
-    };
 
     function setAction (action) {
         setSelectedAction(action)
@@ -217,6 +199,87 @@ const ViewApi = () => {
     }, [interfaceId, apiMetadata, securitySchemas, schemas, actions, webhooks, parameters])
 
     
+    const DocumentationEditor = ({groupKey}) => {
+
+        const [content, setContent] = useState(updatedOpsDocumentation[groupKey]['text'])
+        const [saving, setSaving] = useState(false)
+
+        const saveDocumentation = () => {
+            setSavingDocumentation(true)
+            var contentToSave = content
+            console.log(contentToSave)
+            console.log(groupKey)
+            var newOpsDocumentation = {...updatedOpsDocumentation}
+            newOpsDocumentation[selectedDocGroupTab]['text'] = contentToSave
+        
+            // Save the updatedOpsDocumentation DB
+            axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/' + interfaceId + '/documentation', {"documentation": newOpsDocumentation}, {new:true}).then((response) => {
+                console.log(response)
+                setOpsDocumentation(newOpsDocumentation)
+                setSavingDocumentation(false)
+                setCanTrainOnDocumentation(true)
+            }).catch((error) => {
+                setSavingDocumentation(false)
+                console.log(error)
+            })
+    
+        };
+    
+
+        return (
+            <>
+                <Editor
+                    id={'editor'+groupKey}
+                    apiKey='w08ojy3xmc3wgrerv67mjjt7l7ivhosg1obj6gin6ngjc4gn'
+                    onChange={(e) => {
+                        setContent(e.target.getContent({format: 'text'}))
+                    }}
+                    initialValue={"<p>"+updatedOpsDocumentation[groupKey].text+"</p>"}
+                    init={{
+                        height: 500,
+                        menubar: false,
+                        plugins: [
+                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                        'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                        ],
+                        toolbar: 'undo redo | blocks | code |' +
+                        'bold italic forecolor | alignleft aligncenter ' +
+                        'alignright alignjustify | bullist numlist outdent indent | ' +
+                        'removeformat | help',
+                        content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                    }}
+                />  
+                <div style={{height: 20}}/>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'flex-start',
+                    }}
+                >
+                    <Button 
+                        style={{
+                            fontFamily: 'Visuelt',
+                            fontSize: '16px',
+                            fontWeight: 500,
+                            backgroundColor: '#000000',
+                            color: '#FFFFFF',
+                            borderRadius: '10px',
+                            height: '40px',
+                            width: '200',
+                            loading: savingDocumentation
+                        }} onClick={()=>{
+                            saveDocumentation()
+                        }}>
+                        Save Changes
+                    </Button>  
+                </div>
+            </>
+        )
+
+    }
+
     useEffect(() => {
         if(interfaceId){
             if(!apiMetadata || !securitySchemas || !schemas || !actions || !webhooks || !parameters){
@@ -916,70 +979,7 @@ const ViewApi = () => {
                                     return (
                                         <Tabs.Panel key={key} value={key}>
                                             <div style={{height: 20}}/>
-                                            <Editor
-                                                apiKey='w08ojy3xmc3wgrerv67mjjt7l7ivhosg1obj6gin6ngjc4gn'
-                                                onInit={(evt, editor) => editorRef.current = editor}
-                                                initialValue={"<p>"+updatedOpsDocumentation[key].text+"</p>"}
-                                                init={{
-                                                height: 500,
-                                                menubar: false,
-                                                plugins: [
-                                                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                                                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                                                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-                                                ],
-                                                toolbar: 'undo redo | blocks | code |' +
-                                                    'bold italic forecolor | alignleft aligncenter ' +
-                                                    'alignright alignjustify | bullist numlist outdent indent | ' +
-                                                    'removeformat | help',
-                                                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-                                                }}
-                                            />  
-                                            <div style={{height: 20}}/>
-                                            <div
-                                                style={{
-                                                    display: 'flex',
-                                                    flexDirection: 'row',
-                                                    justifyContent: 'flex-start',
-                                                }}
-                                            >
-                                                <Button 
-                                                    style={{
-                                                        fontFamily: 'Visuelt',
-                                                        fontSize: '16px',
-                                                        fontWeight: 500,
-                                                        backgroundColor: '#000000',
-                                                        color: '#FFFFFF',
-                                                        borderRadius: '10px',
-                                                        height: '40px',
-                                                        width: '200',
-                                                        loading: savingDocumentation
-                                                    }} onClick={()=>{
-                                                        saveDocumentation()
-                                                    }}>
-                                                    Save Changes
-                                                </Button>  
-                                            
-                                                {/* <Button 
-                                                    style={{
-                                                        fontFamily: 'Visuelt',
-                                                        fontSize: '16px',
-                                                        fontWeight: 500,
-                                                        backgroundColor: 'white',
-                                                        color: '#000000',
-                                                        border: '1px solid #000000',
-                                                        borderRadius: '10px',
-                                                        height: '40px',
-                                                        width: '200',
-                                                        marginLeft: 20
-                                                    }}
-                                                onClick={() => {
-                                                                                                    }}
-                                                >
-                                                    Cancel Changes
-                                                </Button> */}
-                                            </div>
-                                            
+                                            <DocumentationEditor groupKey={key} />
                                         </Tabs.Panel>
                                     )
                                 })

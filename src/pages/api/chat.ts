@@ -16,10 +16,13 @@ const handler = async (req: Request): Promise<Response> => {
   const messages: ChatGPTMessage[] = [
     {
       role: 'system',
-      content: `You are a helpful AI assistant that assists developers solve issues and get answers to their questions related to an API they are integrating with.  The context provided in each question will provide details related to either an API Request, an API's security schema, or general documentation related to an APIs integration flows, onboarding, or other operational information.  This context will not be provided directly to the user - it will be queried for in the background.  So, do not assume the user knows this context; they will only be able to speak to their 'Question.' Please include the API Action in your answers that you've identified as relevant to the question, if one exists. `,
+      content: `You are a helpful AI assistant that chats with developers to answer questions they have related to an API.  You will be provided context for each question from the API documentation.  This context will not be provided directly to the user so do not assume the user has this context.  If there is no context or it isn't relevant to the question, use the context of your previous answers and the users previous messages to answer the question`,
     },
   ]
-  messages.push(...body?.messages)
+  messages.push(...body?.messages,     {
+      role: 'system',
+      content: `You are a helpful AI assistant that chats with developers to answer questions they have related to an API.  You will be provided context for each question from the API documentation.  This context will not be provided directly to the user so do not assume the user has this context.  If there is no context or it isn't relevant to the question, use the context of your previous answers and the users previous messages to answer the question`,
+    })
 
   const payload: OpenAIStreamPayload = {
     model: 'gpt-3.5-turbo',

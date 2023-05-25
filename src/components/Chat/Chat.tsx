@@ -76,27 +76,39 @@ async function queryPinecone(message: string, apiId: string){
 
 async function createContextQuery(contexts:[any], question: string){
     let prompt;
-    let limit = 3750;
-
-    let match = contexts[0].metadata.text
+    let limit = 3750; // Your limit
 
     let prompt_start = (
-        "Answer the question based on the context below.\n\n" +
-        "Context:\n"
+        "Answer the question based on the following contexts.\n\n"
     );
 
     let prompt_end = (
         `\n\nQuestion: ${question}\nAnswer:`
     );
 
-    prompt = (
-        prompt_start + 
-        match +
-        prompt_end
-    )
+    // Compute the token count for prompt_start and prompt_end
+    let tokenCount = prompt_start.length + prompt_end.length;
 
+    let contextText = '';
+
+    for (let context of contexts) {
+        let match = context.metadata.text;
+        let label = context.metadata.metadata_type; // Assuming the label for the group is stored here
+        let labelledContext = `${label} Context:\n${match}\n\n`;
+        if (tokenCount + labelledContext.length <= limit) {
+            contextText += labelledContext;
+            tokenCount += labelledContext.length;
+        } else {
+            let remainingTokens = limit - tokenCount;
+            let truncatedContext = labelledContext.substring(0, remainingTokens);
+            contextText += truncatedContext;
+            break;
+        }
+    }
+    prompt = prompt_start + contextText + prompt_end;
     return prompt;
 }
+
 
 const InputMessage = ({ input, setInput, sendMessage, apiId }: any) => (
   <div style={{display:'flex', flexDirection: 'column', width: '100%', alignItems:'end'}}>
@@ -147,21 +159,44 @@ export const Chat: React.FC<ChatProps> = ({ apiId }) => {
 
   // send message to API /api/chat endpoint
   const sendMessage = async (message: string, apiId: string) => {
-    console.log("Message from user:")
-    console.log(message)
-    const queryResults = await queryPinecone(message, apiId)
-    const matches = queryResults && queryResults.matches ? queryResults.matches : []
+
+    const matches = await queryPinecone(message, apiId)
+
+    const groupedMatches = []
+    let apiActionMatch, apiWebhookMatch, apiSecurityMatch, apiDocumentationMatch, apiBaseUrlMatch;
+
+    for (const match of matches) {
+      if ((!apiActionMatch || match.score > apiActionMatch.score) && match.metadata.metadata_type === 'http_action') {
+        apiActionMatch = match
+        groupedMatches.push(match)
+      } 
+      if ((!apiWebhookMatch || match.score > apiWebhookMatch.score) && match.metadata.metadata_type === 'api_webhook') {
+        apiWebhookMatch = match;
+        groupedMatches.push(match)
+      }
+      if ((!apiSecurityMatch || match.score > apiSecurityMatch.score) && match.metadata.metadata_type === 'api_authentication') {
+        apiSecurityMatch = match;
+        groupedMatches.push(match)
+      }
+      if ((!apiDocumentationMatch || match.score > apiDocumentationMatch.score) && match.metadata.metadata_type === 'additional_documentation') {
+        apiDocumentationMatch = match;
+        groupedMatches.push(match)
+      }
+      if ((!apiBaseUrlMatch || match.score > apiBaseUrlMatch.score) && match.metadata.metadata_type === 'base_url') {
+        apiBaseUrlMatch = match;
+        groupedMatches.push(match)
+      }
+    }
+
+    console.log("groupedMatches", groupedMatches)
     
-    console.log("Matches from Pinecone:")
-    console.log(matches[0].metadata.text)
 
     var prompt : any = message;
 
     if (matches.length > 0) {
         prompt = await createContextQuery(matches, message);
+        console.log("prompt", prompt)
     } 
-
-    console.log(prompt)
 
     setLoading(true)
     const newMessages = [
