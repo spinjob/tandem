@@ -3,7 +3,7 @@ import CodeEditorWindow from './CodeEditorWindow';
 import {Button, Text} from "@mantine/core";
 import axios from 'axios';
 
-import useKeyPress from '../../../hooks/useKeyPress';
+import useKeyPress from './hooks/useKeyPress';
 // import Footer from "./Footer";
 // import OutputWindow from "./OutputWindow";
 // import CustomInput from "./CustomInput";
