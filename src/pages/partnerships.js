@@ -142,7 +142,7 @@ const Partnerships = () => {
                 onClose={() => setModalOpened(false)}
                 size="xl"
                 title={
-                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontStyle: 'medium', fontSize: '25px'}}>Create a New Partnership</Text>                      
+                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontStyle: 'medium', fontSize: '25px'}}>Create a New Integration</Text>                      
                 }
             >
                <NewPartnership organization={organization} apis={apis}/>
@@ -184,7 +184,7 @@ const Partnerships = () => {
                                 <div style={{height: 5}}/>
                                 <Anchor  underline={true} sx={{fontFamily:'Visuelt', fontWeight: 100, fontSize: '14px', color: 'black'}}>Creating New Workflows</Anchor>
                                 <div style={{height: 5}}/>
-                                <Anchor  underline={true} sx={{fontFamily:'Visuelt', fontWeight: 100, fontSize: '14px', color: 'black'}}>Managing Partnerships</Anchor>
+                                <Anchor  underline={true} sx={{fontFamily:'Visuelt', fontWeight: 100, fontSize: '14px', color: 'black'}}>Managing Integrations</Anchor>
                             </Card.Section>
                            
                         </Card>
@@ -201,7 +201,7 @@ const Partnerships = () => {
                     }}
                      src={partnershipsTableBackground}
                      >
-                        <Text style={{fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px', paddingBottom: 20, marginTop: -10}}>Partnerships</Text>
+                        <Text style={{fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px', paddingBottom: 20, marginTop: -10}}>Integrations</Text>
                         <div style={{height: 10}}/>
                         <div style={{display:'flex', justifyContent: 'space-between', paddingBottom: 20}}>
                             <div style={{display:'flex', flexDirection:'row'}}>
@@ -216,7 +216,7 @@ const Partnerships = () => {
                                 {renderStatusFilters()}
                             </div>
                             <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
-                                <Text>New Partnership</Text>
+                                <Text>New Integration</Text>
                             </Button>
                         </div>
                         <PartnershipsTable statusFilter={statusFilter} data={
@@ -241,7 +241,7 @@ const Partnerships = () => {
                 onClose={() => setModalOpened(false)}
                 size="xl"
                 title={
-                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontStyle: 'medium', fontSize: '25px'}}>Create a New Partnership</Text>                      
+                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontStyle: 'medium', fontSize: '25px'}}>Create a New Integratino</Text>                      
                 }
             >
                <NewPartnership organization={organization} apis={apis}/>
@@ -298,12 +298,12 @@ const Partnerships = () => {
                                 } 
                                 <div style={{width:18}}/>      
                                 <Text sx={{fontFamily:'Visuelt', fontWeight: 100, fontSize: '15px'}}>
-                                    Create a Partnership
+                                    Create an Integration
                                 </Text>
                                 <div style={{width: 65}}/>
                                 <div>
                                     <Button sx={{backgroundColor:'transparent', '&:hover':{backgroundColor: 'transparent'}}}>
-                                        <Text sx={{fontFamily:'Visuelt', fontWeight: 50, fontSize: '15px', color: '#5a5a5a'}}>Read up on partnerships and workflows</Text>
+                                        <Text sx={{fontFamily:'Visuelt', fontWeight: 50, fontSize: '15px', color: '#5a5a5a'}}>Read up on integrations and workflows</Text>
                                         <div style={{width: 5}}/>
                                         <div style={{width: 20, height: 20}}>
                                             <Image alt="arrowIcon" src={arrowIcon} />
@@ -358,7 +358,7 @@ const Partnerships = () => {
                                 <div style={{height: 5}}/>
                                 <Anchor  underline={true} sx={{fontFamily:'Visuelt', fontWeight: 100, fontSize: '14px', color: 'black'}}>Creating New Workflows</Anchor>
                                 <div style={{height: 5}}/>
-                                <Anchor  underline={true} sx={{fontFamily:'Visuelt', fontWeight: 100, fontSize: '14px', color: 'black'}}>Managing Partnerships</Anchor>
+                                <Anchor  underline={true} sx={{fontFamily:'Visuelt', fontWeight: 100, fontSize: '14px', color: 'black'}}>Managing Integrations</Anchor>
                             </Card.Section>
                         </Card>
                         
@@ -376,7 +376,7 @@ const Partnerships = () => {
                         }}
                          src={partnershipsTableBackground}
                          >
-                            <Text style={{fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px', paddingBottom: 20, marginTop: -10}}>Partnerships</Text>
+                            <Text style={{fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px', paddingBottom: 20, marginTop: -10}}>Integrations</Text>
                             <div style={{height: 10}}/>
                             <div style={{display:'flex', justifyContent: 'space-between', paddingBottom: 20}}>
                                 <div style={{display:'flex', flexDirection:'row'}}>
@@ -391,7 +391,7 @@ const Partnerships = () => {
                                     {renderStatusFilters()}
                                 </div>
                                 <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
-                                    <Text>New Partnership</Text>
+                                    <Text>New Integration</Text>
                                 </Button>
                             </div>
                             <PartnershipsTable statusFilter={statusFilter} data={
@@ -417,7 +417,7 @@ const Partnerships = () => {
                                 }}
                                 src={emptyStatePartnershipsBackground}
                                 >
-                                    <Text style={{fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px', paddingBottom: 20, marginTop: -10}}>Partnerships</Text>
+                                    <Text style={{fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px', paddingBottom: 20, marginTop: -10}}>Integrations</Text>
                                     <div style={{height: 30}}/>
                                     <div style={{display:'flex', flexDirection:'row', alignItems: 'center'}}>
                                         <div style={{width: 421, height: 335}}>
@@ -429,14 +429,14 @@ const Partnerships = () => {
                                                 apis && apis.length > 0 ? (
                                                     <div style={{width: 400}}>
                                                     <Text sx={{fontFamily: 'Visuelt', fontSize: '22px'}}>
-                                                        Create your first partnership
+                                                        Create your first integration
                                                     </Text>
                                                     <Text sx={{fontFamily: 'Visuelt', fontSize: '16px', color: '#5a5a5a',fontWeight: 100}}>
                                                         All you need to get started are two of your imported API specifications.
                                                     </Text>
                                                     <div style={{height: 30}}/>
                                                     <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '52px',width: '200px', borderRadius: 8}}>
-                                                        <Text sx={{fontFamily:'Visuelt', fontSize: '20px', fontWeight: 400}}>New Partnership</Text>
+                                                        <Text sx={{fontFamily:'Visuelt', fontSize: '20px', fontWeight: 400}}>New Integration</Text>
                                                     </Button>
                                                 </div>
                                                 ): (
@@ -445,7 +445,7 @@ const Partnerships = () => {
                                                             Import your first APIs
                                                         </Text>
                                                         <Text sx={{fontFamily: 'Visuelt', fontSize: '16px', color: '#5a5a5a',fontWeight: 100}}>
-                                                            Tandem will need API specifications to generate a partnership and workflows.
+                                                            Tandem will need API specifications to generate an integration and workflows.
                                                         </Text>
                                                         <div style={{height: 30}}/>
                                                         <Button onClick={() => router.push('/myApis')} style={{backgroundColor: 'black', height: '52px',width: '200px', borderRadius: 8}}>

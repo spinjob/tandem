@@ -12,17 +12,16 @@ export const config = {
 
 const handler = async (req: Request): Promise<Response> => {
   const body = await req.json()
+  const systemPrompt = `You are a helpful AI assistant that assists developers in troubleshooting issues with their integration into an API.  You will be provided context for each question from the API documentation but use previous user messages as context as well.  Do not forget previous questions or answers.  This API 'Context' will not be provided directly to the user so do not assume the user has this context.  If there is no 'Context' or it isn't relevant to the question, use the context of your previous answers and the users previous messages to answer the question`
 
   const messages: ChatGPTMessage[] = [
     {
       role: 'system',
-      content: `You are a helpful AI assistant that chats with developers to answer questions they have related to an API.  You will be provided context for each question from the API documentation.  This context will not be provided directly to the user so do not assume the user has this context.  If there is no context or it isn't relevant to the question, use the context of your previous answers and the users previous messages to answer the question`,
+        content: systemPrompt
     },
   ]
-  messages.push(...body?.messages,     {
-      role: 'system',
-      content: `You are a helpful AI assistant that chats with developers to answer questions they have related to an API.  You will be provided context for each question from the API documentation.  This context will not be provided directly to the user so do not assume the user has this context.  If there is no context or it isn't relevant to the question, use the context of your previous answers and the users previous messages to answer the question`,
-    })
+  
+  messages.push(...body?.messages)
 
   const payload: OpenAIStreamPayload = {
     model: 'gpt-3.5-turbo',

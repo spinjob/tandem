@@ -40,7 +40,7 @@ import {Player } from '@lottiefiles/react-lottie-player';
 import { TimeInput } from '@mantine/dates';  
 import {AiOutlinePlusSquare, AiFillCheckCircle, AiFillMinusCircle, AiFillPlusCircle} from 'react-icons/ai'
 import {FiChevronDown} from 'react-icons/fi'
-import {HiOutlineArrowLeft, HiOutlineTrash, HiOutlineDocumentDownload, HiOutlineDotsHorizontal} from 'react-icons/hi'
+import {HiOutlineBeaker, HiOutlineArrowLeft, HiOutlineTrash, HiOutlineDocumentDownload, HiOutlineDotsHorizontal} from 'react-icons/hi'
 import {HiOutlineCommandLine} from 'react-icons/hi2'
 import {BsViewList} from 'react-icons/bs'
 import {TbWebhook} from 'react-icons/tb'
@@ -53,6 +53,7 @@ import scopingWorkflowIcon from '../../../../../public/icons/programming-code_1.
 import actionIteratorIcon from '../../../../../public/icons/Play, Repeat, Circle.svg'
 import booleanConditionIcon from '../../../../../public/icons/checkbox-checkmark-cross.svg'
 import warningIcon from '../../../../../public/icons/warning.1.svg'
+
 import 'reactflow/dist/style.css';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
@@ -67,7 +68,7 @@ import WorkflowScope from '../../../../components/Workflow/WorkflowScope';
 import WorkflowMonitor from '../../../../components/Workflow/WorkflowMonitor';
 import WorkflowTestModal from '../../../../components/Workflow/WorkflowTestModal';
 import WorkflowValidationDrawer from '../../../../components/Workflow/WorkflowValidationDrawer';
-
+import Landing from '../../../../components/Workflow/CodeGeneration/Landing';
 import LoadingAnimation from '../../../../../public/animations/Loading_Animation.json'
 import WorkflowAnimation from '../../../../../public/animations/ValueProp_Section2.json'
 
@@ -1238,73 +1239,73 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
             <Header height={30} sx={{ backgroundColor: "transparent", borderBottom: 0 }} >
               <Container className={classes.inner} fluid>
                 <Group>
-                <ActionIcon onClick={() => router.push('/partnerships/'+pid)}>
-                    <HiOutlineArrowLeft size={30} color={'black'} />
-                </ActionIcon>
+                    <ActionIcon onClick={() => router.push('/partnerships/'+pid)}>
+                        <HiOutlineArrowLeft size={30} color={'black'} />
+                    </ActionIcon>
 
-                { isNameFieldActive ?
-                    (
-                        <Container fluid sx={{
-                            border: '1px solid #FFFFFF',
-                            borderRadius: 5,
-                            height: 50,
-                            display: 'flex',
-                            alignItems: 'center',
-                            width: {nameFieldWidth}
-                        }}>
-                    
-                            <TextInput value={workflowName} onChange={(event) => { setWorkflowName(event.target.value);}} size={28} variant={'unstyled'}  style={{width:`${workflowName.length + 8}ch`}}/>
-                        {
-                        isNameFieldActive ? (
-                            <>
-                                <div style={{marginLeft: 10}}/>
-                                <ActionIcon size='xl'>
-                                <AiFillCheckCircle size={22} color={'#9595FF'} onClick={() => {
-                                    
-                                    setIsNameFieldActive(!isNameFieldActive)
-                                    setGlobalWorkflowState({...globalWorkflowState, name: workflowName})
+                    { isNameFieldActive ?
+                        (
+                            <Container fluid sx={{
+                                border: '1px solid #FFFFFF',
+                                borderRadius: 5,
+                                height: 50,
+                                display: 'flex',
+                                alignItems: 'center',
+                                width: {nameFieldWidth}
+                            }}>
+                        
+                                <TextInput value={workflowName} onChange={(event) => { setWorkflowName(event.target.value);}} size={28} variant={'unstyled'}  style={{width:`${workflowName.length + 8}ch`}}/>
+                            {
+                            isNameFieldActive ? (
+                                <>
+                                    <div style={{marginLeft: 10}}/>
+                                    <ActionIcon size='xl'>
+                                    <AiFillCheckCircle size={22} color={'#9595FF'} onClick={() => {
+                                        
+                                        setIsNameFieldActive(!isNameFieldActive)
+                                        setGlobalWorkflowState({...globalWorkflowState, name: workflowName})
 
-                                    }}  />
-                                </ActionIcon>
-                            </>
-                           
+                                        }}  />
+                                    </ActionIcon>
+                                </>
+                            
+                            ) : (
+                                null
+                            )
+                        }  
+                            </Container>
                         ) : (
-                            null
+                            <Text onClick={() => setIsNameFieldActive(!isNameFieldActive)} style={{fontFamily:'Visuelt', fontWeight: 600, fontSize:'28px'}}>{workflowName}</Text>
                         )
-                    }  
-                        </Container>
-                    ) : (
-                        <Text onClick={() => setIsNameFieldActive(!isNameFieldActive)} style={{fontFamily:'Visuelt', fontWeight: 600, fontSize:'28px'}}>{workflowName}</Text>
-                    )
-                }
-                <div style={{marginLeft: 20}}/>
-                {
-                    statusUpdateLoading ? (
-                        <Loader size='sm' color={'dark'} />
-                    ) : (
-                        <Switch 
-                        onChange={() => {
-                            setChecked(!checked)
-                            if(!checked) {
-                                activateWorkflow()
-                            } else {
-                                deactivateWorkflow()
-                            }
-                        }}
-                        size='md'
-                        color='dark'
-                        disabled={!canActivateWorkflow}
-                        checked={checked}
-                        sx={{
-                            backgroundColor: 'white',
-                            borderRadius: 5
-                        }}
-                        // checked={workflowStatus === 'active' ? true : false}
-                        label={checked ? <Text sx={{fontFamily:'Visuelt', fontWeight: 100}}>Running</Text> : <Text sx={{fontFamily:'Visuelt', fontWeight: 100}}>Disabled</Text> }
-                        />
-                    )
-                }
-                    
+                    }
+                    <div style={{marginLeft: 20}}/>
+                    {
+                        statusUpdateLoading ? (
+                            <Loader size='sm' color={'dark'} />
+                        ) : (
+                            <Switch 
+                            onChange={() => {
+                                setChecked(!checked)
+                                if(!checked) {
+                                    activateWorkflow()
+                                } else {
+                                    deactivateWorkflow()
+                                }
+                            }}
+                            size='md'
+                            color='dark'
+                            disabled={!canActivateWorkflow}
+                            checked={checked}
+                            sx={{
+                                backgroundColor: 'white',
+                                borderRadius: 5
+                            }}
+                            // checked={workflowStatus === 'active' ? true : false}
+                            label={checked ? <Text sx={{fontFamily:'Visuelt', fontWeight: 100}}>Running</Text> : <Text sx={{fontFamily:'Visuelt', fontWeight: 100}}>Disabled</Text> }
+                            />
+                        )
+                    }
+                        
                 </Group>
                 <Group>
                     <SegmentedControl 
@@ -1352,16 +1353,30 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
                             label: (
                                 <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
                                     <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
-                                        Monitor
+                                        Test
+                                    </Text>
+                                    }>
+                                <Center>
+                                    <HiOutlineBeaker size={25}/>
+                                </Center>
+                            </Tooltip>
+                                
+                            ) 
+                          },
+                          {
+                            value:'code', 
+                            label: (
+                                <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
+                                    <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
+                                        Code Editor
                                     </Text>
                                     }>
                                 <Center>
                                     <HiOutlineCommandLine size={25}/>
                                 </Center>
-                            </Tooltip>
-                                
+                            </Tooltip> 
                             ) 
-                        }
+                          }
                             ]}/>
                 </Group>
                 <Group>
@@ -2353,8 +2368,10 @@ const WorkflowStudio = () => {
                         <ReactFlowProvider>
                             <Flow suggestedNodes={suggestedNodes} suggestedEdges={suggestedEdges} toggleDrawer={toggleDrawer} workflow={workflow[0]} apis={apis} webhooks={workflowWebhooks} actions={workflowActions}/>
                         </ReactFlowProvider>
-                    ) : (
+                    ) : view == 'monitor' && typeof window !== undefined ? (
                         <WorkflowMonitor workflow={workflow[0]}/>
+                    ) : (
+                        <Landing />
                     )
                 }
             </div>

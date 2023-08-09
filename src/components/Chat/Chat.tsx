@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react'
-import { Button } from './Button'
+// import { Button } from './Button'
 import { type ChatGPTMessage, ChatLine, LoadingChatLine } from './ChatLine'
 import { useCookies } from 'react-cookie'
-import {PineconeClient} from '@pinecone-database/pinecone'
+import {Select, Text, createStyles, Button} from '@mantine/core'
 
 const COOKIE_NAME = 'nextjs-example-ai-chat-gpt3'
 
 interface ChatProps {
     apiId: string;
+    chatType: string;
+    partnership: any;
 }
 
 // default first message to display in UI (not necessary to define the prompt)
 export const initialMessages: ChatGPTMessage[] = [
   {
     role: 'assistant',
-    content: 'Hi! I am Tandem\'s AI assistant. I can help you with any questions you have about your API.',
+    content: 'Hi! I am Tandem\'s AI assistant. I can help you with any API related questions or queries.',
   },
 ]
 
@@ -49,10 +51,21 @@ async function embedQuery(message: string){
     return embeddings;
 }
 
-async function queryPinecone(message: string, apiId: string){
+async function queryPinecone(message: string, apiId: string, partnershipId: string, focus: string){
 
     //Get embeddings for question
     let embeddings = await embedQuery(message);
+
+    let filters = partnershipId && !apiId ? {
+      'partnership_id': partnershipId
+    } : !partnershipId && apiId ? {
+        'api_id': apiId
+    } : partnershipId && apiId ? {
+        'partnership_id': partnershipId,
+        'api_id': apiId
+    } : {
+      
+    }
 
     var requestOptions: any = {
         method: 'POST',
@@ -60,11 +73,14 @@ async function queryPinecone(message: string, apiId: string){
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            'embeddings': embeddings
+            embeddings,
+            filters
         }),
     };
 
-    let query_response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/interfaces/${apiId}/query`, requestOptions).then(
+    let endpoint = partnershipId ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/projects/${partnershipId}/query` : `${process.env.NEXT_PUBLIC_API_BASE_URL}/interfaces/${apiId}/query`
+    console.log(endpoint)
+    let query_response = await fetch(endpoint, requestOptions).then(
         response => response.json()
     ).then(json => {
         return json
@@ -109,45 +125,123 @@ async function createContextQuery(contexts:[any], question: string){
     return prompt;
 }
 
+const InputMessage = ({ input, setInput, sendMessage, apiId, api, chatType, partnership }: any) => {
 
-const InputMessage = ({ input, setInput, sendMessage, apiId }: any) => (
-  <div style={{display:'flex', flexDirection: 'column', width: '100%', alignItems:'end'}}>
-    <input
-      type="text"
-      required
-      style={{ height: 50, width:'100%', borderRadius: 5, border: '1px solid #ccc', padding: 10}}
-      value={input}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          sendMessage(input,apiId)
-          setInput('')
-        }
-      }}
-      onChange={(e) => {
-        setInput(e.target.value)
-      }}
-    />
-    <div style={{height: 10}} />
-    <Button
-      type="submit"
-      style={{ cursor: 'pointer', height: 50, width: '20%', borderRadius: 5}}
-      onClick={() => {
-        sendMessage(input, apiId)
-        setInput('')
-      }}
-    >
-      Send
-    </Button>
-  </div>
-)
+  console.log("InputMessage Partnership: ")
+  console.log(partnership)
 
+  const [selectedValue, setSelectedValue] = useState<any>('all')
+  const [data, setData] = useState<any>([
+    {value:'all', label:'All Documentation'},
+    {value:'actions', label:'API Requests'},
+    {value:'webhooks', label:'API Webhooks'},
+    {value:'security', label:'API Authentication'}
+  ])
 
-export const Chat: React.FC<ChatProps> = ({ apiId }) => {
+  useEffect(() => {
+    if (api && api.documentation && chatType == 'api'){
+      let documentationKeys = Object.keys(api.documentation)
+      let new_data = [
+        {value:'all', label:'All Documentation'},
+        {value:'http_action', label:'API Requests'},
+        {value:'api_webhooks', label:'API Webhooks'},
+        {value:'api_authentication', label:'API Authentication'}
+      ]
+      for (let key of documentationKeys){
+        var capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+        new_data.push({value:key, label:"Documentation: "+capitalizedKey})
+      }
+      setData(new_data)
+    }
+
+    if (partnership && chatType == 'partnership'){
+      // Add any focus options for the partnership bot
+    }
+  }, [api])
+  
+  return (
+      <div style={{display:'flex', flexDirection: 'column', width: '100%', alignItems:'end'}}>
+        <input
+          type="text"
+          required
+          style={{ height: 50, width:'100%', borderRadius: 5, border: '1px solid #ccc', padding: 10}}
+          value={input}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              var partnershipId = partnership?.uuid
+              sendMessage(input,apiId,partnershipId)
+              setInput('')
+            }
+          }}
+          onChange={(e) => {
+            setInput(e.target.value)
+          }}
+        />
+        <div style={{height: 10}} />
+        <div style={{display: 'flex', flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end', width: '100%'}}>
+          {/* <Select 
+              value={selectedValue}
+              onChange={(e) => {
+                setSelectedValue(e)
+              }}
+              data={data}
+              placeholder="Focus your question"
+              styles={(theme) => ({
+                  input:{
+                    height: 50,
+                    width: 250,
+                    fontFamily:'Visuelt',
+                    fontSize: 16,
+                    '&:focus':{
+                      border: '1px solid black'
+                    }
+                  },
+                  item:{
+                    fontFamily:'Visuelt',
+                    fontSize: 16,
+                    fontWeight:100,
+                    '&:hover':{
+                      backgroundColor: '#EAEAFF'
+                    },
+                    '&[data-selected]': {
+                      '&, &:hover': {
+                        backgroundColor: '#9596FF',
+                        color: 'white',
+                      },
+                    },
+                  }
+
+              })}
+            />
+          <div style={{width: 10}} /> */}
+          <Button
+            type="submit"
+            disabled={!input || input == ''}
+            color='dark'
+            style={{ cursor: 'pointer', height: 50, width: '20%', borderRadius: 5}}
+            onClick={() => {
+              var partnershipId = partnership?.uuid
+              sendMessage(input,apiId,partnershipId)
+              setInput('')
+            }}
+          >
+            Send
+          </Button>
+        </div>
+      
+      </div>
+  )
+}
+
+export const Chat: React.FC<ChatProps> = ({ apiId, chatType, partnership }) => {
   const [messages, setMessages] = useState<ChatGPTMessage[]>(initialMessages)
+
   const [formattedMessages, setFormattedMessages] = useState<ChatGPTMessage[]>(initialMessages)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [cookie, setCookie] = useCookies([COOKIE_NAME])
+
+  const [api, setApi] = useState<any>(null)
 
   useEffect(() => {
     if (!cookie[COOKIE_NAME]) {
@@ -157,39 +251,56 @@ export const Chat: React.FC<ChatProps> = ({ apiId }) => {
     }
   }, [cookie, setCookie])
 
+
+  useEffect(() => {
+    if(apiId && apiId !== '' && !api && chatType == 'api'){
+      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/interfaces/${apiId}`).then(
+        response => response.json()
+      ).then(json => {
+        setApi(json)
+      })
+    }
+  }, [apiId, api])
+
   // send message to API /api/chat endpoint
-  const sendMessage = async (message: string, apiId: string) => {
+  const sendMessage = async (message: string, apiId: string, partnershipId: string,focus:'string') => {
 
-    const matches = await queryPinecone(message, apiId)
+    console.log("Send Message Partnership ID: ")
+    console.log(partnershipId)
+    const matches = await queryPinecone(message, apiId, focus, partnershipId)
 
-    const groupedMatches = []
+    var groupedMatches = []
+
     let apiActionMatch, apiWebhookMatch, apiSecurityMatch, apiDocumentationMatch, apiBaseUrlMatch;
 
-    for (const match of matches) {
-      if ((!apiActionMatch || match.score > apiActionMatch.score) && match.metadata.metadata_type === 'http_action') {
-        apiActionMatch = match
-        groupedMatches.push(match)
-      } 
-      if ((!apiWebhookMatch || match.score > apiWebhookMatch.score) && match.metadata.metadata_type === 'api_webhook') {
-        apiWebhookMatch = match;
-        groupedMatches.push(match)
-      }
-      if ((!apiSecurityMatch || match.score > apiSecurityMatch.score) && match.metadata.metadata_type === 'api_authentication') {
-        apiSecurityMatch = match;
-        groupedMatches.push(match)
-      }
-      if ((!apiDocumentationMatch || match.score > apiDocumentationMatch.score) && match.metadata.metadata_type === 'additional_documentation') {
-        apiDocumentationMatch = match;
-        groupedMatches.push(match)
-      }
-      if ((!apiBaseUrlMatch || match.score > apiBaseUrlMatch.score) && match.metadata.metadata_type === 'base_url') {
-        apiBaseUrlMatch = match;
-        groupedMatches.push(match)
+    if(chatType == 'api'){
+      for (const match of matches) {
+        if ((!apiActionMatch || match.score > apiActionMatch.score) && match.metadata.metadata_type === 'http_action') {
+          apiActionMatch = match
+          groupedMatches.push(match)
+        } 
+        if ((!apiWebhookMatch || match.score > apiWebhookMatch.score) && match.metadata.metadata_type === 'api_webhook') {
+          apiWebhookMatch = match;
+          groupedMatches.push(match)
+        }
+        if ((!apiSecurityMatch || match.score > apiSecurityMatch.score) && match.metadata.metadata_type === 'api_authentication') {
+          apiSecurityMatch = match;
+          groupedMatches.push(match)
+        }
+        if ((!apiDocumentationMatch || match.score > apiDocumentationMatch.score) && match.metadata.metadata_type === 'additional_documentation') {
+          apiDocumentationMatch = match;
+          groupedMatches.push(match)
+        }
+        if ((!apiBaseUrlMatch || match.score > apiBaseUrlMatch.score) && match.metadata.metadata_type === 'base_url') {
+          apiBaseUrlMatch = match;
+          groupedMatches.push(match)
+        }
       }
     }
 
-    console.log("groupedMatches", groupedMatches)
-    
+    if (chatType == 'partnership'){
+      groupedMatches = matches
+    }
 
     var prompt : any = message;
 
@@ -274,6 +385,9 @@ export const Chat: React.FC<ChatProps> = ({ apiId }) => {
         setInput={setInput}
         sendMessage={sendMessage}
         apiId={apiId}
+        api={api}
+        chatType={chatType}
+        partnership={partnership}
       />
     </div>
   )

@@ -20,7 +20,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
     const {setOrganization} = useContext(AppContext)
     const {dbUser} = useContext(AppContext).state
     const {setDbUser} = useContext(AppContext)
-    const [active, setActive] = useState('Partnerships');
+    const [active, setActive] = useState('Integrations');
 
     const useStyles = createStyles((theme, _params, getRef) => {
         const icon = getRef('icon');
@@ -140,7 +140,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
       }, [setIsOpened, isOpened]);
 
     const data = [
-        { link: '/', label: 'Partnerships' },
+        { link: '/', label: 'Integrations' },
         { link: '/myApis', label: 'My APIs'},
         { link: '/myOrganization', label: 'My Organization'}
     ];
@@ -149,7 +149,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
 
       if(!isOpened) {
           switch (label) {
-            case 'Partnerships':
+            case 'Integrations':
                 return <Image alt="partnerships" src={partnershipsIcon} />;
             case 'My APIs':
                 return <Image alt="apis" src={apiIcon}/>;
@@ -161,7 +161,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
 
       } 
         switch (label) {
-            case 'Partnerships':
+            case 'Integrations':
                 return <>
                       <div style={{height: 26, width: 26}}>
                           <Image alt="partnerships" src={partnershipsIcon} className={classes.linkIcon} />
@@ -326,8 +326,8 @@ const Navigation = ({setIsOpened, isOpened}) => {
         setActive('My APIs')
       } else if (active == 'My Organization' && router.route != '/myOrganization') {
         setActive('My Organization')
-      } else if (active == 'Partnerships' && router.route != '/partnerships') {
-        setActive('Partnerships')
+      } else if (active == 'Integrations' && router.route != '/partnerships') {
+        setActive('Integrations')
       }
     }, [active, setActive, router.route])
 

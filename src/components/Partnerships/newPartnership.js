@@ -17,7 +17,7 @@ const NewPartnership= ({apis, organization, toggleModal}) => {
     return (
       <MultiSelect
         label={<Text sx={{fontSize: '20px', paddingBottom: 10, fontFamily: 'Visuelt'}}>
-          Select Partnership APIs
+          Select Required APIs
         </Text>}
         maxSelectedValues={2}
         placeholder="Select up to 2 APIs"
@@ -99,7 +99,7 @@ const NewPartnership= ({apis, organization, toggleModal}) => {
   : (
     <form onSubmit={form.onSubmit(handleSubmit, handleError)}>
       <TextInput sx={{paddingBottom: 20}} label={<Text sx={{paddingBottom: 10, fontSize: '20px', fontFamily: 'Visuelt'}}>
-        Partnership Name
+        Integration Name
       </Text>} placeholder="Enter a name for your partnership." {...form.getInputProps('name')} />
       <SelectApi apiOptions={
         apis.map((api) => {
@@ -116,7 +116,7 @@ const NewPartnership= ({apis, organization, toggleModal}) => {
           color: 'white',
         },
         }} onClick={handleSubmit} disabled={!canSubmit} type="submit" mt="sm">
-        Create Partnership
+        Create Integration
       </Button>
     </form>
   );

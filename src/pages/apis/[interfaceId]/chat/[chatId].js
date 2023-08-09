@@ -30,7 +30,7 @@ const ApiChat = () => {
         <div style={{height: 30}}/>
       <section>
         <div>
-          <Chat apiId={interfaceId} />
+          <Chat apiId={interfaceId} partnershipId={null} chatType={'api'} />
         </div>
       </section>
     </div>
