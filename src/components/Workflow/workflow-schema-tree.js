@@ -183,8 +183,6 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                 if(child?.properties && i !== schemaLocationArray.length - 1){
                     parent = child.properties
                         if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
-                            console.log("Dictionary Key")
-                            console.log(schemaLocationArray[i])
                             parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1], path: path})
                         }
                     }                        
@@ -315,7 +313,7 @@ const WorkflowSchemaTree = ({ schema, isLoading, setSelectedSchemaProperty, sche
                 }
             }}
             >
-            <Tree ref={tree} treeId={'tree-1'} rootItem="root" treeLabel="Tree Example" />
+                <Tree ref={tree} treeId={'tree-1'} rootItem="root" treeLabel="Tree Example" />
             </UncontrolledTreeEnvironment>
         </div>
     )

@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import { useCallback, useState, useContext, useEffect, useRef} from 'react';
+import {useUser} from '@auth0/nextjs-auth0/client'
 import {
     createStyles,
     Menu,
@@ -58,7 +59,6 @@ import 'reactflow/dist/style.css';
 import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
 import { toPng } from 'html-to-image';
-import AppContext from '../../../../context/AppContext';
 
 import ButtonEdge from '../../../../components/Workflow/ButtonEdge';
 import SchemaMappingDrawer from '../../../../components/Workflow/SchemaMappingDrawer';
@@ -1363,20 +1363,20 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
                                 
                             ) 
                           },
-                          {
-                            value:'code', 
-                            label: (
-                                <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
-                                    <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
-                                        Code Editor
-                                    </Text>
-                                    }>
-                                <Center>
-                                    <HiOutlineCommandLine size={25}/>
-                                </Center>
-                            </Tooltip> 
-                            ) 
-                          }
+                        //   {
+                        //     value:'code', 
+                        //     label: (
+                        //         <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
+                        //             <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
+                        //                 Code Editor
+                        //             </Text>
+                        //             }>
+                        //         <Center>
+                        //             <HiOutlineCommandLine size={25}/>
+                        //         </Center>
+                        //     </Tooltip> 
+                        //     ) 
+                        //   }
                             ]}/>
                 </Group>
                 <Group>
@@ -1530,7 +1530,6 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
 
 const WorkflowStudio = () => {
     const router = useRouter();
-    
     const { pid, workflowId } = router.query;
     const [workflow, setWorkflow] = useState(null);
     const [apis, setApis] = useState(null);
@@ -2371,7 +2370,7 @@ const WorkflowStudio = () => {
                     ) : view == 'monitor' && typeof window !== undefined ? (
                         <WorkflowMonitor workflow={workflow[0]}/>
                     ) : (
-                        <Landing />
+                        <Landing workflowId={workflowId} />
                     )
                 }
             </div>

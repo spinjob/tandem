@@ -1,5 +1,7 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import Editor from '@monaco-editor/react';
+import { Text, Loader } from "@mantine/core";
+import axios from 'axios';
 
 const CodeEditorWindow = ({onChange, language, code, theme}) => {
     const [value, setValue] = useState(code || '');
@@ -8,16 +10,16 @@ const CodeEditorWindow = ({onChange, language, code, theme}) => {
         setValue(value);
         onChange("code", value);
     }
-
+    
     return (
         <div>
             <Editor
                 height="85vh"
                 width="100%"
-                language={language || "javascript"}
-                value={value}
+                language={'python'}
+                value={code}
                 theme={theme || "light"}
-                defaultVAlue="// Write your code here"
+                defaultValue="// Write your code here"
                 onChange={handleEditorChange}
             />
         </div>
