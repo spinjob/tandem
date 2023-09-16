@@ -147,12 +147,21 @@ const Partnerships = () => {
             >
                <NewPartnership organization={organization} apis={apis}/>
             </Modal>
-                <Text style={{paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 600, fontSize: '38px'}}>Welcome, {user?.given_name}</Text>
+                {
+                    user?.given_name ? (
+                        <Text style={{paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 600, fontSize: '38px'}}>Welcome, {user?.given_name}</Text>
+
+                    ):(
+                        <Text style={{paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 600, fontSize: '38px'}}>Welcome!</Text>
+                    )
+                }
                 <div style={{display:'flex'}}>
                     <Card style={{height: 165, width: 253, paddingTop: 38, paddingLeft: 50, backgroundColor: '#ffecea'}}radius={'xl'}>
                         <Card.Section>
-                            <Text sx={{fontFamily:'Visuelt', fontWeight: 500, fontSize: '18px'}}>Uncleared Errors</Text>
-                            <Text sx={{fontFamily:'Visuelt', fontWeight: 700, fontSize: '80px'}}>0</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 500, fontSize: '18px'}}>Integrations</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 700, fontSize: '80px'}}>{
+                                partnerships?.length
+                            }</Text>
                         </Card.Section>
                     </Card>
                     <div style={{width: 20}}/>
@@ -165,8 +174,8 @@ const Partnerships = () => {
                     <div style={{width: 20}}/>
                     <Card style={{height: 165, width: 253, paddingTop: 38, paddingLeft: 50, backgroundColor: '#eaeaff'}}radius={'xl'}>
                         <Card.Section>
-                            <Text sx={{fontFamily:'Visuelt', fontWeight: 500, fontSize: '18px'}}>Hours Saved</Text>
-                            <Text sx={{fontFamily:'Visuelt', fontWeight: 700, fontSize: '80px'}}>0</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 500, fontSize: '18px'}}>APIs</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 700, fontSize: '80px'}}>{apis?.length}</Text>
                         </Card.Section>
                     </Card>
                     <div style={{width: 20}}/>

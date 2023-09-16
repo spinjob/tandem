@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useCallback, useState, useContext, useEffect, useRef} from 'react';
 import {useUser} from '@auth0/nextjs-auth0/client'
+import AppContext from '../../../../context/AppContext';
 import {
     createStyles,
     Menu,
@@ -23,7 +24,10 @@ import {
     Drawer,
     Switch,
     Modal,
-    Tooltip
+    Tooltip,
+    Progress,
+    Badge,
+    Tabs
   } from '@mantine/core';
 
 import ReactFlow, {
@@ -54,6 +58,7 @@ import scopingWorkflowIcon from '../../../../../public/icons/programming-code_1.
 import actionIteratorIcon from '../../../../../public/icons/Play, Repeat, Circle.svg'
 import booleanConditionIcon from '../../../../../public/icons/checkbox-checkmark-cross.svg'
 import warningIcon from '../../../../../public/icons/warning.1.svg'
+import {AiOutlineCheckCircle} from 'react-icons/ai'
 
 import 'reactflow/dist/style.css';
 import axios from 'axios';
@@ -71,6 +76,7 @@ import WorkflowValidationDrawer from '../../../../components/Workflow/WorkflowVa
 import Landing from '../../../../components/Workflow/CodeGeneration/Landing';
 import LoadingAnimation from '../../../../../public/animations/Loading_Animation.json'
 import WorkflowAnimation from '../../../../../public/animations/ValueProp_Section2.json'
+import ImportApiDropzone from '../../../../components/import-api';
 
 const nodeTypes = {trigger: TriggerNode, action: ActionNode}
 const edgeTypes = {buttonEdge: ButtonEdge}
@@ -142,6 +148,7 @@ function DownloadButton() {
         </Button>
     )
 }
+
 
 function ActionNode ({id, data}) {
     const {classes, cx} = useStyles();
@@ -1136,7 +1143,9 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
     )
 }
 
-const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShouldDownloadPdf, validateWorkflow, setWorkflowSuggestionModalOpen, setTestWorkflowModalOpen}) => {
+
+
+const WorkflowHeader = ({user, workflow, setView, view, canActivateWorkflow, setImportApiModalOpen, setShouldDownloadPdf, validateWorkflow, setWorkflowSuggestionModalOpen, setTestWorkflowModalOpen}) => {
     const { classes } = useStyles()
     const router = useRouter();
     const [isNameFieldActive, setIsNameFieldActive] = useState(false);
@@ -1148,6 +1157,7 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
     const functions = useStore((state) => state.functions);
     const globalWorkflowState = useStore((state) => state.workflow);
     const setGlobalWorkflowState = useStore((state) => state.setWorkflow);
+    const nodeActions = useStore((state) => state.nodeActions);
     const setNodeAction = useStore((state) => state.setNodeAction);
     const [saveInProgress, setSaveInProgress] = useState(false);
     const [checked, setChecked] = useState(false);
@@ -1155,14 +1165,112 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
 
     const { pid, workflowId } = router.query;
 
+    const generateHeaderOptions = () => { 
+    
+         if(Object.keys(nodeActions).length > 0){
+            return [
+                {
+                    value:'studio', 
+                    label: (
+                        <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
+                            <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
+                                Studio
+                            </Text>
+                            }>
+                         <Center>
+                            <Image alt="workflowStudio" src={studioIcon} width={25} height={25}/>
+                        </Center>
+                    </Tooltip>
+                    ) 
+              },
+              {
+                value:'scope', 
+                label: (
+                     <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
+                            <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
+                                Documentation
+                            </Text>
+                            }>
+                        <Center>
+                            <BsViewList size={25}/>
+                        </Center>
+                    </Tooltip>
+                    
+                ) 
+          }, 
+          {
+            value:'monitor', 
+            label: (
+                <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
+                    <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
+                        Test
+                    </Text>
+                    }>
+                <Center>
+                    <HiOutlineBeaker size={25}/>
+                </Center>
+            </Tooltip>
+                
+            ) 
+          },
+        //   {
+        //     value:'code', 
+        //     label: (
+        //         <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
+        //             <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
+        //                 Code Editor
+        //             </Text>
+        //             }>
+        //         <Center>
+        //             <HiOutlineCommandLine size={25}/>
+        //         </Center>
+        //     </Tooltip> 
+        //     ) 
+        //   }
+            ]
+         } else {
+            return                             [
+                {
+                    value:'studio', 
+                    label: (
+                        <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
+                            <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
+                                Studio
+                            </Text>
+                            }>
+                         <Center>
+                            <Image alt="workflowStudio" src={studioIcon} width={25} height={25}/>
+                        </Center>
+                    </Tooltip>
+                    ) 
+              }
+            ]
+         }
+    }
+
+        
+    const ImportApiButton = () => {
+        const onClick = () => {
+            setImportApiModalOpen(true)
+        };
+        return(
+            <Button onClick={onClick} style={{backgroundColor: '#EAEAFF', color: '#3F3F3F', fontFamily: 'Visuelt', fontWeight: 100, fontSize: '12px', borderRadius: 8, height: 40, width: 40, display: 'flex', justifyContent: 'center', alignItems: 'center', border: '1px solid #E7E7E7', boxShadow:"rgba(0, 0, 0, 0.04) 0px 3px 5px" }}>
+                <HiOutlineDocumentDownload size={20} />
+            </Button>
+        )
+    }
+    
+
     const processWorkflowSave = () => {
         setSaveInProgress(true)
+        let machineSteps = generateMachineSteps();
+
         axios.put(process.env.NEXT_PUBLIC_API_BASE_URL +'/projects/' + workflow.parent_project_uuid + '/workflows/' + workflow.uuid,{
             name: workflowName,
             nodes: globalNodeState,
             edges: globalEdgeState,
             trigger: globalWorkflowState.trigger,
-            steps: [],
+            steps: machineSteps,
             status: "Draft",
             updated_at: new Date(),
             parent_project_uuid: workflow.parent_project_uuid,
@@ -1177,6 +1285,59 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
             console.log(error)
             setSaveInProgress(false)
         } )
+    }
+
+    function generateMachineSteps(){
+        const machineSteps = [];
+        globalNodeState.forEach((node,index) => {
+            if(node.type == 'action'){
+                let transforms = [];
+                if(mappings && mappings[node.id]){
+                    let mappingKeys = Object.keys(mappings[node.id]);
+                    mappingKeys.forEach((key) => {
+                        let transform = {
+                            uuid: mappings[node.id][key].id,
+                            input: {
+                                type: mappings[node.id][key].input.type,
+                                // example: mappings[node.id][key].input.example && typeof mappings[node.id][key].input.example != 'object' ? mappings[node.id][key].input.example : null,
+                                key: mappings[node.id][key].input.key,
+                                path: mappings[node.id][key].input.path,
+                                in: mappings[node.id][key].input.in,
+                                parentContext: mappings[node.id][key].input.parentContext ? mappings[node.id][key].input.parentContext : null,
+                            },
+                            output: {
+                                type: mappings[node.id][key].output.type,
+                                // example: mappings[node.id][key].output.example && typeof mappings[node.id][key].output.example != 'object' ? mappings[node.id][key].output.example : null,
+                                key: mappings[node.id][key].output.key,
+                                path: mappings[node.id][key].output.path,
+                                in: mappings[node.id][key].output.in,
+                                parentContext: mappings[node.id][key].output.parentContext ? mappings[node.id][key].output.parentContext : null,
+                            },
+                            formulas: mappings[node.id][key].input.formulas ? mappings[node.id][key].input.formulas : []
+                        }
+                        transforms.push(transform)
+                    })
+                }
+                let machineStep = {
+                    uuid: node.id,
+                    stepIndex: index - 1,
+                    api: node.data.selectedAction.parent_interface_uuid,
+                    actionName: node.data.selectedAction.name,
+                    requestInfo: {
+                        method: node.data.selectedAction.method,
+                        path: node.data.selectedAction.path,
+                        headers: node.data.selectedAction.parameterSchema && node.data.selectedAction.parameterSchema['headers'] ? node.data.selectedAction.parameterSchema['headers'] : null,
+                        body: node.data.selectedAction.requestBody2 ? node.data.selectedAction.requestBody2 : null
+                    },
+                    successTransition: null,
+                    failureTransition: null,
+                    transforms: transforms
+                }
+                machineSteps.push(machineStep)
+            }
+        })
+
+        return machineSteps;
     }
 
     function activateWorkflow () {
@@ -1239,10 +1400,13 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
             <Header height={30} sx={{ backgroundColor: "transparent", borderBottom: 0 }} >
               <Container className={classes.inner} fluid>
                 <Group>
-                    <ActionIcon onClick={() => router.push('/partnerships/'+pid)}>
-                        <HiOutlineArrowLeft size={30} color={'black'} />
-                    </ActionIcon>
-
+                    {
+                        user ? (
+                            <ActionIcon onClick={() => router.push('/partnerships/'+pid)}>
+                                <HiOutlineArrowLeft size={30} color={'black'} />
+                            </ActionIcon>
+                        ): null
+                    }
                     { isNameFieldActive ?
                         (
                             <Container fluid sx={{
@@ -1317,67 +1481,7 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
                             backgroundColor: 'white',
                             borderRadius: 5
                         }}
-                        data={
-                            [
-                                {
-                                    value:'studio', 
-                                    label: (
-                                        <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
-                                            <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
-                                                Studio
-                                            </Text>
-                                            }>
-                                         <Center>
-                                            <Image alt="workflowStudio" src={studioIcon} width={25} height={25}/>
-                                        </Center>
-                                    </Tooltip>
-                                    ) 
-                              },
-                              {
-                                value:'scope', 
-                                label: (
-                                     <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
-                                            <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
-                                                Documentation
-                                            </Text>
-                                            }>
-                                        <Center>
-                                            <BsViewList size={25}/>
-                                        </Center>
-                                    </Tooltip>
-                                    
-                                ) 
-                          }, 
-                          {
-                            value:'monitor', 
-                            label: (
-                                <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
-                                    <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
-                                        Test
-                                    </Text>
-                                    }>
-                                <Center>
-                                    <HiOutlineBeaker size={25}/>
-                                </Center>
-                            </Tooltip>
-                                
-                            ) 
-                          },
-                        //   {
-                        //     value:'code', 
-                        //     label: (
-                        //         <Tooltip position='bottom' withinPortal={true}  withArrow={true} arrowPosition="center" arrowSize={10} label={
-                        //             <Text sx={{  fontFamily: 'Visuelt', fontSize: '14px',  fontWeight: 100 }}>
-                        //                 Code Editor
-                        //             </Text>
-                        //             }>
-                        //         <Center>
-                        //             <HiOutlineCommandLine size={25}/>
-                        //         </Center>
-                        //     </Tooltip> 
-                        //     ) 
-                        //   }
-                            ]}/>
+                        data={generateHeaderOptions()}/>
                 </Group>
                 <Group>
                     {
@@ -1502,7 +1606,8 @@ const WorkflowHeader = ({workflow, setView, view, canActivateWorkflow, setShould
                         Save Workflow
                     </Button>
 
-                    <DownloadButton />
+                    {/* <DownloadButton /> */}
+                    <ImportApiButton setImportApiModalOpen={setImportApiModalOpen} />
                     <Menu transition="fade" position='bottom-end' shadow="md" width={150}>
                         <Menu.Target>
                             <ActionIcon size="lg" radius="md" variant='outline'>
@@ -1542,9 +1647,10 @@ const WorkflowStudio = () => {
     const [suggestedNodes, setSuggestedNodes] = useState(null);
     const [suggestedEdges, setSuggestedEdges] = useState(null);
     const [shouldDownloadPdf, setShouldDownloadPdf] = useState(false);
-
+    const {user} = useUser();
 
     //From Global State
+    const {organization} = useContext(AppContext).state
     const nodeActions = useStore((state) => state.nodeActions);
     const nodes = useStore((state) => state.nodes);
     const edges = useStore((state) => state.edges);
@@ -1573,6 +1679,322 @@ const WorkflowStudio = () => {
     const [shouldValidateWorkflow, setShouldValidateWorkflow] = useState(false);
     const [nodeValidationResults, setNodeValidationResults] = useState(null)
     const [canActivateWorkflow, setCanActivateWorkflow] = useState(false);
+
+    //Import API Modal
+    const [importApiModalOpen, setImportApiModalOpen] = useState(false);
+    const [uploadJob, setUploadJob] = useState(null);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [isUploading, setIsUploading] = useState(false);
+    const [newApiName, setNewApiName] = useState('')
+    const [newApiDescription, setNewApiDescription] = useState('')
+    const [newApiVersion, setNewApiVersion] = useState('')
+    const [isCreationLoading, setIsCreationLoading] = useState(false)
+    const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+    const updateProgress = (job) => {
+        var schemaProgress = job.metadata.schema.status == 'COMPLETED' ? 100 : 0
+        var actionStatus = job.metadata.actions.status == 'COMPLETED' ? 100 : 0
+        var parameterStatus = job.metadata.parameters.status == 'COMPLETED' ? 100 : 0
+        var securitySchemeStatus = job.metadata.securitySchemes.status == 'COMPLETED' ? 100 : 0
+        var webhookStatus = job.metadata.webhooks.status == 'COMPLETED' ? 100 : 0
+    
+        var totalProgress = (schemaProgress + actionStatus + parameterStatus + securitySchemeStatus + webhookStatus) / 5
+    
+        if(totalProgress == 100){
+    
+                setUploadProgress(100)
+                fetchApis()
+                updateJob(job.uuid)
+    
+                delay(2000).then(() => {
+                    setIsUploading(false)
+                    
+                })
+          
+        } else {
+            setUploadProgress(totalProgress)
+            delay(1000).then(() => {
+                fetchJob(job.uuid)
+            })
+            console.log(totalProgress)
+        }
+    }
+    
+    const fetchApis = useCallback(() => {
+
+        axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/organizations/'+ organization)
+            .then((res) => {
+                setOrganizationMetadata(res.data)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+
+        axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + organization)
+            .then((res) => {
+                setApis(res.data)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+        
+   }, [organization])
+
+    const fetchJob = useCallback((uuid) => {
+        axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/jobs/' + uuid).then((res) => {
+            updateProgress(res.data)
+            setUploadJob(res.data)
+            console.log(res.data)
+        }).catch((err) => {
+            console.log(err)
+        })
+    }, [updateProgress])
+
+    const updateJob = useCallback((uuid) => {
+        axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/jobs/' + uuid, {status: "COMPLETE"}).then((res) => {
+            setUploadJob(res.data)
+        }).catch((err) => {
+            console.log(err)
+        })
+    })
+
+    const setInitialJob = (job) => {
+        setUploadJob(job)
+        setIsUploading(true)
+        fetchJob(job.uuid)
+    }
+
+
+    const ImportApiModal = () =>{
+
+        return (
+            <Tabs color="dark" defaultValue={"upload"}>
+                    <Tabs.List>
+                        <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="upload">Open API Import</Tabs.Tab>
+                        <Tabs.Tab style={{fontFamily: 'Visuelt', fontSize: '16px', fontWeight: 500}} value="manual">Create from Scratch</Tabs.Tab>
+                    </Tabs.List>
+                    <Tabs.Panel value="upload" label="Upload">
+                        {
+                            isUploading && uploadProgress < 100 ? (
+                                    <div>
+                                        <div style={{height: '20px'}}/>
+                                        <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F6F3', padding: 30 }}>
+                                            <Text style={{fontFamily: 'apercu-regular-pro', fontSize: '20px', color: '#3E3E3E'}}>{uploadProgress}%</Text>
+                                            <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'center'}}>
+                                                <Text style={{fontFamily: 'Visuelt', fontSize: '20px', color: '#3E3E3E'}}></Text>
+                                                <div style={{height: 60}}/>
+                                                <Progress animate striped color={'#9595FF'} style={{width: 300, height: 10, backgroundColor: '#EAEAFF', borderRadius: 10}} value={uploadProgress} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                            ) : uploadProgress == 100 ? (
+                                <>
+                                <div style={{height: '20px'}}/>
+                                    <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F6F3', padding: 30 }}>
+                                        <div style={{display:'flex', flexDirection:'column', width:"100%"}}>
+                                            <div style={{display:'flex', flexDirection:'row', alignItems:'center', }}>
+                                                <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                                <div style={{width: 10}}/>
+                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.schema?.count} Schemas</Text> 
+                                            </div>
+                                            <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                                <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                                <div style={{width: 10}}/>
+                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.actions?.count} Actions</Text> 
+                                            </div>
+                                            <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                                <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                                <div style={{width: 10}}/>
+                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.parameters?.count} Parameters</Text> 
+                                            </div>
+                                            <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                                <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                                <div style={{width: 10}}/>
+                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.webhooks?.count} Webhooks</Text> 
+                                            </div>
+                                            <div style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+                                                <AiOutlineCheckCircle style={{height: 30, width: 30, color: 'black', backgroundColor: '#A9E579', borderRadius:'60%'}}/>
+                                                <div style={{width: 10}}/>
+                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>{uploadJob?.metadata?.securitySchemes?.count} Security Schemes</Text> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'white', paddingTop: 30}}>
+                                        <Button
+                                            onClick={() => {
+                                                setImportApiModalOpen(false)
+                                                setUploadJob(null)
+                                                setUploadProgress(0)
+                                                setIsUploading(false)
+                                            }}
+                                            sx={{
+                                                backgroundColor: 'white',
+                                                color: 'black',
+                                                '&:hover': {
+                                                    backgroundColor: 'white',
+                                                    color: 'black',
+                                                    border: '1px solid #3E3E3E',
+                                                    
+                                                },
+                                                fontFamily: 'Visuelt',
+                                                border: '1px solid #3E3E3E',
+                                                fontSize: '18px',
+                                                fontWeight: 400,
+                                                width: 120,
+                                                height: 50,
+                                                borderRadius: 10,
+                                            }}
+                                        >Close</Button>
+                                        {/* <Button
+                                            onClick={() => {
+                                                
+                                                router.push(`/apis/${uploadJob?.metadata?.interface}`)
+    
+                                            }}
+                                            sx={{
+                                                backgroundColor: 'black',
+                                                color: 'white',
+                                                '&:hover': {
+                                                    backgroundColor: '#3E3E3E',
+                                                
+                                                },
+                                                fontFamily: 'Visuelt',
+                                                border: '1px solid #eaeaff',
+                                                fontSize: '18px',
+                                                fontWeight: 400,
+                                                
+                                                height: 50,
+                                                borderRadius: 10,
+                                            }}
+                                    >View API Spec</Button> */}
+                                    </div>
+                                </>
+                            
+                            ) :  (
+                                <>
+                                    <div style={{height: '20px'}}/>
+                                    <div style={{display: 'flex', flexDirection:'row', alignItems: 'center', paddingBottom: 10}}>
+                                        <Text style={{ fontFamily: 'Visuelt', fontSize: '15px', paddingLeft: 10, color: '#3E3E3E'}}>Supported Open API Versions:</Text> 
+                                        <Badge>v2.X</Badge>
+                                        <Badge>v3.X</Badge>
+                                    </div>
+                                    <ImportApiDropzone 
+                                        setUploadJob={setInitialJob}  
+                                        owning_organization={'EXTERNAL'} 
+                                        importing_organization={organization}
+                                        userId={user?.sub ? user.sub : 'tempUser'}
+                                        addToPartnership={true}
+                                        partnershipId={pid}/>
+                                </>
+                            ) 
+                        }
+                    </Tabs.Panel>
+                    <Tabs.Panel value="manual" label="Manual">
+                        <>
+                            <div style={{height: '20px'}}/>
+                            <div style={{display: 'flex', flexDirection:'column', alignItems: 'center', paddingBottom: 10}}>
+                                <TextInput
+                                    withAsterisk
+                                    label="API Name"
+                                    value= {newApiName}
+                                    onChange={(e) => {
+                                        setNewApiName(e.target.value)
+                                    }}
+                                    sx={{
+                                        width: '100%',
+                                        height: 50,
+                                        borderRadius: 10,
+                                        fontFamily: 'Visuelt',
+                                        fontSize: '18px',
+                                        fontWeight: 400,
+                                        paddingLeft: 10,
+                                        '&:focus': {
+                                            border: '1px solid #3E3E3E',
+                                        }
+                                    }}
+                                    placeholder="e.g. My API"
+                                />
+                                <div style={{height: '20px'}}/>
+                                <TextInput
+                                    withAsterisk
+                                    label="API Version"
+                                    value= {newApiVersion}
+                                    onChange={(e) => {
+                                        setNewApiVersion(e.target.value)
+                                    }}
+    
+                                    sx={{
+                                        width: '100%',
+                                        height: 50,
+                                        borderRadius: 10,
+                                        fontFamily: 'Visuelt',
+                                        fontSize: '18px',
+                                        fontWeight: 400,
+                                        paddingLeft: 10,
+                                        '&:focus': {
+                                            border: '1px solid #3E3E3E',
+                                        }
+                                    }}
+                                    placeholder="e.g. My API"
+                                />
+                                <div style={{height: '20px'}}/>
+                                <Textarea
+                                    label="API Description"
+                                    value= {newApiDescription}
+                                    onChange={(e) => {
+                                        setNewApiDescription(e.target.value)
+                                    }}
+    
+                                    sx={{
+                                        width: '100%',
+                                        height: 50,
+                                        borderRadius: 10,
+                                        fontFamily: 'Visuelt',
+                                        fontSize: '18px',
+                                        fontWeight: 400,
+                                        paddingLeft: 10,
+                                        '&:focus': {
+                                            border: '1px solid #3E3E3E',
+                                        }
+                                    }}
+                                    placeholder="e.g. My API"
+                                />
+                            </div>
+                            <div style={{height: '60px'}}/>
+                            <Button
+                            disabled = {newApiName === '' || newApiVersion === ''}
+                            loading={isCreationLoading}
+                            onClick={() => {
+                                    setIsCreationLoading(true)
+                                    var api = generateAPI(isExternal)
+                                    if(api){
+                                        setImportApiModalOpen(false)
+                                    }
+                            }}
+                                sx={{
+                                    backgroundColor: 'black',
+                                    color: 'white',
+                                    '&:hover': {
+                                        backgroundColor: '#3E3E3E',
+                                    
+                                    },
+                                    fontFamily: 'Visuelt',
+                                    border: '1px solid #eaeaff',
+                                    fontSize: '18px',
+                                    fontWeight: 400,
+                                    
+                                    height: 50,
+                                    borderRadius: 10,
+                                }}
+                            >Create API</Button>
+                                
+                        </>
+                    </Tabs.Panel>
+            </Tabs>
+        )
+    }
+
 
     const generateOperationIdArray = (actions, apiIndex) => {
         const operationIdArray = []
@@ -1849,47 +2271,56 @@ const WorkflowStudio = () => {
         if (pid && !partnership) {
             axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/details').then((res) => {
                 setPartnership(res.data);
+                console.log(pid)
+                console.log(res.data)
                 var apiArray = [];
 
-                res.data[0].interfaces.forEach((api) => {
-                    axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/' + api).then((res) => {
-                        apiArray.push(res.data);
-                        setApis(apiArray);
-                       
-                        setGlobalWorkflowState({
-                            apis: apiArray
-                        })
-                    
-                    }).catch((err) => {
-                        console.log(err);
-                    })
-                });
-                
-                if(!workflowActions){
-                    axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/actions', {
-                        "interfaces": res.data[0].interfaces
-                    }).then((res) => {
-                        setWorkflowActions(res.data);
-                        setGlobalWorkflowState({
-                            actions: res.data
-                        })
-                    } ).catch((err) => {
-                        console.log(err);
-                    })
-                }
-                if (!workflowWebhooks){
-                    axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/webhooks', {
-                        "interfaces": res.data[0].interfaces
-                    }).then((res) => {
-                        setWorkflowWebhooks(res.data);
-                        setGlobalWorkflowState({
-                            webhooks: res.data
-                        })
+                if(res.data.length > 0){
+                    res.data[0].interfaces.forEach((api) => {
+                        axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/' + api).then((res) => {
+                            apiArray.push(res.data);
+                            setApis(apiArray);
+                           
+                            setGlobalWorkflowState({
+                                apis: apiArray
+                            })
                         
-                    } ).catch((err) => {
-                        console.log(err);
-                    })
+                        }).catch((err) => {
+                            console.log(err);
+                        })
+                    });
+                
+                    if(!workflowActions){
+                        axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/actions', {
+                            "interfaces": res.data[0].interfaces
+                        }).then((res) => {
+                            setWorkflowActions(res.data);
+                            setGlobalWorkflowState({
+                                actions: res.data
+                            })
+                        } ).catch((err) => {
+                            console.log(err);
+                        })
+                    }
+                    if (!workflowWebhooks){
+                        axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/webhooks', {
+                            "interfaces": res.data[0].interfaces
+                        }).then((res) => {
+                            setWorkflowWebhooks(res.data);
+                            setGlobalWorkflowState({
+                                webhooks: res.data
+                            })
+                            
+                        } ).catch((err) => {
+                            console.log(err);
+                        })
+                    }
+                
+                
                 }
+              
+                
+
             }).catch((err) => {
                 console.log(err);
             })
@@ -2318,6 +2749,27 @@ const WorkflowStudio = () => {
             >
                 <WorkflowTestModal workflow={workflow[0]} />
             </Modal>
+            <Modal
+                centered
+                opened={importApiModalOpen}
+                onClose={() => {
+                    setImportApiModalOpen(false)
+                    setUploadJob(null)
+                    setUploadProgress(0)
+                    setIsUploading(false)
+                }}
+                size="lg"
+                title={
+                    uploadProgress == 100 ? (
+                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontSize: '30px', paddingLeft: 10,paddingTop: 10}}>We have processed your API spec</Text>                 
+    
+                    ) : (
+                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontSize: '30px', paddingLeft: 10,paddingTop: 10}}>New API Spec</Text>                 
+                    )     
+                }
+            >
+                <ImportApiModal/>
+            </Modal>
             <Drawer
                 position={'bottom'}
                 opened={activateWorkflowModalOpen}
@@ -2357,7 +2809,7 @@ const WorkflowStudio = () => {
                 backgroundColor: 'white',
                 zIndex: 1
             }}>
-                <WorkflowHeader validateWorkflow={validateWorkflow} view={view} canActivateWorkflow={canActivateWorkflow} setActivateWorkflowModalOpen={setActivateWorkflowModalOpen} setTestWorkflowModalOpen={setTestWorkflowModalOpen} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
+                <WorkflowHeader user={user} validateWorkflow={validateWorkflow} view={view} canActivateWorkflow={canActivateWorkflow} setImportApiModalOpen={setImportApiModalOpen} setActivateWorkflowModalOpen={setActivateWorkflowModalOpen} setTestWorkflowModalOpen={setTestWorkflowModalOpen} setShouldDownloadPdf={setShouldDownloadPdf} setWorkflowSuggestionModalOpen={setWorkflowSuggestionModalOpen} setSuggestedEdges={setSuggestedEdges} setSuggestedNodes={setSuggestedNodes} setView={setView} workflow={workflow[0]} webhooks={workflowWebhooks} actions={workflowActions} apis={apis} style={{ backgroundColor: 'white', boxShadow: '0 0 10px 0 rgba(0,0,0,0.1)', width: '100%'}} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: nodeValidationResults && nodeValidationResults.filter((nodeValidationResult) => nodeValidationResult.level === 'error').length > 0 ? '86vh': '96vh', marginTop: 90}}>
                 {

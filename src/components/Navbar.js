@@ -7,6 +7,7 @@ import axios from "axios";
 import primaryLockupBlack from '../../public/logos/SVG/Primary Lockup_Black.svg'
 import blackLogoIcon from '../../public/logos/SVG/Icon/Icon_Black.svg'
 import partnershipsIcon from '../../public/icons/Programing, Data.8.svg'
+import commonModelsIcon from '../../public/icons/Programing, Data.svg'
 import organizationIcon from '../../public/icons/high-rise-building.svg'
 import apiIcon from '../../public/icons/programming-code.6.svg'
 import logoutIcon from '../../public/icons/exit-door-log-out.3.svg'
@@ -142,7 +143,9 @@ const Navigation = ({setIsOpened, isOpened}) => {
     const data = [
         { link: '/', label: 'Integrations' },
         { link: '/myApis', label: 'My APIs'},
-        { link: '/myOrganization', label: 'My Organization'}
+        // { link: '/models', label: 'Models'},
+        { link: '/myOrganization', label: 'My Organization'},
+
     ];
     
     const renderIcon = (label) => {
@@ -155,6 +158,8 @@ const Navigation = ({setIsOpened, isOpened}) => {
                 return <Image alt="apis" src={apiIcon}/>;
             case 'My Organization':
                 return <Image alt="organization" src={organizationIcon}/>;
+            // case 'Models':
+            //     return <Image alt="commonModels" src={commonModelsIcon}/>;
             default:
                 return null;
          }
@@ -176,6 +181,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
                         </div>
                         <div style={{width: 8}}/>
                         </>
+            
             case 'My Organization':
                 return <>
                         <div style={{height: 26, width: 26}}>
@@ -183,6 +189,13 @@ const Navigation = ({setIsOpened, isOpened}) => {
                         </div>
                         <div style={{width: 8}}/>
                       </>;
+            case 'Models':
+                return <>
+                        <div style={{height: 26, width: 26}}>
+                            <Image alt="commonModels" src={commonModelsIcon} className={classes.linkIcon} />
+                        </div>
+                        <div style={{width: 8}}/>
+                      </>
             default:
                 return null;
         }

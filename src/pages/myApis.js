@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import {Modal, Button,Text, Loader, ScrollArea, Grid, Container, Badge, Tabs, TextInput, Textarea, Progress} from '@mantine/core'
+import {Modal, Button,Text, Loader, ScrollArea, Divider, Grid, Container, Badge, Tabs, TextInput, Textarea, Progress} from '@mantine/core'
 
 import {GrAddCircle} from 'react-icons/gr'
 import {VscTypeHierarchy} from 'react-icons/vsc'
@@ -17,6 +17,7 @@ const MyApis = () => {
 
    const [modalOpened, setModalOpened] = useState(false)
    const [apis, setApis] = useState(null)
+   const [externalApis, setExternalApis] = useState(null)
    const { user, error, isLoading } = useUser();
    const {organization} = useContext(AppContext).state
    const {setOrganization} = useContext(AppContext)
@@ -30,11 +31,13 @@ const MyApis = () => {
    const [newApiDescription, setNewApiDescription] = useState('')
    const [newApiVersion, setNewApiVersion] = useState('')
    const [isCreationLoading, setIsCreationLoading] = useState(false)
+   const [organizationMetadata, setOrganizationMetadata] = useState(null)
+   const [isExternal, setIsExternal] = useState(false)
 
    const router  = useRouter();
 
    const delay = (ms) => new Promise((res) => setTimeout(res, ms));
-   
+
     useEffect(() => {
         if(user?.email && !dbUser){
             console.log('refetching user')
@@ -55,6 +58,15 @@ const MyApis = () => {
     }, [user, dbUser, setOrganization, setDbUser])
 
    const fetchApis = useCallback(() => {
+
+        axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/organizations/'+ organization)
+            .then((res) => {
+                setOrganizationMetadata(res.data)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+
         axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces?organization=' + organization)
             .then((res) => {
                 setApis(res.data)
@@ -62,6 +74,7 @@ const MyApis = () => {
             .catch((err) => {
                 console.log(err)
             })
+        
    }, [organization])
 
    const updateProgress = (job) => {
@@ -122,7 +135,6 @@ const MyApis = () => {
         fetchJob(job.uuid)
     }
 
-
    useEffect(() => {
         if(organization && !apis){
             fetchApis()
@@ -150,20 +162,29 @@ const MyApis = () => {
         }
     }, [user, dbUser, setOrganization, setDbUser])
 
-   const renderApis = () => {
-        return apis.map((api) => {
+   const renderApis = (type) => {
+    console.log(apis)
+        return apis
+        .filter((api) => {
+            if(type == 'external'){
+                return api.owning_organization == 'EXTERNAL'
+            } else {
+                return api.owning_organization == organization
+            }
+        })
+        .map((api) => {
             return (
                 <Grid.Col key={"gridColumn"+api.uuid} xs={4}>
                         <Button key={'button_'+api.uuid} onClick={() => {
                             handleApiClick(api)
                         }} sx={{
                             '&:hover': {
-                                boxShadow: '0 0 0 1px #eaeaff'
+                                boxShadow: type === 'organization' ? '0 0 0 1px #FFDFB4' : '0 0 0 1px #eaeaff'
                             }
                         }} style={{padding: 0, paddingLeft: 2, height: 170, width: 280, backgroundColor: '#ffffff', borderRadius: 20, borderColor: '#f2f0ee'}}>
                             <Container style={{display:'flex', flexDirection: 'column'}}>
                                 <div style={{display:'flex', flexDirection:'row', width: '100vw', height: 60, alignItems: 'left'}}>
-                                    <div style={{display: 'flex',height: 28, width: 28, borderRadius: 4, backgroundColor: '#eaeaff', alignItems:'center', justifyContent:'center'}}>
+                                    <div style={{display: 'flex',height: 28, width: 28, borderRadius: 4, backgroundColor: type === 'organization' ? '#FFDFB4' : '#eaeaff', alignItems:'center', justifyContent:'center'}}>
                                         <Text style={{color:"black"}}>{api.name.charAt(0)}</Text>                                 
                                     </div>
                                     <div style={{width: 190}}/>
@@ -180,14 +201,18 @@ const MyApis = () => {
         })
     }
 
-    function generateAPI () { 
+    function generateAPI (isExternal) {
+        console.log('generating api')
+        console.log(isExternal) 
         setIsCreationLoading(true)
         var newInterface = {
             name: newApiName,
             version: newApiVersion,
             description: newApiDescription,
-            organizationId: organization
+            owning_organization: isExternal ? 'EXTERNAL' : organization,
+            importing_organization: organization
         }
+        console.log(newInterface)
 
         axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces', newInterface).then((res) => {
             router.push('/apis/' + res.data.uuid)
@@ -334,7 +359,11 @@ const MyApis = () => {
                                         <Badge>v2.X</Badge>
                                         <Badge>v3.X</Badge>
                                     </div>
-                                    <ImportApiDropzone setUploadJob={setInitialJob} organizationId={organization} userId={user?.sub}/>
+                                    <ImportApiDropzone 
+                                        setUploadJob={setInitialJob}  
+                                        owning_organization={isExternal ? 'EXTERNAL' : organization} 
+                                        importing_organization={organization}
+                                        userId={user?.sub}/>
                                 </>
                             ) 
                         }
@@ -416,9 +445,8 @@ const MyApis = () => {
                                loading={isCreationLoading}
                                onClick={() => {
                                     setIsCreationLoading(true)
-                                    var api = generateAPI()
+                                    var api = generateAPI(isExternal)
                                     if(api){
-                                        
                                         setModalOpened(false)
                                     }
                                }}
@@ -444,29 +472,73 @@ const MyApis = () => {
                </Tabs>
 
             </Modal>
-            <div style={{height: '100vh', width: '45vw',padding:30, display:'flex', flexDirection:'column'}}>
-                <Text style={{paddingLeft: 20,paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>My APIs</Text>
-                <Container style={{width: '100vw', height: '100vh'}}>
-                    <Grid grow={false}>
-                        <Grid.Col xs={4}>
-                            <Button 
-                            onClick={() => setModalOpened(true)}
-                            sx={{
-                                '&:hover': {
-                                    boxShadow: '0 0 0 1px #eaeaff'
+            <div style={{display:'flex', flexDirection:'column'}}>
+                <div style={{width: '45vw',padding:30, display:'flex', flexDirection:'column'}}>
+                    {
+                        organizationMetadata && organizationMetadata.name ? (
+                            <Text style={{paddingLeft: 20,paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>{organizationMetadata.name} APIs</Text>
+                        ) : (
+                            <Text style={{paddingLeft: 20,paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>My APIs</Text>
+                        )
+                    }
+                    <Container style={{width: '100vw'}}>
+                        <Grid grow={false}>
+                            <Grid.Col xs={4}>
+                                <Button 
+                                onClick={() => {
+                                    if(isExternal){
+                                        setIsExternal(false)
+                                    }
+                                    setModalOpened(true)
                                 }
-                            }}
-                            style={{height: 180, width: 280, backgroundColor: '#f8f6f3', borderRadius: 20}}>
-                                <div style={{display:'flex', flexDirection:'column', alignItems: 'center'}}>
-                                <GrAddCircle style={{height: 35, width: 35, color: '#c4c4c4'}} />
-                                <Text style={{paddingTop: 10,fontFamily:'Visuelt', fontWeight: 100, fontSize: '20px', color:'#000000'}}>Add API Spec</Text>
-                                </div>
-                            </Button>
-                        </Grid.Col>    
-                            {renderApis()}
-                        </Grid>
-                </Container>   
-            </div>   
+                                }
+                                sx={{
+                                    '&:hover': {
+                                        boxShadow: '0 0 0 1px #eaeaff'
+                                    }
+                                }}
+                                style={{height: 180, width: 280, backgroundColor: '#f8f6f3', borderRadius: 20}}>
+                                    <div style={{display:'flex', flexDirection:'column', alignItems: 'center'}}>
+                                    <GrAddCircle style={{height: 35, width: 35, color: '#c4c4c4'}} />
+                                    <Text style={{paddingTop: 10,fontFamily:'Visuelt', fontWeight: 100, fontSize: '20px', color:'#000000'}}>Add {organizationMetadata.name} Spec</Text>
+                                    </div>
+                                </Button>
+                            </Grid.Col>    
+                                {renderApis('organization')}
+                            </Grid>
+                    </Container>   
+                </div>
+                {/* <Divider style={{width: '100vw'}}/> */}
+                <div style={{ width: '45vw',padding:30, display:'flex', flexDirection:'column'}}>
+                    <Text style={{paddingLeft: 20,paddingBottom: 30, fontFamily:'Visuelt', fontWeight: 650, fontSize: '40px'}}>External APIs</Text>
+                    <Container style={{width: '100vw'}}>
+                        <Grid grow={false}>
+                            <Grid.Col xs={4}>
+                                <Button 
+                                onClick={() => {
+                                    if(!isExternal){
+                                        setIsExternal(true)
+                                    }
+                                    setModalOpened(true)
+                                }}
+                                sx={{
+                                    '&:hover': {
+                                        boxShadow: '0 0 0 1px #eaeaff'
+                                    }
+                                }}
+                                style={{height: 180, width: 280, backgroundColor: '#f8f6f3', borderRadius: 20}}>
+                                    <div style={{display:'flex', flexDirection:'column', alignItems: 'center'}}>
+                                    <GrAddCircle style={{height: 35, width: 35, color: '#c4c4c4'}} />
+                                    <Text style={{paddingTop: 10,fontFamily:'Visuelt', fontWeight: 100, fontSize: '20px', color:'#000000'}}>Import External API</Text>
+                                    </div>
+                                </Button>
+                            </Grid.Col>    
+                                {renderApis('external')}
+                            </Grid>
+                    </Container>   
+                </div>   
+            </div>
+           
         </div>
         ) : (
             <div style={{display:'flex',flexDirection:'column',width: '100vw',height:'100vh', justifyContent:'center', alignItems:'center'}}>

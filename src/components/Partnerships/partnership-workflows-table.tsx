@@ -160,17 +160,9 @@ function PartnershipWorkflowsTable({ data, partnershipId, apis, userId}: TableSo
     axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId + '/workflows', newWorkflow).then((res) => {
       console.log(res)
       //Add WorkflowUUID to Partnership Workflows Array
-        newWorkflow['uuid'] = res.data.uuid
-
-        axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId, {
-          workflows: [newWorkflow]
-        }).then((res) => {
-          console.log(res)
-      
-          router.push(`/partnerships/${partnershipId}/workflows/${newWorkflow.uuid}`)
-        }).catch((err) => {
-          console.log(err)
-        })
+        let workflowUUID = res.data.workflow.uuid
+        console.log(res.data.workflow.uuid)
+        router.push(`/partnerships/${partnershipId}/workflows/${workflowUUID}`)
     }).catch((err) => {
       console.log(err)
     }

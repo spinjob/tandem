@@ -254,7 +254,7 @@ const PartnershipApis = ({pid, partnershipApis, partnership}) => {
                                                     </div>
                                                     <div style={{height: 20}}/>
                                                     {
-                                                        partnershipAuthentication && partnershipAuthentication[scheme.parent_interface_uuid] && partnershipAuthentication[scheme.parent_interface_uuid].client_id && partnershipAuthentication[scheme.parent_interface_uuid].client_secret ? (
+                                                        partnershipAuthentication && partnershipAuthentication[scheme.parent_interface_uuid] && partnershipAuthentication[scheme.parent_interface_uuid].client_id && partnershipAuthentication[scheme.parent_interface_uuid].client_secret? (
                                                         
                                                             <div style={{display: 'flex', flexDirection:'column'}}>
                                                                 <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>
@@ -416,7 +416,7 @@ const PartnershipApis = ({pid, partnershipApis, partnership}) => {
                                                             }}  
                                                             placeholder="e.g. X-API-KEY" 
                                                             label={
-                                                                <Text  sx={{fontFamily: 'Visuelt'}}>Key Name</Text>
+                                                                <Text  sx={{fontFamily: 'Visuelt'}}>Header Key</Text>
                                                             } 
                                                             sx={{width: 580}} />
                                                         <PasswordInput
@@ -441,7 +441,7 @@ const PartnershipApis = ({pid, partnershipApis, partnership}) => {
                                                             }}  
                                                             label={
                                                                 <Text sx={{fontFamily: 'Visuelt'}}>
-                                                                    Key
+                                                                    Header Value
                                                                 </Text>
                                                             }  
                                                             sx={{width: 580}} />
@@ -474,6 +474,141 @@ const PartnershipApis = ({pid, partnershipApis, partnership}) => {
 
                                                         }
                                                     </div>
+                                                    <div style={{height: 20}}/>
+                                                    {
+                                                        partnershipAuthentication && partnershipAuthentication[scheme.parent_interface_uuid] && partnershipAuthentication[scheme.parent_interface_uuid].key && partnershipAuthentication[scheme.parent_interface_uuid].keyName ? (
+                                                        
+                                                            <div style={{display: 'flex', flexDirection:'column'}}>
+                                                                <Text sx={{fontFamily: 'Visuelt', fontSize: '20px'}}>
+                                                                    Validate Your Credentials
+                                                                </Text>
+                                                                <Text sx={{width: 600, fontFamily:'Visuelt', fontSize: '15px', fontWeight: 100, color:'#939393'}}>
+                                                                    Click the button below to validate your credentials. If the credentials are valid, you will be able to see the token response.
+                                                                </Text>
+                                                                <div style={{height: 20}}/>
+                                                                <Select 
+                                                                    value={selectedEnvironment}
+                                                                    onChange={(e) => {
+                                                                        setSelectedEnvironment(e)
+                                                                    }}
+                                                                    label= {
+                                                                        <Text sx={{fontFamily: 'Visuelt'}}>
+                                                                            Environment
+                                                                        </Text>
+                                                                    }
+                                                                    sx={{width: 580}}
+                                                                    data={[
+                                                                        {
+                                                                            value: 'Sandbox',
+                                                                            label: 'Sandbox'
+                                                                        },
+                                                                        {
+                                                                            value: 'Production',
+                                                                            label: 'Production'
+                                                                        }
+                                                                    ]}
+                                                                />
+                                                                <TextInput label={
+                                                                    <Text sx={{fontFamily: 'Visuelt'}}>
+                                                                        Token URL
+                                                                    </Text>
+                                                                } sx={{width: 580}} value={
+                                                                    ''
+                                                                }/>
+                                                                {
+                                                                    tokenLoading ? (
+                                                                        <div >
+                                                                            <div style={{height: 20}}/>
+                                                                            <div style={{height: 20}}/>
+                                                                            <Alert color="gray" sx={{fontFamily: 'Visuelt', color: 'black', width: 580}} title={ <Text sx={{fontFamily: 'Visuelt', fontSize: '15px', fontWeight: 500}}> Validating Credentials...</Text>}>  
+                                                                                 <Loader color="gray"  />
+                                                                            </Alert>
+                                                                        </div>
+                                                                    ) : !tokenLoading && testResult && testResult.status == 'success' ? (
+                                                                        <div>
+                                                                            <div style={{height: 20}}/>
+                                                                            <Alert 
+                                                                                sx={{backgroundColor: '#DAFAC0', fontFamily: 'Visuelt', color: 'black', width: 580}}
+                                                                               
+                                                                                title={<Text sx={{fontFamily: 'Visuelt', fontSize: '15px', fontWeight: 500}}>
+                                                                                    Your credentials are valid!
+                                                                                </Text>}>
+                                                                                <div style={{height: 10}}/>
+                                                                                <TextInput disabled label={
+                                                                                <Text sx={{fontFamily: 'Visuelt'}}>
+                                                                                    Token Retrieved
+                                                                                </Text>
+                                                                            } sx={{width: '99%'}} value={
+                                                                                token
+                                                                            }/>
+                                                                            </Alert>
+                                                                            
+                                                                        </div>
+                                                                    ) : !tokenLoading && testResult && testResult.status == 'error' ? (
+                                                                        <div> 
+                                                                            <div style={{height: 20}}/>
+                                                                            <Alert 
+                                                                                sx={{backgroundColor: '#FFBE9A', fontFamily: 'Visuelt', color: 'black', width: 580}}
+                                                                               
+                                                                                title={<Text sx={{fontFamily: 'Visuelt', fontSize: '15px', fontWeight: 500}}>
+                                                                                    Your credentials or environment base URL is invalid. Please confirm both and try again.
+                                                                                </Text>}>
+                                                                                <div style={{height: 10}}/>
+                                                                                <TextInput disabled label={
+                                                                                    <Text sx={{fontFamily: 'Visuelt'}}>
+                                                                                        Error Message
+                                                                                    </Text>
+                                                                            } sx={{width: '99%'}} value={
+                                                                                testResult.error
+                                                                            }/>
+                                                                            </Alert>
+                                                                        </div>
+                                                                    ) : (
+                                                                        null
+                                                                    )
+
+                                                                }
+                                                                
+                                                                <div style={{height: 20}}/>
+                                                                <Button sx={{width: 580}} onClick={() => {
+                                                                        if(partnershipAuthentication && partnershipAuthentication[scheme.parent_interface_uuid]){
+                                                                            if(partnershipAuthentication[scheme.parent_interface_uuid].client_id && partnershipAuthentication[scheme.parent_interface_uuid].client_secret){
+                                                                                if(scheme.flows && scheme.flows[0].tokenUrl){
+                    
+                                                                                    setTokenLoading(true)
+                                                                    
+                                                                                    axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/interfaces/' + selectedApi + '/authenticate/' + scheme.uuid, {
+                                                                                        environment: selectedEnvironment,
+                                                                                        partnershipId: partnership.uuid
+                                                                                    }).then((response) => {
+                                                                                        console.log(response)
+                                                                                        setTokenLoading(false)
+                                                                                        setToken(response.data.tokenData.token)
+                                                                                        setTestResult({
+                                                                                            status: 'success',
+                                                                                            message: 'Successfully retrieved token'
+                                                                                        })
+                                                                                    }).catch((error) => {
+                                                                                        console.log(error)
+                                                                                        setTokenLoading(false)
+                                                                                        setToken(null)
+                                                                                        setTestResult({
+                                                                                            status: 'error',
+                                                                                            message: 'Failed to retrieve token',
+                                                                                            error: error
+                                                                                        })
+                                                                                    }) 
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }} radius={'sm'} style={{backgroundColor: 'white', color:"black", border:'1px solid black'}}>
+                                                                        {tokenLoading ? 'Loading...' : 'Get Token'}
+                                                                    </Button>
+                                                                <div style={{height: 20}}/>
+                                                            </div>
+                                                            ) : null
+                                                    }
+                                                   
                                                     </div>
                     
                                                 ) : ( 

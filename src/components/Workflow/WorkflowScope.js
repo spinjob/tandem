@@ -521,7 +521,7 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
         }
 
     }
-    return typeof window !== 'undefined' ? (
+    return typeof window !== 'undefined' && Object.keys(nodeActions).length > 0 ? (
         <>
             <div ref={printRef} style={{ pageBreakAfter:'always', display: 'flex', flexDirection: 'column', width: '100%', padding: 60}}>
                 
@@ -576,7 +576,8 @@ const WorkflowScope = ({partnership, shouldDownloadPdf, setShouldDownloadPdf}) =
                     {
                         edges.map((edge) => 
                            {
-                                var nodeActionApi = workflow?.apis.filter(api => api.uuid == nodeActions[edge.target].parent_interface_uuid)[0]
+                                var nodeActionApi = nodeActions[edge.target] && nodeActions[edge.target].parent_interface_uuid ? workflow?.apis.filter(api => api.uuid == nodeActions[edge.target].parent_interface_uuid)[0] : null
+                                
                                 return mappings[edge.target] ? (
                                 
                                 <div style={{paddingTop: 30}} key={edge.id}>

@@ -26,7 +26,7 @@ const ApiWebhooks = ({actions, setAction}) => {
         var headerSchema = action.parameterSchema && action.parameterSchema.header ? action.parameterSchema.header : null
         var pathSchema = action.parameterSchema && action.parameterSchema.path ? action.parameterSchema.path : null
         var requestBodySchema = action.requestBody2 && action.requestBody2.schema ? action.requestBody2.schema : null
-        var responseBodySchema = action.responses && action.responses[0].schema ? action.responses[0].schema : null
+        var responseBodySchema = action.responses && action.responses.length > 0 && action.responses[0].schema ? action.responses[0].schema : null
 
         return (
             {

@@ -1,0 +1,695 @@
+{
+  "paths": {
+    "/v1/orders": {
+      "post": {
+        "tags": [
+          "orders_endpoints"
+        ],
+        "summary": "Create order",
+        "operationId": "createOrder",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/applicationIdHeader"
+          },
+          {
+            "$ref": "#/components/parameters/storeIdHeader"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Order"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The order was successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderReference"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "$ref": "#/components/responses/403"
+          },
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "422": {
+            "$ref": "#/components/responses/422"
+          }
+        },
+        "security": [
+          {
+            "OAuth2.0": [
+              "orders.create"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "applicationIdHeader": {
+        "name": "X-Application-Id",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "description": "The plain-text Application Id, provided at onboarding.",
+          "example": "295f76b4-5725-4bf5-a8ab-97943dbdc3b4"
+        }
+      },
+      "storeIdHeader": {
+        "name": "X-Store-Id",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "description": "The ID of the store in your system this call acts on behalf of.",
+          "example": 1
+        }
+      }
+    },
+    "schemas": {
+      "OrderTotal": {
+        "required": [
+          "subtotal"
+        ],
+        "type": "object",
+        "properties": {
+          "subtotal": {
+            "type": "number",
+            "description": "The order's subtotal, as the sum of all item and modifier prices.",
+            "example": 11.97
+          },
+          "claimedSubtotal": {
+            "type": "number",
+            "nullable": true,
+            "description": "The order's claimed subtotal, without guaranteeing this will match calculated subtotal."
+          },
+          "discount": {
+            "type": "number",
+            "nullable": true,
+            "description": "Any discount amount for the order.",
+            "example": 1
+          },
+          "tax": {
+            "type": "number",
+            "nullable": true,
+            "description": "Tax paid by the customer.",
+            "example": 1.1
+          },
+          "tip": {
+            "type": "number",
+            "nullable": true,
+            "description": "Tip paid by the customer.",
+            "example": 2
+          },
+          "deliveryFee": {
+            "type": "number",
+            "nullable": true,
+            "description": "Delivery fee.",
+            "example": 5
+          },
+          "total": {
+            "type": "number",
+            "nullable": true,
+            "description": "Order total including everything paid by the customer.",
+            "example": 19.07
+          },
+          "couponCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Coupon code applied to the order.",
+            "example": "VWXYZ98765"
+          }
+        },
+        "description": "Details about values of the order."
+      },
+      "CustomerPayment": {
+        "required": [
+          "paymentMethod",
+          "processingStatus",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "description": "The portion of the overall amount that needs to be paid.",
+            "example": 2
+          },
+          "processingStatus": {
+            "type": "string",
+            "description": "The processing status of the payment.",
+            "enum": [
+              "COLLECTABLE",
+              "PROCESSED"
+            ]
+          },
+          "paymentMethod": {
+            "type": "string",
+            "description": "The method of payment.",
+            "enum": [
+              "CASH",
+              "CARD",
+              "UNKNOWN",
+              "OTHER",
+              "CHEQUE"
+            ]
+          }
+        }
+      },
+      "OrderExternalIdentifiers": {
+        "required": [
+          "friendlyId",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID for the order that was placed.",
+            "example": "69f60a06-c335-46d9-b5a1-97f1a211c514"
+          },
+          "friendlyId": {
+            "type": "string",
+            "description": "ID used for driver pickup and restaurant management.",
+            "example": "ABCDE"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "description": "Describes the source of the order, typically from a food ordering marketplace.",
+            "example": "ubereats"
+          }
+        },
+        "description": "The external identifiers."
+      },
+      "ItemModifier": {
+        "required": [
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "skuPrice": {
+            "type": "number",
+            "nullable": true,
+            "description": "The stored sku price of this item",
+            "readOnly": true,
+            "example": 1
+          },
+          "id": {
+            "type": "string",
+            "nullable": true,
+            "description": "The unique ID of the modifier product.",
+            "example": "d7a21692-9195-43aa-a58f-5395bba8a804"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "The name of the modifier as displayed to the customer.",
+            "example": "Avocado"
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer",
+            "description": "The number of times the modifier was applied to the given item.",
+            "format": "int32",
+            "example": 1
+          },
+          "price": {
+            "type": "number",
+            "nullable": true,
+            "description": "The price of the sold modifier.",
+            "example": 1
+          },
+          "groupName": {
+            "type": "string",
+            "nullable": true,
+            "description": "The parent group of the modifier item",
+            "example": "Add ons"
+          },
+          "groupId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The unique ID of the parent group",
+            "example": "fb52b138-7ac4-42c1-bfd8-664d57113a41"
+          },
+          "modifiers": {
+            "type": "array",
+            "nullable": true,
+            "description": "Nested modifiers applied to the item.",
+            "items": {
+              "$ref": "#/components/schemas/ItemModifier"
+            }
+          }
+        }
+      },
+      "Item": {
+        "required": [
+          "quantity"
+        ],
+        "type": "object",
+        "properties": {
+          "skuPrice": {
+            "type": "number",
+            "nullable": true,
+            "description": "The stored sku price of this item",
+            "readOnly": true,
+            "example": 5.9
+          },
+          "id": {
+            "type": "string",
+            "nullable": true,
+            "description": "The unique ID of the item.",
+            "example": "33e0418f-3d56-4360-ba03-18fc5f8844a3"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "The name of the item as displayed to the customer.",
+            "example": "Juicy Cheeseburger"
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer",
+            "description": "The quantity of the item ordered by the customer.",
+            "format": "int32",
+            "example": 1
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "An optional item-level note provided by the customer.",
+            "example": "Please cook to well done!"
+          },
+          "categoryId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The unique ID of the category of this item.",
+            "example": "303de078-870d-4349-928b-946869d4d69b"
+          },
+          "categoryName": {
+            "type": "string",
+            "nullable": true,
+            "description": "The name of the category of this item.",
+            "example": "Burgers"
+          },
+          "price": {
+            "type": "number",
+            "nullable": true,
+            "description": "The price of the sold item.",
+            "example": 5.9
+          },
+          "modifiers": {
+            "type": "array",
+            "nullable": true,
+            "description": "Modifiers to the base item.",
+            "items": {
+              "$ref": "#/components/schemas/ItemModifier"
+            }
+          }
+        }
+      },
+      "PersonalIdentifiers": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "taxIdentificationNumber": {
+            "type": "string",
+            "nullable": true,
+            "description": "Person tax identification number.",
+            "example": 1234567890
+          }
+        },
+        "description": "The person's personal identifiers (e.g. tax identification number)."
+      },
+      "Person": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "The person's name as it should be displayed.",
+            "example": "Jane Doe"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "description": "The person's phone number.",
+            "example": "+1-555-555-5555"
+          },
+          "phoneCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "A code or extension of the phone number.",
+            "example": "111 11 111"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true,
+            "description": "The person's email address.",
+            "example": "email@email.com"
+          },
+          "personalIdentifiers": {
+            "$ref": "#/components/schemas/PersonalIdentifiers"
+          }
+        },
+        "description": "The recipient information."
+      },
+      "Courier": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The person's name as it should be displayed.",
+            "example": "Jane Doe"
+          },
+          "phone": {
+            "type": "string",
+            "description": "The person's phone number.",
+            "example": "+1-555-555-5555"
+          },
+          "phoneCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "A code or extension of the phone number.",
+            "example": "111 11 111"
+          },
+          "email": {
+            "type": "string",
+            "description": "The person's email address.",
+            "example": "email@email.com"
+          },
+          "personalIdentifiers": {
+            "$ref": "#/components/schemas/PersonalIdentifiers"
+          }
+        },
+        "description": "Details about the delivery courier."
+      },
+      "Location": {
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "description": "The latitude of the location.",
+            "format": "double",
+            "example": 38.8977
+          },
+          "longitude": {
+            "type": "number",
+            "description": "The longitude of the location.",
+            "format": "double",
+            "example": 77.0365
+          }
+        },
+        "description": "Latitude and longitude of the address."
+      },
+      "Address": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "postalCode": {
+            "type": "string",
+            "description": "Postal code of the address.",
+            "example": "20500"
+          },
+          "city": {
+            "type": "string",
+            "description": "The city/town portion of the address.",
+            "example": "Washington"
+          },
+          "state": {
+            "type": "string",
+            "description": "Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, or a prefecture.",
+            "example": "DC"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "CLDR country code. See http://cldr.unicode.org/",
+            "example": "US"
+          },
+          "addressLines": {
+            "type": "array",
+            "nullable": true,
+            "description": "Address lines (e.g. street, PO Box, or company name).",
+            "example": [
+              "1600 Pennsylvania Avenue NW"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          }
+        },
+        "description": "Order delivery address."
+      },
+      "DeliveryInfo": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "courier": {
+            "$ref": "#/components/schemas/Courier"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "licensePlate": {
+            "type": "string",
+            "nullable": true,
+            "description": "License plate of a vehicle used by the courier.",
+            "example": "ABC 123"
+          },
+          "makeModel": {
+            "type": "string",
+            "nullable": true,
+            "description": "Make and model of a vehicle used by the courier.",
+            "example": "Honda CR-V"
+          },
+          "lastKnownLocation": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "Special delivery instructions, if any.",
+            "example": "Gate code 123"
+          }
+        },
+        "description": "Information on order's delivery process."
+      },
+      "FulfillmentInfo": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "pickupTime": {
+            "type": "string",
+            "nullable": true,
+            "description": "Estimated time (in UTC) that the courier or customer will pick up the order.",
+            "format": "date-time",
+            "example": "2007-12-03T10:15:30+01:00"
+          },
+          "deliveryTime": {
+            "type": "string",
+            "nullable": true,
+            "description": "Estimated time (in UTC) when the order is expected to be delivered. This should be filled in if FulfillmentMode is delivery.",
+            "format": "date-time",
+            "example": "2007-12-03T10:15:30+01:00"
+          },
+          "fulfillmentMode": {
+            "type": "string",
+            "description": "How an order is expected to be fulfilled.",
+            "default": "DELIVERY",
+            "enum": [
+              "DELIVERY",
+              "RESTAURANT_DELIVERY",
+              "PICKUP",
+              "DINE_IN"
+            ]
+          },
+          "schedulingType": {
+            "type": "string",
+            "nullable": true,
+            "description": "Describes whether this order should be cooked as soon as possible, or some time in the future. Please use the pickupTime and/or deliveryTime to indicate when. If no scheduling type is provided, we assume the order should be prepared as soon as possible.",
+            "enum": [
+              "ASAP",
+              "FIXED_TIME"
+            ]
+          },
+          "courierStatus": {
+            "type": "string",
+            "nullable": true,
+            "description": "The status of the courier.",
+            "enum": [
+              "COURIER_ASSIGNED",
+              "COURIER_ON_ROUTE_TO_PICKUP",
+              "COURIER_ARRIVED",
+              "COURIER_PICKED_UP_FOOD",
+              "COURIER_COMPLETED"
+            ]
+          }
+        },
+        "description": "Information on order fulfillment."
+      },
+      "Order": {
+        "required": [
+          "currencyCode",
+          "externalIdentifiers",
+          "orderTotal",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "externalIdentifiers": {
+            "$ref": "#/components/schemas/OrderExternalIdentifiers"
+          },
+          "items": {
+            "type": "array",
+            "description": "Items ordered.",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            }
+          },
+          "orderedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "The date (in UTC) when the order was placed by the customer.",
+            "format": "date-time",
+            "example": "2007-12-03T10:15:30+01:00"
+          },
+          "currencyCode": {
+            "maxLength": 3,
+            "minLength": 3,
+            "type": "string",
+            "description": "The 3-letter currency code (ISO 4217) to use for all monetary values in this order.",
+            "example": "EUR"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Person"
+          },
+          "customerNote": {
+            "type": "string",
+            "nullable": true,
+            "description": "An order-level note provided by the customer.",
+            "example": "Please include extra napkins!"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the order.",
+            "enum": [
+              "NEW_ORDER",
+              "CONFIRMED",
+              "PICKED_UP",
+              "CANCELED",
+              "FULFILLED",
+              "PREPARED",
+              "REJECTED",
+              "UNKNOWN"
+            ]
+          },
+          "deliveryInfo": {
+            "$ref": "#/components/schemas/DeliveryInfo"
+          },
+          "orderTotal": {
+            "$ref": "#/components/schemas/OrderTotal"
+          },
+          "customerPayments": {
+            "type": "array",
+            "nullable": true,
+            "description": "Details about the payments made by the customer.",
+            "items": {
+              "$ref": "#/components/schemas/CustomerPayment"
+            }
+          },
+          "fulfillmentInfo": {
+            "$ref": "#/components/schemas/FulfillmentInfo"
+          }
+        },
+        "description": "An order placed by a customer."
+      }
+    },
+    "responses": {
+      "400": {
+        "description": "The request is malformed.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorMessage"
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Invalid authorization.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorMessage"
+            }
+          }
+        }
+      },
+      "403": {
+        "description": "Authorization not valid for the requested resource.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorMessage"
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Resource not found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorMessage"
+            }
+          }
+        }
+      },
+      "422": {
+        "description": "The request body is not valid.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorMessage"
+            }
+          }
+        }
+      },
+      "2XX": {
+        "description": "Return any 2XX status to indicate that the data was received successfully"
+      }
+    }
+  }
+}

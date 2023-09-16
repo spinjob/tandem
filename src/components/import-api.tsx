@@ -7,9 +7,12 @@ import {TbFileCode} from 'react-icons/tb'
 import axios from 'axios';
 
 type Props = {
-  organizationId: string;
+  owning_organization: string;
+  importing_organization: string;
   userId: string;
   setUploadJob: (job: any | undefined) => void;
+  addToPartnership: boolean | undefined;
+  partnershipId: string | undefined;
 }
 
 const useStyles = createStyles((theme) => ({
@@ -35,17 +38,36 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-async function processJsonFile (file: any, userId: string, organizationId: string) {
+async function processJsonFile (file: any, userId: string, owning_organization: string, importing_organization: string, addToPartnership: boolean = false, partnershipId: string = '') {
 
   var updatedFile = {
     "spec": file,
     "userId": userId,
-    "organizationId": organizationId
+    "owning_organization": owning_organization,
+    "importing_organization": importing_organization
   }
   return new Promise((resolve, reject) => {
     axios.post(process.env.NEXT_PUBLIC_API_BASE_URL+'/interfaces/upload', updatedFile).then((res) => {
+      
       if(res.status === 200) {
-        resolve(res.data)
+        if(addToPartnership) {
+          // New API request to get the actual API's UUID
+          axios.get(process.env.NEXT_PUBLIC_API_BASE_URL+'/interfaces', {params:{job: res.data.uuid}}).then((res2) => {
+            axios.put(process.env.NEXT_PUBLIC_API_BASE_URL+'/projects/'+partnershipId, {
+              'interfaces':[res2.data.uuid]
+            }).then((res3) => {
+              resolve(res3.data)
+            }).catch((err) => {
+              console.log(err)
+              reject({status: 'Error',message: err})
+            })
+          }).catch((err) => {
+            console.log(err)
+            reject({status: 'Error',message: err})
+          })
+        } else {
+          resolve(res.data)
+        }
       }
     }).catch((err) => {
       console.log(err)
@@ -54,7 +76,7 @@ async function processJsonFile (file: any, userId: string, organizationId: strin
   });
 }
 
-const ImportApiDropzone: React.FC<Props> = ({organizationId, userId, setUploadJob}) => {
+const ImportApiDropzone: React.FC<Props> = ({owning_organization, importing_organization, userId, setUploadJob, addToPartnership, partnershipId}) => {
   const { classes, theme } = useStyles();
   const openRef = useRef<() => void>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,7 +97,7 @@ const ImportApiDropzone: React.FC<Props> = ({organizationId, userId, setUploadJo
             reader.onload = () => {
               const binaryStr = reader.result;
               var json = JSON.parse(binaryStr as string)
-              processJsonFile(json, userId, organizationId).then((res) => {
+              processJsonFile(json, userId, owning_organization, importing_organization, addToPartnership, partnershipId).then((res) => {
                 setResult(res)
                 setUploadJob(res)
                 setIsLoading(false);
