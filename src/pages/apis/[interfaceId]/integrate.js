@@ -34,26 +34,18 @@ const Integrate = () => {
             interfaces: [interfaceId]
         }
 
-        axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId + '/workflows', newWorkflow).then((res) => {
-            console.log(res)
-            //Add WorkflowUUID to Partnership Workflows Array
-            newWorkflow['uuid'] = res.data.uuid
-
-            axios.put(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId, {
-                workflows: [newWorkflow]
-                }).then((res) => {
+        axios.post(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + partnershipId + '/workflows', newWorkflow)
+            .then((res) => {
                 console.log(res)
-            
-            router.push(`/partnerships/${partnershipId}/workflows/${newWorkflow.uuid}`)
-                }).catch((err) => {
-                console.log(err)
+                let newWorkflowUuid = res.data.workflow.uuid
+                //Add WorkflowUUID to Partnership Workflows Array
+                router.push(`/partnerships/${partnershipId}/workflows/${newWorkflowUuid}`)
+                setIsLoading(false)
             })
-            setIsLoading(false)
-        }).catch((err) => {
-            console.log(err)
-            setIsLoading(false)
-        }
-        )
+            .catch((err) => {
+                console.log(err)
+                setIsLoading(false)
+            })
     }
 
     useEffect( () => {
