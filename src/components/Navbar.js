@@ -9,6 +9,7 @@ import blackLogoIcon from '../../public/logos/SVG/Icon/Icon_Black.svg'
 import partnershipsIcon from '../../public/icons/Programing, Data.8.svg'
 import commonModelsIcon from '../../public/icons/Programing, Data.svg'
 import organizationIcon from '../../public/icons/high-rise-building.svg'
+import appsIcon from '../../public/icons/puzzle-plug-in-add.svg'
 import apiIcon from '../../public/icons/programming-code.6.svg'
 import logoutIcon from '../../public/icons/exit-door-log-out.3.svg'
 import minimizeNavIcon from '../../public/icons/window-finder-minimize-resize.svg'
@@ -21,7 +22,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
     const {setOrganization} = useContext(AppContext)
     const {dbUser} = useContext(AppContext).state
     const {setDbUser} = useContext(AppContext)
-    const [active, setActive] = useState('Integrations');
+    const [active, setActive] = useState('Projects');
 
     const useStyles = createStyles((theme, _params, getRef) => {
         const icon = getRef('icon');
@@ -141,10 +142,11 @@ const Navigation = ({setIsOpened, isOpened}) => {
       }, [setIsOpened, isOpened]);
 
     const data = [
-        { link: '/', label: 'Integrations' },
-        { link: '/myApis', label: 'My APIs'},
+        { link: '/', label: 'Projects' },
+        { link: '/myApis', label: 'APIs'},
         // { link: '/models', label: 'Models'},
-        { link: '/myOrganization', label: 'My Organization'},
+        // { link: '/apps', label: 'Apps'},
+        { link: '/myOrganization', label: 'Organization'},
 
     ];
     
@@ -152,21 +154,23 @@ const Navigation = ({setIsOpened, isOpened}) => {
 
       if(!isOpened) {
           switch (label) {
-            case 'Integrations':
+            case 'Projects':
                 return <Image alt="partnerships" src={partnershipsIcon} />;
-            case 'My APIs':
+            case 'APIs':
                 return <Image alt="apis" src={apiIcon}/>;
-            case 'My Organization':
+            case 'Organization':
                 return <Image alt="organization" src={organizationIcon}/>;
             // case 'Models':
             //     return <Image alt="commonModels" src={commonModelsIcon}/>;
+            case 'Apps':
+                return <Image alt="apps" src={appsIcon}/>;
             default:
                 return null;
          }
 
       } 
         switch (label) {
-            case 'Integrations':
+            case 'Projects':
                 return <>
                       <div style={{height: 26, width: 26}}>
                           <Image alt="partnerships" src={partnershipsIcon} className={classes.linkIcon} />
@@ -174,7 +178,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
                        <div style={{width: 8}}/>
                       </>
                  ;
-            case 'My APIs':
+            case 'APIs':
                 return  <>
                         <div style={{height: 26, width: 26}}>
                             <Image alt="apis" src={apiIcon} className={classes.linkIcon} />
@@ -182,7 +186,7 @@ const Navigation = ({setIsOpened, isOpened}) => {
                         <div style={{width: 8}}/>
                         </>
             
-            case 'My Organization':
+            case 'Organization':
                 return <>
                         <div style={{height: 26, width: 26}}>
                             <Image alt="organization" src={organizationIcon} className={classes.linkIcon} />
@@ -193,6 +197,13 @@ const Navigation = ({setIsOpened, isOpened}) => {
                 return <>
                         <div style={{height: 26, width: 26}}>
                             <Image alt="commonModels" src={commonModelsIcon} className={classes.linkIcon} />
+                        </div>
+                        <div style={{width: 8}}/>
+                      </>
+            case 'Apps':
+                return <>
+                        <div style={{height: 26, width: 26}}>
+                            <Image alt="appsIcon" src={appsIcon} className={classes.linkIcon} />
                         </div>
                         <div style={{width: 8}}/>
                       </>
@@ -335,12 +346,12 @@ const Navigation = ({setIsOpened, isOpened}) => {
     }, [organization, user, dbUser, fetchDbUser])
 
     useEffect(() => {
-      if (active == 'My APis' && router.route != '/myApis') {
-        setActive('My APIs')
-      } else if (active == 'My Organization' && router.route != '/myOrganization') {
-        setActive('My Organization')
-      } else if (active == 'Integrations' && router.route != '/partnerships') {
-        setActive('Integrations')
+      if (active == 'APIs' && router.route != '/myApis') {
+        setActive('APIs')
+      } else if (active == 'Organization' && router.route != '/myOrganization') {
+        setActive('Organization')
+      } else if (active == 'Projects' && router.route != '/partnerships') {
+        setActive('Projects')
       }
     }, [active, setActive, router.route])
 

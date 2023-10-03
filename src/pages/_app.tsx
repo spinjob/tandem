@@ -1,4 +1,5 @@
 import { AppProps } from "next/app";
+import Head from 'next/head';
 import { Container, MantineProvider } from "@mantine/core";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
 import AppContext from '../context/AppContext';
@@ -50,50 +51,56 @@ export default function App(props: AppProps) {
   }, [router.pathname])
 
   return (
-    <AppContext.Provider
-      value={{
-        state: { 
-          organization: organization,
-          dbUser: dbUser,
-          hideNavigation: hideNavigation
-        },
-        setOrganization: setOrganization,
-        setDbUser: setDbUser,
-        setHideNavigation: setHideNavigation
-      }}
-      >
-      <MantineProvider
-        withCSSVariables
-        withGlobalStyles
-        withNormalizeCSS
-        theme={{
-          components: {
-            Input:{
-              styles: {
-                input: {
-                  fontFamily: "Visuelt"
-                },
-                value: {
-                  fontFamily: "Visuelt"
+    <>
+      <Head>
+        <title>Tandem</title>
+        <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
+      </Head>
+      <AppContext.Provider
+        value={{
+          state: { 
+            organization: organization,
+            dbUser: dbUser,
+            hideNavigation: hideNavigation
+          },
+          setOrganization: setOrganization,
+          setDbUser: setDbUser,
+          setHideNavigation: setHideNavigation
+        }}
+        >
+        <MantineProvider
+          withCSSVariables
+          withGlobalStyles
+          withNormalizeCSS
+          theme={{
+            components: {
+              Input:{
+                styles: {
+                  input: {
+                    fontFamily: "Visuelt"
+                  },
+                  value: {
+                    fontFamily: "Visuelt"
+                  }
                 }
               }
             }
-          }
-        }}
-      >
-        <UserProvider>
-        <div style={{display:'flex'}}>
-          {
-            hideNavigation ? null : <Navigation setIsOpened={setIsOpened} isOpened={isNavOpen} />
-          }
-        <Container size="xl" style={{width: '100%', marginLeft: appMargin}}>
-          <Component {...pageProps} /> 
-        </Container>
-        </div>
-        </UserProvider> 
-        <CustomFonts />
-      </MantineProvider>
+          }}
+        >
+          <UserProvider>
+          <div style={{display:'flex'}}>
+            {
+              hideNavigation ? null : <Navigation setIsOpened={setIsOpened} isOpened={isNavOpen} />
+            }
+          <Container size="xl" style={{width: '100%', marginLeft: appMargin}}>
+            <Component {...pageProps} /> 
+          </Container>
+          </div>
+          </UserProvider> 
+          <CustomFonts />
+        </MantineProvider>
       </AppContext.Provider>
-       
+    </>
+
   );
 }

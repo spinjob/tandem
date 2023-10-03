@@ -90,14 +90,12 @@ const Integrate = () => {
                 <TextInput 
                     style={{width: 300, marginLeft: 20}}
                     placeholder="Partner Code"
-                    iconPosition="right"
                     onChange={(e) => setPartnershipId(e.target.value)}
                 />
                 <div style={{height: 20}}/>
                 <TextInput 
                     style={{width: 300, marginLeft: 20}}
                     placeholder="Email Address"
-                    iconPosition="right"
                     type='email'
                     onChange={(e) => setEmail(e.target.value)}
                 />

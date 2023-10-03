@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { getBezierPath } from 'reactflow';
-import {ActionIcon, Text, Image, Center} from '@mantine/core'
+import {ActionIcon, Text, Image, Center, createStyles} from '@mantine/core'
 import {AiOutlineNodeIndex} from 'react-icons/ai'
 import mappingIcon from '../../../public/icons/Programing, Data.1.svg'
+import repeatIcon from '../../../public/icons/Arrow, Repeat, Rotate.2.svg'
+import filterIcon from '../../../public/icons/filter-sort.3.svg'
 
 const foreignObjectSize = 50;
 import useStore from '../../context/store'
@@ -17,6 +19,11 @@ export default function ButtonEdge({ id, target, source, selected, sourceX, sour
   const [requiredPropertyCount, setRequiredPropertyCount] = useState(null)
   const [edgeSourceHandle, setEdgeSourceHandle] = useState(data?.handleId)
   const selectedEdge = useStore(state => state.selectedEdge)
+  const drawerView = useStore(state => state.drawerView)
+  const setDrawerView = useStore(state => state.setDrawerView)
+
+  const [hovering, setHovering] = useState(false)
+
   const processNestedProperties = (properties, parent) => {
     const nestedPropertyKeys = Object.keys(properties)
     const nestedPropertyValues = Object.values(properties)
@@ -166,50 +173,59 @@ useEffect(() => {
       }
       <foreignObject
         width={foreignObjectSize}
-        height={foreignObjectSize}
+        height={hovering ? foreignObjectSize * 3.5 : foreignObjectSize}
         x={labelX - foreignObjectSize / 2}
         y={labelY - foreignObjectSize / 2}
+        onMouseOver={() => {
+          setHovering(true)
+        }}
+        onMouseOut={() => {
+          setHovering(false)
+        }}
         style={{display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 4}}
       > 
-        {/* {requiredPropertyCount > 0 ? (
-            <div style={{
-              zIndex:1, 
-              position: 'absolute', 
-              marginLeft: 28, 
-              marginTop: -4, 
-              width: 18, 
-              height: 18, 
-              borderRadius: '50%', 
-              border: '1px solid white',
-              backgroundColor: selected ? '#FFBD9A': 'black', 
-              display: 'flex', 
-              alignItems:'center'}}>
-              <Text align="center" style={{width: '100%', height: '100%',fontFamily: 'Visuelt',fontSize: '11px',color: selected ? 'black': 'white', }}>{requiredPropertyCount}</Text> 
+       <ActionIcon 
+          onClick={()=>{
+            setDrawerView('mapping')
+          }}
+          size="xl" 
+          variant="outline" 
+          radius="xl" 
+          style={{borderColor: '#E9ECEF',backgroundColor: selectedEdge?.id == id ? 'black' : 'white'}}>
+            <Image alt="mapping" src={mappingIcon} style={{height: 20, width: 20, marginLeft: -4, filter: selectedEdge?.id == id ? 'invert(100%) sepia(0%) saturate(2%) hue-rotate(342deg) brightness(112%) contrast(101%)' : 'none'}} />
+       </ActionIcon>
+        {
+          hovering && (
+            <div style={{display: 'flex', flexDirection: 'column'}}>
+              <div style={{height: 10}}/>
+              <ActionIcon 
+                onClick={()=>{
+                  setDrawerView('repeat')
+                }} 
+                size="xl" 
+                variant="outline" 
+                radius="xl" 
+                style={{borderColor: '#E9ECEF',backgroundColor: selectedEdge?.id == id ? 'black' : 'white'}}>
+                <Image alt="repeat" src={repeatIcon} style={{height: 20, width: 20, filter: selectedEdge?.id == id ? 'invert(100%) sepia(0%) saturate(2%) hue-rotate(342deg) brightness(112%) contrast(101%)' : 'none'}} />
+              </ActionIcon>
+              <div style={{height: 10}}/>
+              <ActionIcon 
+                onClick={()=>{
+                  setDrawerView('filter')
+                }} 
+                size="xl" 
+                variant="outline" 
+                radius="xl" 
+                style={{borderColor: '#E9ECEF',backgroundColor: selectedEdge?.id == id ? 'black' : 'white'}}>
+                <Image alt="filter" src={filterIcon} style={{height: 20, width: 20, filter: selectedEdge?.id == id ? 'invert(100%) sepia(0%) saturate(2%) hue-rotate(342deg) brightness(112%) contrast(101%)' : 'none'}} />
+              </ActionIcon>
             </div>
-        ) : null
-      } */}
-
-      {selectedEdge?.id == id ? (
-          <ActionIcon size="xl" variant="outline" radius="xl" style={{borderColor: '#E9ECEF',backgroundColor: 'black'}}>
-          {/* <AiOutlineNodeIndex style={{
-            color: 'white',
-            height: 20, 
-            width: 20}} /> */}
-          <Image alt="mapping" src={mappingIcon} style={{height: 20, width: 20, marginLeft: -4, filter: 'invert(100%) sepia(0%) saturate(2%) hue-rotate(342deg) brightness(112%) contrast(101%)'}} />
-          </ActionIcon>
-      ) 
-      : (
-        <ActionIcon size="xl" variant="outline" radius="xl" style={{borderColor: '#E9ECEF',backgroundColor: 'white'}}>
-        {/* <AiOutlineNodeIndex style={{
-          color: 'black',
-          height: 20, 
-          width: 20}} /> */}
-        <Image  alt="mapping" src={mappingIcon} style={{height: 20, width: 20, marginLeft: -4}} />
-      </ActionIcon>
-      )
-      }
-         
+            )
+        }
       </foreignObject>
+
     </>
   );
 }
+
+

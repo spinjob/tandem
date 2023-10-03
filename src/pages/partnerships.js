@@ -142,7 +142,7 @@ const Partnerships = () => {
                 onClose={() => setModalOpened(false)}
                 size="xl"
                 title={
-                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontStyle: 'medium', fontSize: '25px'}}>Create a New Integration</Text>                      
+                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontStyle: 'medium', fontSize: '25px'}}>Create a New Project</Text>                      
                 }
             >
                <NewPartnership organization={organization} apis={apis}/>
@@ -158,7 +158,7 @@ const Partnerships = () => {
                 <div style={{display:'flex'}}>
                     <Card style={{height: 165, width: 253, paddingTop: 38, paddingLeft: 50, backgroundColor: '#ffecea'}}radius={'xl'}>
                         <Card.Section>
-                            <Text sx={{fontFamily:'Visuelt', fontWeight: 500, fontSize: '18px'}}>Integrations</Text>
+                            <Text sx={{fontFamily:'Visuelt', fontWeight: 500, fontSize: '18px'}}>Projects</Text>
                             <Text sx={{fontFamily:'Visuelt', fontWeight: 700, fontSize: '80px'}}>{
                                 partnerships?.length
                             }</Text>
@@ -210,7 +210,7 @@ const Partnerships = () => {
                     }}
                      src={partnershipsTableBackground}
                      >
-                        <Text style={{fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px', paddingBottom: 20, marginTop: -10}}>Integrations</Text>
+                        <Text style={{fontFamily:'Visuelt', fontWeight: 550, fontSize: '20px', paddingBottom: 20, marginTop: -10}}>Projects</Text>
                         <div style={{height: 10}}/>
                         <div style={{display:'flex', justifyContent: 'space-between', paddingBottom: 20}}>
                             <div style={{display:'flex', flexDirection:'row'}}>
@@ -225,7 +225,7 @@ const Partnerships = () => {
                                 {renderStatusFilters()}
                             </div>
                             <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
-                                <Text>New Integration</Text>
+                                <Text>New Project</Text>
                             </Button>
                         </div>
                         <PartnershipsTable statusFilter={statusFilter} data={
@@ -250,7 +250,7 @@ const Partnerships = () => {
                 onClose={() => setModalOpened(false)}
                 size="xl"
                 title={
-                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontStyle: 'medium', fontSize: '25px'}}>Create a New Integratino</Text>                      
+                        <Text style={{fontFamily: 'Visuelt', fontWeight: 650, fontStyle: 'medium', fontSize: '25px'}}>Create a New Project</Text>                      
                 }
             >
                <NewPartnership organization={organization} apis={apis}/>
@@ -400,7 +400,7 @@ const Partnerships = () => {
                                     {renderStatusFilters()}
                                 </div>
                                 <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '35px',width: '175px', borderRadius: 8}}>
-                                    <Text>New Integration</Text>
+                                    <Text>New Project</Text>
                                 </Button>
                             </div>
                             <PartnershipsTable statusFilter={statusFilter} data={
@@ -445,7 +445,7 @@ const Partnerships = () => {
                                                     </Text>
                                                     <div style={{height: 30}}/>
                                                     <Button onClick={() => setModalOpened(true)} style={{backgroundColor: 'black', height: '52px',width: '200px', borderRadius: 8}}>
-                                                        <Text sx={{fontFamily:'Visuelt', fontSize: '20px', fontWeight: 400}}>New Integration</Text>
+                                                        <Text sx={{fontFamily:'Visuelt', fontSize: '20px', fontWeight: 400}}>New Project</Text>
                                                     </Button>
                                                 </div>
                                                 ): (

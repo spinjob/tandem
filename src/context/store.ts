@@ -61,6 +61,8 @@ export type RFState = {
   mappings: {[key: string]: object};
   functions: {[key: string]: object};
   actionProperties: {[key: string]: object};
+  drawerView: string;
+  setDrawerView: (drawerView: string) => void;
   setActionProperties: (actionProperties: {[key: string]: object}) => void;
   setWorkflow: (workflow: WorkflowData) => void;
   setFunctions: (functions: {[key: string]: object}) => void;
@@ -92,6 +94,12 @@ const useStore = create<RFState>((set, get) => (
     actionProperties: {},
     inputPaths: [],
     outputPaths: [],
+    drawerView: "mapping",
+    setDrawerView: (drawerView: string) => {
+      set({
+        drawerView: drawerView
+      })
+    },
     setInputPaths: (inputPaths: Array<string>) => {
       set({
         inputPaths: inputPaths

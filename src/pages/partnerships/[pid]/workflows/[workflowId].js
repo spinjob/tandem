@@ -65,10 +65,18 @@ import axios from 'axios';
 import {v4 as uuidv4} from 'uuid';
 import { toPng } from 'html-to-image';
 
+// Workflow Logic Components
 import ButtonEdge from '../../../../components/Workflow/ButtonEdge';
-import SchemaMappingDrawer from '../../../../components/Workflow/SchemaMappingDrawer';
+import SchemaMappingDrawer from '../../../../components/Workflow/Drawer/SchemaMappingDrawer';
+import FilterDrawer from '../../../../components/Workflow/Drawer/FilterDrawer';
+import RepeatDrawer from '../../../../components/Workflow/Drawer/RepeatDrawer';
 import ActionMappingView from '../../../../components/Workflow/ActionMappingView';
 import MappingModal from '../../../../components/Workflow/MappingModal';
+import mappingIcon from '../../../../../public/icons/Programing, Data.1.svg'
+import repeatIcon from '../../../../../public/icons/Arrow, Repeat, Rotate.2.svg'
+import filterIcon from '../../../../../public/icons/filter-sort.3.svg'
+
+// Workflow Studio View Components
 import WorkflowScope from '../../../../components/Workflow/WorkflowScope';
 import WorkflowMonitor from '../../../../components/Workflow/WorkflowMonitor';
 import WorkflowTestModal from '../../../../components/Workflow/WorkflowTestModal';
@@ -1108,7 +1116,7 @@ function Flow({workflow, apis, actions, webhooks, toggleDrawer, suggestedNodes, 
     return (
         <div style={{ height: '100%', width:'100%', backgroundColor:'#FBFAF9'}}>
             <div style={{position:'absolute', padding: 40, zIndex: 1, height: 40, width: 220}}>
-            <NewNodeButtonMenu />
+            {/* <NewNodeButtonMenu /> */}
             </div>
             <div ref={reactFlowWrapper} style={{height: '100%'}}>
                 <ReactFlow
@@ -1641,6 +1649,7 @@ const WorkflowStudio = () => {
     const [partnership, setPartnership] = useState(null);
     const [workflowActions, setWorkflowActions] = useState(null);
     const [workflowWebhooks, setWorkflowWebhooks] = useState(null);
+    const drawerView = useStore((state) => state.drawerView);
     const [adaptionDrawerOpen, setAdaptionDrawerOpen] = useState(false);
     const [selectedAdaption, setSelectedAdaption] = useState(null);
     const [view, setView] = useState('studio');
@@ -1690,6 +1699,9 @@ const WorkflowStudio = () => {
     const [newApiVersion, setNewApiVersion] = useState('')
     const [isCreationLoading, setIsCreationLoading] = useState(false)
     const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+    console.log("DrawerView");
+    console.log(drawerView);
 
     const updateProgress = (job) => {
         var schemaProgress = job.metadata.schema.status == 'COMPLETED' ? 100 : 0
@@ -2271,8 +2283,6 @@ const WorkflowStudio = () => {
         if (pid && !partnership) {
             axios.get(process.env.NEXT_PUBLIC_API_BASE_URL + '/projects/' + pid + '/details').then((res) => {
                 setPartnership(res.data);
-                console.log(pid)
-                console.log(res.data)
                 var apiArray = [];
 
                 if(res.data.length > 0){
@@ -2796,7 +2806,51 @@ const WorkflowStudio = () => {
                 <WorkflowValidationDrawer nodeValidationResults={nodeValidationResults} setNodeValidationResults={setNodeValidationResults} workflow={workflow[0]} />
             </Drawer>
             <Drawer lockScroll={false} size={610} style={{overflowY: 'scroll', zIndex: 1, position: 'absolute'}} opened={adaptionDrawerOpen} closeOnClickOutside={true} onClose={() => {setAdaptionDrawerOpen(false)}} withOverlay={false} position="right">
-                <SchemaMappingDrawer partnership={partnership[0]} nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
+                <div style={{padding: 12}}>
+                    <div style={{display: 'flex', alignItems: 'center', marginTop:-22}}>
+                        <Image alt="mapping" src={
+                            drawerView == 'mapping' ? (
+                                mappingIcon
+                            ) : drawerView == 'filter' ? (
+                                filterIcon
+                            ) : drawerView == 'repeat' ? (
+                                repeatIcon
+                            ) : null
+    
+                        } style={{height: 30, width: 30, marginRight: 10, filter: 'invert(0%) sepia(1%) saturate(7461%) hue-rotate(43deg) brightness(113%) contrast(100%)'}}/>
+                        <Text style={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500}}>{
+                            drawerView == 'mapping' ? (
+                                'Mapping Configuration'
+                            ) : drawerView == 'filter' ? (
+                                'Stop Workflow'
+                            ) : drawerView == 'repeat' ? (
+                                'Repeat Action'
+                            ) : null
+                        }</Text>
+                    </div>
+                    <div style={{height: 20}}/>
+                    <Divider/>
+                    <Text style={{paddingTop: 20, paddingBottom: 20, fontFamily: 'Visuelt', fontSize: '15px', fontWeight: 300, color: 'grey'}}>
+                        {
+                            drawerView == 'mapping' ? (
+                                "Below are all of the required and optional properties for this action. The API documentation indicates that all of the required properties must have a value mapped or set - not doing so will likely result in failure."
+                            ) : drawerView == 'filter' ? (
+                                "Specify a condition that will filter the data returned by the API.  If the condition is not met, the workflow will not continue."
+                            ) : drawerView == 'repeat' ? (
+                                "Choose an iterative that will determine how many times this action should be called."
+                            ) : null
+                        }
+                    </Text> 
+                </div>
+                {
+                    drawerView == 'mapping' ? (
+                        <SchemaMappingDrawer partnership={partnership[0]} nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
+                    ) : drawerView == 'filter' ? (
+                        <FilterDrawer partnership={partnership[0]} nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
+                    ) : drawerView == 'repeat' ? (
+                        <RepeatDrawer partnership={partnership[0]} nodeActions={nodeActions} sourceNode={nodes.filter((node) => node.id === selectedEdge?.source)[0]} targetNode={nodes.filter((node) => node.id === selectedEdge?.target)[0]} action={nodeActions[selectedAdaption?.target]} toggleMappingModal={toggleMappingModal}/>   
+                    ) : null
+                }
             </Drawer>
             <div style={{
                 display: 'flex',

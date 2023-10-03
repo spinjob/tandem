@@ -25,6 +25,7 @@
     "@mantine/hooks": "^5.10.4",
     "@mantine/next": "^5.10.4",
     "@mantine/notifications": "^5.10.4",
+    "@mergeapi/react-merge-link": "^2.1.2",
     "@monaco-editor/react": "^4.5.1",
     "@next/font": "13.1.6",
     "@pinecone-database/pinecone": "^0.1.5",

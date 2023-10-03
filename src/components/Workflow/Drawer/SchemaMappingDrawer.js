@@ -4,11 +4,11 @@ import {RxArrowRight} from 'react-icons/rx'
 import {AiOutlineCheck} from 'react-icons/ai'
 import {VscWand} from 'react-icons/vsc'
 import {RiCloseCircleFill} from 'react-icons/ri'
-import useStore from '../../context/store'
+import useStore from '../../../context/store'
 import axios from 'axios'
-import mappingIcon from '../../../public/icons/Programing, Data.1.svg'
-import chatIcon from '../../../public/icons/message-chat.svg'
-import blackLogoIcon from '../../../public/logos/SVG/Icon/Icon_Black.svg'
+import mappingIcon from '../../../../public/icons/Programing, Data.1.svg'
+import chatIcon from '../../../../public/icons/message-chat.svg'
+import blackLogoIcon from '../../../../public/logos/SVG/Icon/Icon_Black.svg'
 
 const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode, partnership}) => {
 
@@ -134,8 +134,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 } else if(child?.properties && i == schemaLocationArray.length - 1) {
                     
                     if(schemaLocationArray[i].includes('{{') && schemaLocationArray[i].includes('}}')) {
-                        console.log("Dictionary Key Found")
-                        console.log(schemaLocationArray[i])
                         parentContext.push({contextType: 'dictionary', dictionaryKey: schemaLocationArray[i], parentContextKey: schemaLocationArray[i-1]})
                         return parentContext
                     }
@@ -146,13 +144,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                 } else {     
                     
                     if(parentContext.length > 0){
-                        if(schemaLocationArray[i] == 'string'){
-                            console.log("Schema")
-                            console.log(schemaLocationArray[i])
-                            console.log("Parent Context")
-                            console.log(parentContext)
-                        }
-                       
                         return parentContext
                     }
                     return []
@@ -174,10 +165,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             var parent = schema
             var parentContext = []
 
-            console.log("Schema")
-            console.log(schema)
-
-            
             for (var i = 0; i < schemaLocationArray.length; i++) {
                 var child = parent[schemaLocationArray[i]]
 
@@ -614,7 +601,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
             if (sourceNode?.id == 'trigger' && nodeActions['trigger']?.requestBody2?.schema && inputPaths.length == 0) {
                 var paths = processPaths(nodeActions['trigger'].requestBody2.schema)
                 setInputPaths(paths)
-                console.log("Webhook Trigger")
             } else if (nodeActions[sourceNode?.id]?.responses && Object.keys(nodeActions[sourceNode?.id]?.responses[0]?.schema).length > 0 && inputPaths.length == 0) {
                 var paths = processPaths(nodeActions[sourceNode?.id]?.responses[0]?.schema)
                 setInputPaths(paths)
@@ -702,8 +688,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
                                             var mapping = mappings[targetNode?.id][property.path]
                                             setSelectedMapping({targetProperty: mapping.output, sourceProperty: mapping.input})
                                         } else {
-                                            console.log("Property Selected")
-                                            console.log(property)
                                             if(property.schema){
                                                 const targetProperty = {
                                                     ...property.schema,
@@ -1247,7 +1231,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
 
     }  
     
-
     const fetchMappingSuggestions = () => {
 
         //var promptPrefix = " Provided dot delimited paths to "+ requiredCount +" output data schema properties provide a single dot delimited path from the input schema array that maps best to each output dot delimited property path. Only respond with a parseable JSON dictionary object with this definition {  {{OUTPUT SCHEMA PROPERTY PATH}}: {{INPUT SCHEMA PROPERTY PATH}} }} }.  Neither the output or input property will be an array or an object. The result should only have one key value pair for each of the "+requiredCount+" output property paths. The input and output paths provided should not be altered in the response."
@@ -1268,13 +1251,6 @@ const SchemaMappingDrawer = ({action, toggleMappingModal, sourceNode, targetNode
 
     return (
         <div style={{padding: 12}}>
-            <div style={{display: 'flex', alignItems: 'center', marginTop:-22}}>
-                <Image alt="mapping" src={mappingIcon} style={{height: 30, width: 30, marginRight: 10, filter: 'invert(0%) sepia(1%) saturate(7461%) hue-rotate(43deg) brightness(113%) contrast(100%)'}}/>
-                <Text style={{fontFamily: 'Visuelt', fontSize: '24px', fontWeight: 500}}>Schema Mapping </Text>
-            </div>
-            <div style={{height: 20}}/>
-            <Divider/>
-            <Text style={{paddingTop: 20, paddingBottom: 20, fontFamily: 'Visuelt', fontSize: '15px', fontWeight: 300, color: 'grey'}}>Below are all of the required and optional properties for {action?.name}. The API documentation indicates that all of the required properties must have a value mapped or set - not doing so will likely result in failure.</Text>   
             {
                 nodeActions[sourceNode?.id]?.responses && Object.keys(nodeActions[sourceNode?.id]?.responses[0]?.schema).length > 0 || sourceNode?.id == 'trigger' && nodeActions['trigger']?.requestBody2?.schema ? (
                         <Button 
